@@ -50,11 +50,11 @@ export function Sidebar({ collapsed = false, onToggle, className, mobile = false
       <div className="h-16 px-4 border-b border-gray-200 flex flex-col justify-center relative">
         {!collapsed || mobile ? (
           <>
-            <h1 className="text-xl font-bold text-blue-600">CargoCore</h1>
-            <p className="text-xs text-gray-500">3PL Operations Platform</p>
+            <h1 className="text-xl font-bold text-red-600">Brand Buddy</h1>
+            <p className="text-xs text-gray-500">Brand Operations Platform</p>
           </>
         ) : (
-          <h1 className="text-xl font-bold text-blue-600 text-center">CC</h1>
+          <h1 className="text-xl font-bold text-red-600 text-center">BB</h1>
         )}
         
         {/* Collapse Toggle Button (Desktop only) */}

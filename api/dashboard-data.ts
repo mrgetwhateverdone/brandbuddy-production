@@ -136,8 +136,8 @@ function calculateFinancialImpacts(products: ProductData[], shipments: ShipmentD
   const inactiveProductsValue = products
     .filter(p => !p.active && p.unit_cost)
     .reduce((sum, product) => {
-      // Estimate monthly lost revenue potential
-      return sum + ((product.unit_cost || 0) * product.unit_quantity * 30);
+      // Conservative estimate of weekly lost revenue potential for inactive SKUs
+      return sum + ((product.unit_cost || 0) * Math.min(product.unit_quantity, 10));
     }, 0);
 
   // Calculate total inventory value at risk
@@ -190,7 +190,7 @@ async function generateInsights(
     if (atRiskCount > 0 && financialImpacts.quantityDiscrepancyImpact > 0) {
       insights.push({
         type: "warning",
-        title: "Quantity Discrepancy Impact",
+        title: "Improve Shipment and Fulfillment Performance", 
         description: `${atRiskCount} shipments (${atRiskPercentage}%) have quantity discrepancies with financial impact of $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()}.`,
         severity: financialImpacts.quantityDiscrepancyImpact > 10000 ? "critical" : "warning",
         dollarImpact: financialImpacts.quantityDiscrepancyImpact,
@@ -201,7 +201,7 @@ async function generateInsights(
       const cancelledCount = shipments.filter(s => s.status === "cancelled").length;
       insights.push({
         type: "warning", 
-        title: "Cancelled Shipments Impact",
+        title: "Reduce Supplier Concentration Risk",
         description: `${cancelledCount} cancelled shipments represent $${financialImpacts.cancelledShipmentsImpact.toLocaleString()} in lost inventory value.`,
         severity: financialImpacts.cancelledShipmentsImpact > 5000 ? "critical" : "warning",
         dollarImpact: financialImpacts.cancelledShipmentsImpact,
@@ -212,8 +212,8 @@ async function generateInsights(
     if (inactiveProducts > 0 && financialImpacts.inactiveProductsValue > 0) {
       insights.push({
         type: "info",
-        title: "Inactive Product Revenue Loss",
-        description: `${inactiveProducts} inactive products represent potential monthly revenue loss of $${financialImpacts.inactiveProductsValue.toLocaleString()}.`,
+        title: "Optimize Inventory and Product Portfolio",
+        description: `${inactiveProducts} inactive products represent potential opportunity cost of $${financialImpacts.inactiveProductsValue.toLocaleString()}.`,
         severity: "info",
         dollarImpact: financialImpacts.inactiveProductsValue,
       });
@@ -358,30 +358,30 @@ CRITICAL: suggestedActions must be:
   if (atRiskCount > 0 && financialImpacts.quantityDiscrepancyImpact > 0) {
     insights.push({
       type: "warning",
-      title: "Quantity Discrepancy Impact",
+      title: "Improve Shipment and Fulfillment Performance",
       description: `${atRiskCount} shipments (${atRiskPercentage}%) have quantity discrepancies with financial impact of $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()}.`,
-      severity: financialImpacts.quantityDiscrepancyImpact > 10000 ? "critical" : "warning",
+      severity: financialImpacts.quantityDiscrepancyImpact > 10000 ? "critical" : "warning", 
       dollarImpact: financialImpacts.quantityDiscrepancyImpact,
     });
   }
   
   if (financialImpacts.cancelledShipmentsImpact > 0) {
     const cancelledCount = shipments.filter(s => s.status === "cancelled").length;
-    insights.push({
-      type: "warning", 
-      title: "Cancelled Shipments Impact",
-      description: `${cancelledCount} cancelled shipments represent $${financialImpacts.cancelledShipmentsImpact.toLocaleString()} in lost inventory value.`,
-      severity: financialImpacts.cancelledShipmentsImpact > 5000 ? "critical" : "warning",
-      dollarImpact: financialImpacts.cancelledShipmentsImpact,
-    });
+          insights.push({
+        type: "warning", 
+        title: "Reduce Supplier Concentration Risk",
+        description: `${cancelledCount} cancelled shipments represent $${financialImpacts.cancelledShipmentsImpact.toLocaleString()} in lost inventory value.`,
+        severity: financialImpacts.cancelledShipmentsImpact > 5000 ? "critical" : "warning",
+        dollarImpact: financialImpacts.cancelledShipmentsImpact,
+      });
   }
   
   const inactiveProducts = products.filter((p) => !p.active).length;
   if (inactiveProducts > 0 && financialImpacts.inactiveProductsValue > 0) {
     insights.push({
-      type: "info",
-      title: "Inactive Product Revenue Loss",
-      description: `${inactiveProducts} inactive products represent potential monthly revenue loss of $${financialImpacts.inactiveProductsValue.toLocaleString()}.`,
+      type: "info", 
+      title: "Optimize Inventory and Product Portfolio",
+      description: `${inactiveProducts} inactive products represent potential opportunity cost of $${financialImpacts.inactiveProductsValue.toLocaleString()}.`,
       severity: "info",
       dollarImpact: financialImpacts.inactiveProductsValue,
     });

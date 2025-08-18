@@ -164,8 +164,8 @@ export function InboundIntelligenceSection({ inboundIntelligence, isLoading, onV
       });
     }
 
-    // This part of the code limits to 15 items for main page display
-    return sorted.slice(0, 15);
+    // This part of the code limits to 10 items for main page display
+    return sorted.slice(0, 10);
   }, [activeTab, searchTerm, inboundIntelligence, sortField, sortDirection]);
 
   // This part of the code gets all sorted data for the View All functionality
@@ -492,7 +492,7 @@ export function InboundIntelligenceSection({ inboundIntelligence, isLoading, onV
         </div>
         
         {/* This part of the code displays the bubble View All button at the bottom */}
-        {onViewAll && allSortedData.length > 15 && (
+        {onViewAll && allSortedData.length > 10 && (
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 text-center">
             <button
               onClick={onViewAll}

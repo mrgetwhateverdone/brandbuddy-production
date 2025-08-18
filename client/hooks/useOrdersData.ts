@@ -138,7 +138,7 @@ export const useOrdersConnectionStatus = () => {
 /**
  * Orders table data hook with pagination and filtering
  */
-export const useOrdersTable = (limit: number = 15) => {
+export const useOrdersTable = (limit: number = 10) => {
   const { data: ordersData, isLoading, error } = useOrdersData();
 
   const orders = ordersData?.orders || [];

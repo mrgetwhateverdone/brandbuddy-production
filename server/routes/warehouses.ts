@@ -456,9 +456,9 @@ function generateOptimizationRecommendations(warehouses: any[]) {
 async function fetchProductsInternal() {
   const baseUrl = process.env.TINYBIRD_BASE_URL!;
   const token = process.env.TINYBIRD_TOKEN!;
-  const url = `${baseUrl}?token=${token}&limit=100&company_url=COMP002_packiyo`;
+  const url = `${baseUrl}?token=${token}&limit=100&brand_name=Callahan-Smith`;
   
-  console.log("🏭 Server: Fetching products from product_details_mv API with COMP002_packiyo filter");
+  console.log("🏭 Server: Fetching products from product_details_mv API with Callahan-Smith brand filter");
   
   const response = await fetch(url);
   if (!response.ok) throw new Error("TinyBird Products API Error");
@@ -469,9 +469,9 @@ async function fetchProductsInternal() {
 async function fetchShipmentsInternal() {
   const baseUrl = process.env.WAREHOUSE_BASE_URL!;
   const token = process.env.WAREHOUSE_TOKEN!;
-  const url = `${baseUrl}?token=${token}&limit=150&company_url=COMP002_3PL`;
+  const url = `${baseUrl}?token=${token}&limit=150&brand_name=Callahan-Smith`;
   
-  console.log("🏭 Server: Fetching shipments from inbound_shipments_details_mv API with COMP002_3PL filter");
+  console.log("🏭 Server: Fetching shipments from inbound_shipments_details_mv API with Callahan-Smith brand filter");
   
   const response = await fetch(url);
   if (!response.ok) throw new Error("TinyBird Shipments API Error");

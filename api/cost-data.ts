@@ -54,7 +54,7 @@ async function fetchShipments(): Promise<ShipmentData[]> {
     console.log("🔒 Phase 1: Fetching cost management data from TinyBird...");
     
     // This part of the code uses the exact same URL pattern as working dashboard API
-    const url = `${baseUrl}?token=${token}&limit=1000&company_url=COMP002_3PL`;
+    const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
     console.log("🔒 Cost API: Fetching from:", url.replace(token, 'TOKEN_HIDDEN'));
 
     const response = await fetch(url);

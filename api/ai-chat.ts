@@ -47,8 +47,8 @@ async function fetchAllOperationalData(): Promise<{
 
   // This part of the code fetches products and shipments in parallel for optimal performance
   const [productsResponse, shipmentsResponse] = await Promise.all([
-    fetch(`${baseUrl}?token=${token}&limit=150&company_url=COMP002_packiyo`),
-    fetch(`${warehouseBaseUrl}?token=${warehouseToken}&limit=200&company_url=COMP002_3PL`)
+    fetch(`${baseUrl}?token=${token}&limit=150&brand_name=Callahan-Smith`),
+    fetch(`${warehouseBaseUrl}?token=${warehouseToken}&limit=200&brand_name=Callahan-Smith`)
   ]);
 
   if (!productsResponse.ok || !shipmentsResponse.ok) {

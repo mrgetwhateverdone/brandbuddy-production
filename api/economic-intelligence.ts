@@ -81,7 +81,7 @@ async function fetchProducts(): Promise<ProductData[]> {
   }
 
   try {
-    const response = await fetch(`${baseUrl}?token=${token}&limit=500&company_url=COMP002_packiyo`);
+    const response = await fetch(`${baseUrl}?token=${token}&limit=500&brand_name=Callahan-Smith`);
     
     if (!response.ok) {
       throw new Error(`TinyBird API error: ${response.status}`);
@@ -108,7 +108,7 @@ async function fetchShipments(): Promise<ShipmentData[]> {
   }
 
   try {
-    const response = await fetch(`${baseUrl}?token=${token}&limit=500&company_url=COMP002_3PL`);
+    const response = await fetch(`${baseUrl}?token=${token}&limit=500&brand_name=Callahan-Smith`);
     
     if (!response.ok) {
       throw new Error(`TinyBird API error: ${response.status}`);

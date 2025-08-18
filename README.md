@@ -1,14 +1,14 @@
-# CargoCore - Enterprise 3PL Operations Platform 🚀
+# BrandBuddy - Brand Operations Management Platform 🚀
 
-> **Powered by Heft IQ** - A sophisticated, production-ready 3PL (Third-Party Logistics) operations platform with real-time data integration, AI-powered insights, advanced analytics, and comprehensive warehouse management capabilities.
+> **Powered by Heft IQ** - A sophisticated, production-ready brand operations platform focused on Callahan-Smith brand management with real-time data integration, AI-powered insights, advanced analytics, and comprehensive operational oversight.
 
-![CargoCore Platform](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
+![BrandBuddy Platform](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
 ![Tech Stack](https://img.shields.io/badge/React%2018-TypeScript-blue)
 ![Authentication](https://img.shields.io/badge/Auth-Clerk-purple)
 
 ## 🌟 Platform Overview
 
-CargoCore is a comprehensive enterprise-grade platform designed to revolutionize 3PL operations through intelligent automation, real-time analytics, and AI-driven insights. Built with modern technologies and industry best practices for scalability, security, and performance.
+BrandBuddy is a comprehensive enterprise-grade platform designed to revolutionize brand operations management through intelligent automation, real-time analytics, and AI-driven insights. Focused specifically on Callahan-Smith brand operations with modern technologies and industry best practices for scalability, security, and performance.
 
 ## 🚀 Quick Start
 

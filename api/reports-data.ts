@@ -132,7 +132,7 @@ async function fetchProducts(): Promise<ProductData[]> {
   try {
     console.log("🔒 Vercel API: Fetching products data from TinyBird...");
     
-    const url = `${baseUrl}?token=${token}&limit=1000&company_url=COMP002_packiyo`;
+    const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
     
     const response = await fetch(url);
     if (!response.ok) {
@@ -165,7 +165,7 @@ async function fetchShipments(): Promise<ShipmentData[]> {
   try {
     console.log("🔒 Vercel API: Fetching shipments data from TinyBird...");
     
-    const url = `${baseUrl}?token=${token}&limit=1000&company_url=COMP002_3PL`;
+    const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
     
     const response = await fetch(url);
     if (!response.ok) {

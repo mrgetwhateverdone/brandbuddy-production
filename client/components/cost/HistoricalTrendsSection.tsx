@@ -168,7 +168,7 @@ export function HistoricalTrendsSection({ historicalTrends, isLoading }: Histori
             
             <div className="pt-3 border-t border-gray-200 text-xs text-gray-500">
               Trend analysis based on real warehouse SLA performance, throughput data, 
-              and seasonal patterns from COMP002_packiyo
+              and seasonal patterns for Callahan-Smith brand
             </div>
           </div>
         </div>

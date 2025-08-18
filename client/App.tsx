@@ -13,7 +13,7 @@ import { ThemeProvider } from "next-themes";
 import { SettingsProvider } from "@/contexts/SettingsContext";
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-react";
 
-console.log("🚀 CargoCore: App.tsx loading...");
+console.log("🚀 BrandBuddy: App.tsx loading...");
 
 // This part of the code configures Clerk authentication
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || "pk_test_YW1hemluZy1kb3J5LTY1LmNsZXJrLmFjY291bnRzLmRldiQ";
@@ -53,7 +53,7 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  console.log("🎯 CargoCore: App component rendering...");
+  console.log("🎯 BrandBuddy: App component rendering...");
 
   return (
     <ErrorBoundary>
@@ -73,6 +73,14 @@ const App = () => {
                   <Route path="/contact" element={<Contact />} />
 
                   {/* Protected Dashboard & App Pages */}
+                  <Route 
+                    path="/overview" 
+                    element={
+                      <SignedIn>
+                        <Dashboard />
+                      </SignedIn>
+                    } 
+                  />
                   <Route 
                     path="/dashboard" 
                     element={
@@ -175,12 +183,12 @@ const App = () => {
   );
 };
 
-console.log("🔧 CargoCore: Setting up React root...");
+console.log("🔧 BrandBuddy: Setting up React root...");
 const rootElement = document.getElementById("root");
 if (!rootElement) {
   console.error("❌ No root element found!");
 } else {
   console.log("✅ Root element found, creating React app...");
   createRoot(rootElement).render(<App />);
-  console.log("🎉 CargoCore: React app initialized!");
+  console.log("🎉 BrandBuddy: React app initialized!");
 }

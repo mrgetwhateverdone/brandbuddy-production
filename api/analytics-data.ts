@@ -86,8 +86,8 @@ async function fetchProducts(): Promise<ProductData[]> {
     );
   }
 
-  // This part of the code fetches from product_details_mv API with COMP002_packiyo company filter
-  const url = `${baseUrl}?token=${token}&limit=100&company_url=COMP002_packiyo`;
+  // This part of the code fetches from product_details_mv API with Callahan-Smith brand filter
+  const url = `${baseUrl}?token=${token}&limit=100&brand_name=Callahan-Smith`;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -111,8 +111,8 @@ async function fetchShipments(): Promise<ShipmentData[]> {
     );
   }
 
-  // This part of the code fetches from inbound_shipments_details_mv API with COMP002_3PL company filter
-  const url = `${baseUrl}?token=${token}&limit=150&company_url=COMP002_3PL`;
+  // This part of the code fetches from inbound_shipments_details_mv API with Callahan-Smith brand filter
+  const url = `${baseUrl}?token=${token}&limit=150&brand_name=Callahan-Smith`;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);

@@ -306,7 +306,7 @@ async function fetchProductsInternal() {
   const baseUrl = process.env.TINYBIRD_BASE_URL!;
   const token = process.env.TINYBIRD_TOKEN!;
   // Add filters for specific company and brand + limit for performance
-  const url = `${baseUrl}?token=${token}&limit=100&company_url=COMP002_packiyo&brand_id=561bdd14-630a-4a0c-9493-50a513bbb946`;
+  const url = `${baseUrl}?token=${token}&limit=100&brand_name=Callahan-Smith`;
   console.log("📦 Local: Fetching products with limit=100 for faster response");
 
   const response = await fetch(url);
@@ -318,10 +318,10 @@ async function fetchProductsInternal() {
 async function fetchShipmentsInternal() {
   const baseUrl = process.env.WAREHOUSE_BASE_URL!;
   const token = process.env.WAREHOUSE_TOKEN!;
-  // This part of the code fetches from inbound_shipments_details_mv API with COMP002_3PL company filter
-  const url = `${baseUrl}?token=${token}&limit=150&company_url=COMP002_3PL`;
+  // This part of the code fetches from inbound_shipments_details_mv API with Callahan-Smith brand filter
+  const url = `${baseUrl}?token=${token}&limit=150&brand_name=Callahan-Smith`;
   console.log(
-    "🚛 Local: Fetching shipments from inbound_shipments_details_mv API with COMP002_3PL filter",
+    "🚛 Local: Fetching shipments from inbound_shipments_details_mv API with Callahan-Smith brand filter",
   );
 
   const response = await fetch(url);

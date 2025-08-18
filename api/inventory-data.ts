@@ -26,7 +26,7 @@ async function fetchProducts(): Promise<ProductData[]> {
   }
 
   // This part of the code matches the working dashboard API URL pattern
-  const url = `${baseUrl}?token=${token}&limit=1000&company_url=COMP002_packiyo`;
+  const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
   
   try {
     console.log("🔒 Fetching from TinyBird:", url.replace(token, "[TOKEN]"));

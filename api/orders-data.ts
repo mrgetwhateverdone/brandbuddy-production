@@ -72,8 +72,8 @@ async function fetchShipments(): Promise<ShipmentData[]> {
     );
   }
 
-  // This part of the code fetches from inbound_shipments_details_mv API with COMP002_3PL company filter
-  const url = `${baseUrl}?token=${token}&limit=1000&company_url=COMP002_3PL`;
+  // This part of the code fetches from inbound_shipments_details_mv API with Callahan-Smith brand filter
+  const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}: ${response.statusText}`);

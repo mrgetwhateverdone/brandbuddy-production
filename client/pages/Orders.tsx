@@ -85,8 +85,13 @@ export default function Orders() {
             {/* KPI Section - Orders Today, At-Risk Orders, Open POs, Unfulfillable SKUs */}
             <OrdersKPISection kpis={data.kpis} isLoading={isLoading} />
 
-            {/* AI Insights Section - Orders Agent Insights */}
-            <InsightsSection insights={data.insights} isLoading={isLoading} />
+            {/* AI Insights Section - Order Analysis Agent Insights */}
+            <InsightsSection 
+              insights={data.insights} 
+              isLoading={isLoading}
+              title="Insights"
+              subtitle={`${data.insights?.length || 0} insights from Order Analysis Agent`}
+            />
 
             {/* Main Orders Table Section - Shows top 15 orders with AI explanations */}
             <OrdersTableSection

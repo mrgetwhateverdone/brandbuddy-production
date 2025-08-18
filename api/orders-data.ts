@@ -265,6 +265,26 @@ async function generateOrdersInsights(
   kpis: any,
   inboundIntelligence: any
 ): Promise<any[]> {
+  // This part of the code calculates comprehensive analytics for Order Analysis Agent
+  const totalOrderValue = orders.reduce((sum, order) => sum + ((order.unit_cost || 0) * order.expected_quantity), 0);
+  const avgOrderValue = orders.length > 0 ? totalOrderValue / orders.length : 0;
+  
+  // Supplier analytics
+  const supplierGroups = orders.reduce((acc, order) => {
+    const supplier = order.supplier || 'Unknown';
+    if (!acc[supplier]) acc[supplier] = [];
+    acc[supplier].push(order);
+    return acc;
+  }, {} as Record<string, OrderData[]>);
+  const topSupplier = Object.entries(supplierGroups).sort(([, a], [, b]) => b.length - a.length)[0];
+  
+  // Status analytics
+  const cancelledOrders = orders.filter(o => o.status.includes('cancelled')).length;
+  const cancellationRate = orders.length > 0 ? (cancelledOrders / orders.length) * 100 : 0;
+  
+  // Time analytics
+  const sixMonthsAgo = new Date(Date.now() - (6 * 30 * 24 * 60 * 60 * 1000));
+  const oldOrders = orders.filter(o => new Date(o.created_date) < sixMonthsAgo).length;
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     // This part of the code returns empty insights when no API key is available - no fallback data
@@ -284,62 +304,71 @@ async function generateOrdersInsights(
         messages: [
           {
             role: "user",
-            content: `You are a supply chain optimization expert. Analyze order flow patterns and provide operational intelligence for process improvement.
+            content: `You are an Order Analysis Agent - a specialized AI assistant analyzing comprehensive order operations data. Provide strategic insights based on complete order analytics including KPIs, supplier performance, financial metrics, time patterns, and status intelligence.
 
-FLOW ANALYSIS:
-==============
+COMPREHENSIVE ORDER ANALYSIS:
+============================
 
-ORDER VELOCITY & THROUGHPUT:
-- Current Daily Orders: ${kpis.ordersToday || 0}
-- At-Risk Orders: ${kpis.atRiskOrders} (${inboundIntelligence.totalInbound > 0 ? ((kpis.atRiskOrders / inboundIntelligence.totalInbound) * 100).toFixed(1) : 0}% of total)
-- Open Purchase Orders: ${kpis.openPOs}
-- Processing Bottlenecks: ${kpis.unfulfillableSKUs} unfulfillable SKUs
-- Perfect Order Rate: ${inboundIntelligence.totalInbound > 0 ? (((inboundIntelligence.totalInbound - inboundIntelligence.delayedShipments.count) / inboundIntelligence.totalInbound) * 100).toFixed(1) : 100}%
+ORDER VALUE INTELLIGENCE:
+- Total Order Portfolio Value: $${totalOrderValue.toLocaleString()}
+- Average Order Value: $${avgOrderValue.toFixed(2)}
+- Daily Order Velocity: ${kpis.ordersToday || 0} orders today
+- At-Risk Orders: ${kpis.atRiskOrders} (${inboundIntelligence.totalInbound > 0 ? ((kpis.atRiskOrders / inboundIntelligence.totalInbound) * 100).toFixed(1) : 0}% of portfolio)
+- Open Purchase Orders: ${kpis.openPOs} active POs
+- Unfulfillable SKUs: ${kpis.unfulfillableSKUs} with fulfillment issues
 
-SUPPLIER ECOSYSTEM INTELLIGENCE:
+SUPPLIER PERFORMANCE MATRIX:
+- Active Supplier Count: ${Object.keys(supplierGroups).length} suppliers
+- Top Volume Supplier: ${topSupplier ? topSupplier[0] : 'N/A'} (${topSupplier ? topSupplier[1].length : 0} orders)
+- Supplier Concentration Risk: ${topSupplier && orders.length > 0 ? ((topSupplier[1].length / orders.length) * 100).toFixed(1) : 0}% from top supplier
 - Total Inbound Shipments: ${inboundIntelligence.totalInbound}
 - Delayed Shipments: ${inboundIntelligence.delayedShipments.count} (${(inboundIntelligence.delayedShipments.percentage || 0).toFixed(1)}%)
 - Average Lead Time Variance: ${(inboundIntelligence.avgDelayDays || 0).toFixed(1)} days delay
-- Financial Impact of Delays: $${inboundIntelligence.valueAtRisk.toLocaleString()}
 - Supplier Reliability Rate: ${inboundIntelligence.totalInbound > 0 ? (((inboundIntelligence.totalInbound - inboundIntelligence.delayedShipments.count) / inboundIntelligence.totalInbound) * 100).toFixed(1) : 100}%
 
-DEMAND PATTERN RECOGNITION:
-- Order Volume Trend: ${kpis.ordersToday > 0 ? 'Active daily flow' : 'Low volume period'}
-- Inventory Availability: ${((orders.length - kpis.unfulfillableSKUs) / Math.max(orders.length, 1) * 100).toFixed(1)}% fulfillable
+STATUS & LIFECYCLE INTELLIGENCE:
+- Cancellation Rate: ${cancellationRate.toFixed(1)}% (Industry benchmark: 15%)
 - Processing Efficiency: ${inboundIntelligence.totalInbound > 0 ? (((inboundIntelligence.totalInbound - kpis.atRiskOrders) / inboundIntelligence.totalInbound) * 100).toFixed(1) : 100}% orders on track
-- Supply Chain Velocity: ${inboundIntelligence.avgDelayDays > 0 ? (1 / (inboundIntelligence.avgDelayDays + 1) * 100).toFixed(1) : 95}% optimal speed
+- Perfect Order Rate: ${inboundIntelligence.totalInbound > 0 ? (((inboundIntelligence.totalInbound - inboundIntelligence.delayedShipments.count) / inboundIntelligence.totalInbound) * 100).toFixed(1) : 100}%
+- Order Lifecycle Health Score: ${Math.max(0, Math.min(100, ((orders.length - cancelledOrders - kpis.atRiskOrders) / Math.max(orders.length, 1)) * 100)).toFixed(0)}/100
 
-RISK & RESILIENCE ASSESSMENT:
+TIME-BASED PATTERN ANALYSIS:
+- Order Age Distribution: ${oldOrders} orders (${orders.length > 0 ? ((oldOrders / orders.length) * 100).toFixed(1) : 0}%) older than 6 months
+- Supply Chain Velocity: ${inboundIntelligence.avgDelayDays > 0 ? (1 / (inboundIntelligence.avgDelayDays + 1) * 100).toFixed(1) : 95}% optimal speed
+- Inventory Fulfillment Rate: ${((orders.length - kpis.unfulfillableSKUs) / Math.max(orders.length, 1) * 100).toFixed(1)}%
+
+FINANCIAL RISK ASSESSMENT:
+- Financial Impact of Delays: $${inboundIntelligence.valueAtRisk.toLocaleString()}
 - Supply Chain Risk Score: ${Math.min(10, Math.max(1, (inboundIntelligence.delayedShipments.percentage || 0) / 10 + (kpis.atRiskOrders / Math.max(inboundIntelligence.totalInbound, 1)) * 10)).toFixed(1)}/10
 - Geographic Risk Exposure: ${inboundIntelligence.geopoliticalRisks ? 
   `${inboundIntelligence.geopoliticalRisks.riskCountries.join(', ')} (${inboundIntelligence.geopoliticalRisks.affectedShipments} shipments affected)` : 
   'Low geographic concentration risk'}
-- Financial Exposure: $${inboundIntelligence.valueAtRisk.toLocaleString()} at risk
 - Recovery Capacity: ${Math.max(1, 10 - (inboundIntelligence.delayedShipments.percentage || 0) / 10).toFixed(1)}/10
 
-PROVIDE OPERATIONAL STRATEGY (2-4 insights based on operational impact):
-Focus on flow optimization and supplier performance issues with measurable ROI.
+AS ORDER ANALYSIS AGENT, PROVIDE STRATEGIC OPERATIONAL INSIGHTS (2-4 insights):
+Focus on comprehensive order analytics covering value optimization, supplier performance, time efficiency, and status intelligence with measurable business impact.
 
-Each insight should address implementable changes with 30-90 day impact timelines.
+Each insight should address implementable changes with 30-90 day impact timelines based on the complete order analytics dashboard.
 
-FORMAT AS OPERATIONS PLAYBOOK JSON:
+FORMAT AS ORDER ANALYSIS PLAYBOOK JSON:
 [
   {
     "type": "warning",
-    "title": "Supply Chain Strategy Title",
-    "description": "Operational analysis with flow optimization, supplier intelligence, and resilience recommendations with specific implementation steps",
+    "title": "Order Analytics Strategic Initiative",
+    "description": "Comprehensive analysis covering order value, supplier performance, time patterns, and status intelligence with specific implementation roadmap",
     "severity": "critical|warning|info",
     "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Audit delayed shipments from high-risk suppliers", "Implement SLA tracking dashboard for critical orders", "Negotiate backup suppliers for geographic risk countries"]
+    "suggestedActions": ["Optimize high-value order processing for top suppliers", "Implement real-time status tracking for aging orders", "Diversify supplier portfolio to reduce concentration risk"]
   }
 ]
 
-CRITICAL: suggestedActions must be:
-- Specific operational tasks (not generic placeholders)
-- Address real issues identified in the data analysis
-- Ordered by urgency (most critical first, preventive measures last)
-- Include specific supplier names, countries, or order types when relevant
-- Between 1-4 actions based on the complexity of the operational issue`,
+CRITICAL REQUIREMENTS for Order Analysis Agent:
+- Reference specific data from order value, supplier, time, and status analytics
+- Include supplier names, financial impacts, or processing timeframes when relevant  
+- Address operational issues across the entire orders dashboard scope
+- Ordered by business impact (financial/operational urgency first)
+- Between 2-4 actionable insights based on comprehensive order analysis
+- Focus on measurable ROI and operational efficiency improvements`,
           },
         ],
         max_tokens: 700,

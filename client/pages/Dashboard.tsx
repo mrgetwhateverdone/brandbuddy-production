@@ -169,11 +169,50 @@ export default function Dashboard() {
                 <h2 className="text-lg font-semibold text-gray-900">Daily Brief</h2>
               </div>
               <div className="p-6">
-                <div className="text-center py-8">
-                  <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <p className="mt-2 text-sm text-gray-500">Check endpoints are connected for information</p>
+                <div className="space-y-4">
+                  {/* Brand Summary */}
+                  <div className="border-l-4 border-red-600 pl-4">
+                    <h3 className="font-medium text-gray-900">Callahan-Smith Operations Summary</h3>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {data.insights?.length > 0 
+                        ? `${data.insights.length} insights identified for immediate attention. `
+                        : "All operations running smoothly. No critical issues detected. "
+                      }
+                      {data.products?.length > 0 && `Managing ${data.products.length} products across operations.`}
+                    </p>
+                  </div>
+                  
+                  {/* Key Metrics */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                      <div className="text-lg font-semibold text-red-600">
+                        {data.kpis?.atRiskOrders || 0}
+                      </div>
+                      <div className="text-xs text-gray-500">Orders Behind SLA</div>
+                    </div>
+                    <div className="text-center p-3 bg-gray-50 rounded-lg">
+                      <div className="text-lg font-semibold text-red-600">
+                        {data.kpis?.unfulfillableSKUs || 0}
+                      </div>
+                      <div className="text-xs text-gray-500">Inventory Stockouts</div>
+                    </div>
+                  </div>
+
+                  {/* Top Priority Today */}
+                  {data.insights && data.insights.length > 0 && (
+                    <div className="bg-red-50 p-3 rounded-lg">
+                      <h4 className="text-sm font-medium text-red-800 mb-1">🔴 Top Priority Today</h4>
+                      <p className="text-sm text-red-700">
+                        {data.insights[0]?.title || "Review operational insights"}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Recent Activity */}
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium">Last Updated:</span> {new Date().toLocaleTimeString()} • 
+                    <span className="font-medium"> Data Source:</span> Real-time Callahan-Smith operations
+                  </div>
                 </div>
               </div>
             </div>

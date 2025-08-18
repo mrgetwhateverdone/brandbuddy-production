@@ -250,39 +250,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supplierAnalysis = calculateSupplierAnalysis(products);
     const inventory = transformToEnhancedInventoryItems(products);
 
-    // Generate enhanced insights
+    // Generate enhanced insights focused on Callahan-Smith brand operations
     const insights = [];
     
     // Stock health insights
     if (kpis.inactiveSKUs > 0) {
       insights.push({
         id: "inventory-insight-inactive",
-        title: "Inactive SKUs Detected",
-        description: `${kpis.inactiveSKUs} inactive SKUs found. These products may need review or removal from inventory.`,
+        title: "Inactive SKU Optimization",
+        description: `${kpis.inactiveSKUs} inactive SKUs detected in portfolio. Review for discontinuation or reactivation opportunities.`,
         severity: "warning" as const,
         dollarImpact: 0,
         suggestedActions: ["Review inactive product status", "Consider discontinuation", "Update product lifecycle"],
         createdAt: new Date().toISOString(),
         source: "inventory_agent" as const,
       });
-    }
-    
-    // Value concentration insights
-    if (brandPerformance.length > 0) {
-      const topBrand = brandPerformance[0];
-      const brandConcentration = Math.round((topBrand.total_value / kpis.totalInventoryValue) * 100);
-      if (brandConcentration > 40) {
-        insights.push({
-          id: "inventory-insight-brand-concentration",
-          title: "Brand Concentration Risk",
-          description: `${topBrand.brand_name} represents ${brandConcentration}% of total inventory value. Consider diversification strategies.`,
-          severity: "warning" as const,
-          dollarImpact: 0,
-          suggestedActions: ["Diversify brand portfolio", "Analyze brand performance", "Review procurement strategy"],
-          createdAt: new Date().toISOString(),
-          source: "inventory_agent" as const,
-        });
-      }
     }
     
     // Supplier concentration insights
@@ -306,8 +288,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (kpis.lowStockAlerts > 0) {
       insights.push({
         id: "inventory-insight-low-stock",
-        title: "Low Stock Alerts",
-        description: `${kpis.lowStockAlerts} SKUs are running low on inventory. Replenishment may be needed soon.`,
+        title: "Replenishment Required",
+        description: `${kpis.lowStockAlerts} SKUs are running low on inventory. Immediate replenishment action needed to avoid stockouts.`,
         severity: "warning" as const,
         dollarImpact: 0,
         suggestedActions: ["Review reorder points", "Contact suppliers for replenishment", "Analyze demand patterns"],

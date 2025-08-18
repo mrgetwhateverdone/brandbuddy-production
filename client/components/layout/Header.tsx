@@ -143,7 +143,7 @@ export function Header({
             "disabled:opacity-50 disabled:cursor-not-allowed",
             hasError
               ? "bg-red-600 hover:bg-red-700 text-white"
-              : "bg-blue-600 hover:bg-blue-700 text-white",
+              : "bg-red-600 hover:bg-red-700 text-white",
           )}
           title={hasError ? "Retry connection" : "Refresh data"}
         >
@@ -173,7 +173,7 @@ export function Header({
             onClick={() => setUserDropdownOpen(!userDropdownOpen)}
             className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center text-white">
               {user?.firstName ? user.firstName[0].toUpperCase() : <User className="h-4 w-4" />}
             </div>
             <ChevronDown className="h-4 w-4 text-gray-500" />

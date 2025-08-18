@@ -206,8 +206,7 @@ export function InsightsSection({
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
           <Info className="h-8 w-8 text-gray-400 mx-auto mb-2" />
           <p className="text-sm text-gray-500">
-            No insights available. AI analysis will appear here when data is
-            processed.
+            Check OpenAI Connection
           </p>
         </div>
       )}

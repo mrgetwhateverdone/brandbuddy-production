@@ -11,7 +11,10 @@ import { OrdersKPISection } from "@/components/orders/OrdersKPISection";
 import { InsightsSection } from "@/components/dashboard/InsightsSection";
 import { OrdersTableSection } from "@/components/orders/OrdersTableSection";
 import { InboundIntelligenceSection } from "@/components/orders/InboundIntelligenceSection";
-import { CarrierPerformanceSection } from "@/components/orders/CarrierPerformanceSection";
+import { OrderValueAnalysisSection } from "@/components/orders/OrderValueAnalysisSection";
+import { SupplierPerformanceSection } from "@/components/orders/SupplierPerformanceSection";
+import { TimeAnalyticsSection } from "@/components/orders/TimeAnalyticsSection";
+import { StatusIntelligenceSection } from "@/components/orders/StatusIntelligenceSection";
 import { ViewAllOrdersModal } from "@/components/orders/ViewAllOrdersModal";
 import { ViewAllShipmentsModal } from "@/components/orders/ViewAllShipmentsModal";
 import { OrderAIExplanationModal } from "@/components/orders/OrderAIExplanationModal";
@@ -102,8 +105,29 @@ export default function Orders() {
               onViewAll={handleViewAllShipments}
             />
 
-            {/* Carrier Performance Section - Placeholder for future implementation */}
-            <CarrierPerformanceSection isLoading={isLoading} />
+            {/* Order Value Analysis Section - Financial insights and value metrics */}
+            <OrderValueAnalysisSection
+              orders={data.orders || []}
+              isLoading={isLoading}
+            />
+
+            {/* Supplier Performance Dashboard Section - Supplier rankings and metrics */}
+            <SupplierPerformanceSection
+              orders={data.orders || []}
+              isLoading={isLoading}
+            />
+
+            {/* Time-Based Analytics Section - Order age and processing time analysis */}
+            <TimeAnalyticsSection
+              orders={data.orders || []}
+              isLoading={isLoading}
+            />
+
+            {/* Status-Driven Intelligence Section - Order lifecycle and efficiency metrics */}
+            <StatusIntelligenceSection
+              orders={data.orders || []}
+              isLoading={isLoading}
+            />
           </>
         )}
 

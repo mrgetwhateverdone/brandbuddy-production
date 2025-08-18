@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { useInventoryData, useInventoryTable } from "@/hooks/useInventoryData";
+import { useOrdersData } from "@/hooks/useOrdersData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
@@ -9,11 +10,12 @@ import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 import { InventoryKPISection } from "@/components/inventory/InventoryKPISection";
 import { InsightsSection } from "@/components/dashboard/InsightsSection";
 import { InventoryTableSection } from "@/components/inventory/InventoryTableSection";
-import { SupplierAnalysisSection } from "@/components/inventory/SupplierAnalysisSection";
+import { SupplierPerformanceSection } from "@/components/inventory/SupplierPerformanceSection";
 import { ViewAllInventoryModal } from "@/components/inventory/ViewAllInventoryModal";
 
 export default function Inventory() {
   const { data, isLoading, error, refetch } = useInventoryData();
+  const { data: ordersData, isLoading: ordersLoading } = useOrdersData();
   const { isPageAIEnabled, getTablePageSize } = useSettingsIntegration();
   const [showViewAllModal, setShowViewAllModal] = useState(false);
 
@@ -93,10 +95,10 @@ export default function Inventory() {
           onViewAll={handleViewAll}
         />
 
-        {/* This part of the code displays supplier analysis and risk assessment */}
-        <SupplierAnalysisSection
-          supplierAnalysis={data.supplierAnalysis || []}
-          isLoading={isLoading}
+        {/* This part of the code displays supplier performance dashboard */}
+        <SupplierPerformanceSection
+          orders={ordersData?.orders || []}
+          isLoading={isLoading || ordersLoading}
         />
 
         {/* This part of the code displays the view all inventory modal */}

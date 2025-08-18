@@ -10,6 +10,7 @@ import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 import { InventoryKPISection } from "@/components/inventory/InventoryKPISection";
 import { InsightsSection } from "@/components/dashboard/InsightsSection";
 import { InventoryTableSection } from "@/components/inventory/InventoryTableSection";
+import { SKUPerformanceDashboard } from "@/components/inventory/SKUPerformanceDashboard";
 import { SupplierPerformanceSection } from "@/components/inventory/SupplierPerformanceSection";
 import { ViewAllInventoryModal } from "@/components/inventory/ViewAllInventoryModal";
 
@@ -93,6 +94,12 @@ export default function Inventory() {
           hasMore={hasMore}
           isLoading={isLoading}
           onViewAll={handleViewAll}
+        />
+
+        {/* This part of the code displays SKU performance intelligence dashboard */}
+        <SKUPerformanceDashboard
+          inventory={inventory}
+          isLoading={isLoading}
         />
 
         {/* This part of the code displays supplier performance dashboard */}

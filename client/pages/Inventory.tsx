@@ -22,7 +22,7 @@ export default function Inventory() {
 
   // This part of the code processes inventory data for table display
   const inventory = data?.inventory || [];
-  const tableData = useInventoryTable(inventory, getTablePageSize());
+  const tableData = useInventoryTable(inventory, 10);
   const displayInventory = tableData.data?.displayInventory || [];
   const hasMore = tableData.data?.hasMore || false;
   const totalCount = tableData.data?.totalCount || 0;

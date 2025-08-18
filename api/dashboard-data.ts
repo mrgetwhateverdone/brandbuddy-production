@@ -341,26 +341,26 @@ Make it sound like a real person talking, not a generic report.`,
       type: "warning",
       title: "Improve Shipment and Fulfillment Performance",
       description: `${atRiskCount} shipments (${atRiskPercentage}%) have quantity discrepancies with financial impact of $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()}.`,
-      severity: financialImpacts.quantityDiscrepancyImpact > 10000 ? "critical" : "warning", 
+      severity: financialImpacts.quantityDiscrepancyImpact > 10000 ? "critical" : "warning",
       dollarImpact: financialImpacts.quantityDiscrepancyImpact,
     });
   }
   
   if (financialImpacts.cancelledShipmentsImpact > 0) {
     const cancelledCount = shipments.filter(s => s.status === "cancelled").length;
-          insights.push({
-        type: "warning", 
+    insights.push({
+      type: "warning", 
         title: "Reduce Supplier Concentration Risk",
-        description: `${cancelledCount} cancelled shipments represent $${financialImpacts.cancelledShipmentsImpact.toLocaleString()} in lost inventory value.`,
-        severity: financialImpacts.cancelledShipmentsImpact > 5000 ? "critical" : "warning",
-        dollarImpact: financialImpacts.cancelledShipmentsImpact,
-      });
+      description: `${cancelledCount} cancelled shipments represent $${financialImpacts.cancelledShipmentsImpact.toLocaleString()} in lost inventory value.`,
+      severity: financialImpacts.cancelledShipmentsImpact > 5000 ? "critical" : "warning",
+      dollarImpact: financialImpacts.cancelledShipmentsImpact,
+    });
   }
   
   const inactiveProducts = products.filter((p) => !p.active).length;
   if (inactiveProducts > 0 && financialImpacts.inactiveProductsValue > 0) {
     insights.push({
-      type: "info", 
+      type: "info",
       title: "Optimize Inventory and Product Portfolio",
       description: `${inactiveProducts} inactive products represent potential opportunity cost of $${financialImpacts.inactiveProductsValue.toLocaleString()}.`,
       severity: "info",

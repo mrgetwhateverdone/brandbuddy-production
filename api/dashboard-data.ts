@@ -379,10 +379,10 @@ async function generateDailyBrief(
   products: ProductData[],
   shipments: ShipmentData[],
   financialImpacts: any
-): Promise<string> {
+): Promise<string | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return `Good morning! I've reviewed Callahan-Smith's operations data. We're managing ${products.length} products with ${shipments.filter(s => s.expected_quantity !== s.received_quantity).length} shipments showing quantity discrepancies. The financial impact is approximately $${financialImpacts.totalFinancialRisk.toLocaleString()}. I recommend focusing on supplier communication to improve accuracy.`;
+    return null; // No fallback - require real OpenAI connection
   }
 
   try {
@@ -390,6 +390,16 @@ async function generateDailyBrief(
     const cancelledShipments = shipments.filter(s => s.status === "cancelled").length;
     const inactiveProducts = products.filter(p => !p.active).length;
     const activeProducts = products.filter(p => p.active).length;
+    const onTimeShipments = shipments.filter(s => s.status === "completed" || s.status === "delivered").length;
+
+    // Calculate supplier concentration for risk analysis
+    const supplierCounts = shipments.reduce((acc, s) => {
+      const supplier = s.supplier || 'Unknown';
+      acc[supplier] = (acc[supplier] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    const topSuppliers = Object.entries(supplierCounts).sort(([,a], [,b]) => b - a).slice(0, 3);
+    const supplierConcentration = topSuppliers.length > 0 ? Math.round(topSuppliers.reduce((sum, [,count]) => sum + count, 0) / shipments.length * 100) : 0;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     const response = await fetch(openaiUrl, {
@@ -403,20 +413,28 @@ async function generateDailyBrief(
         messages: [
           {
             role: "user",
-            content: `You are a senior operations assistant for Callahan-Smith brand. Give me a conversational 4-6 sentence daily brief as if you're speaking to the brand manager in person.
+            content: `You are a senior operations assistant for Callahan-Smith brand. Analyze today's operational data and provide a world-class executive briefing. Be direct, specific, and actionable.
 
-CALLAHAN-SMITH STATUS TODAY:
-- Managing ${products.length} products (${activeProducts} active, ${inactiveProducts} inactive)
-- Processed ${shipments.length} shipments today
-- ${atRiskShipments} shipments have quantity discrepancies
-- ${cancelledShipments} shipments were cancelled
-- Financial impact from issues: $${financialImpacts.totalFinancialRisk.toLocaleString()}
+CALLAHAN-SMITH OPERATIONAL STATUS:
+- Portfolio: ${products.length} total products (${activeProducts} active, ${inactiveProducts} inactive)
+- Shipment Performance: ${shipments.length} processed (${onTimeShipments} on-time, ${atRiskShipments} with discrepancies, ${cancelledShipments} cancelled)
+- Financial Exposure: $${financialImpacts.totalFinancialRisk.toLocaleString()} at risk from operational issues
+- Supplier Risk: ${supplierConcentration}% concentration with top 3 suppliers
+- Key Suppliers: ${topSuppliers.map(([name]) => name).join(', ')}
 
-Write a conversational briefing that sounds like a real person talking. Start with "Good morning" and be specific about what needs attention. Sound professional but human.`,
+Write a 4-6 sentence executive brief that:
+- Identifies today's highest-priority operational risks
+- Quantifies financial impact in dollar terms
+- Suggests immediate actions needed
+- Mentions specific issues requiring attention
+
+Example tone: "Today's high-priority risks center around delayed replenishment, missed inbound SLA, and fulfillment breakdown. Immediate actions are suggested on 3 of 4 issues to prevent over $22K in potential loss."
+
+Do NOT include greetings, pleasantries, or source attributions. Start directly with the operational analysis.`,
           },
         ],
-        max_tokens: 200,
-        temperature: 0.3,
+        max_tokens: 250,
+        temperature: 0.2,
       }),
     });
 
@@ -424,15 +442,14 @@ Write a conversational briefing that sounds like a real person talking. Start wi
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (content) {
-        return content.replace(/"/g, ''); // Remove quotes for clean display
+        return content.trim().replace(/"/g, ''); // Clean up quotes and whitespace
       }
     }
   } catch (error) {
     console.error("OpenAI daily brief failed:", error);
   }
 
-  // Fallback conversational brief
-  return `Good morning! I've reviewed today's Callahan-Smith operations. We're currently managing ${products.length} products, with ${atRiskShipments} shipments showing quantity discrepancies that could impact our accuracy metrics. The financial exposure from these issues is approximately $${financialImpacts.totalFinancialRisk.toLocaleString()}. I recommend we prioritize supplier communication to address these discrepancies quickly.`;
+  return null; // Return null if OpenAI fails - no fallback
 }
 
 /**

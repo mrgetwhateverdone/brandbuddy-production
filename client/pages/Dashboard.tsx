@@ -170,15 +170,16 @@ export default function Dashboard() {
               </div>
               <div className="p-6">
                 <div className="space-y-4">
-                  {/* Brand Summary */}
+                  {/* AI-Generated Daily Brief */}
                   <div className="border-l-4 border-red-600 pl-4">
-                    <h3 className="font-medium text-gray-900">Callahan-Smith Operations Summary</h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {data.insights?.length > 0 
-                        ? `${data.insights.length} insights identified for immediate attention. `
-                        : "All operations running smoothly. No critical issues detected. "
+                    <h3 className="font-medium text-gray-900">Daily Brief from your Operations Assistant</h3>
+                    <p className="text-sm text-gray-600 mt-1 leading-relaxed">
+                      {data.dailyBrief || 
+                        `Good morning! I've reviewed Callahan-Smith's operations data. ${data.insights?.length > 0 
+                          ? `There are ${data.insights.length} insights that need your attention today.`
+                          : "All operations are running smoothly with no critical issues detected."
+                        } ${data.products?.length > 0 && `We're currently managing ${data.products.length} products across our operations.`}`
                       }
-                      {data.products?.length > 0 && `Managing ${data.products.length} products across operations.`}
                     </p>
                   </div>
                   

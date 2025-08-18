@@ -268,62 +268,43 @@ async function generateInsights(
         messages: [
           {
             role: "user",
-            content: `You are a senior 3PL operations analyst. Analyze this comprehensive logistics data and provide strategic insights with quantified financial impact.
+            content: `You are a senior brand operations assistant for Callahan-Smith. Analyze today's operational data and provide a conversational briefing as if you're reporting directly to leadership in person.
 
-OPERATIONAL INTELLIGENCE:
-=========================
+CALLAHAN-SMITH DAILY OPERATIONS BRIEFING:
+==========================================
 
-INVENTORY & PRODUCT ANALYSIS:
-- Total Products: ${products.length} (${activeProducts} active, ${inactiveProducts} inactive)
-- Product Diversity: ${uniqueBrands} brands across ${uniqueSuppliers} suppliers
-- SKU Utilization: ${skuUtilization.toFixed(1)}% active portfolio
-- Inactive Product Value: $${financialImpacts.inactiveProductsValue.toLocaleString()}/month lost opportunity
+BRAND PORTFOLIO STATUS:
+- Managing ${products.length} products (${activeProducts} active, ${inactiveProducts} inactive)
+- Working with ${uniqueSuppliers} suppliers across operations
+- Current SKU utilization at ${skuUtilization.toFixed(1)}%
+- Potential opportunity cost from inactive products: $${financialImpacts.inactiveProductsValue.toLocaleString()}
 
-SHIPMENT & FULFILLMENT PERFORMANCE:
-- Total Shipments: ${shipments.length} (${onTimeShipments} on-time, ${delayedShipments} delayed)
-- Quantity Accuracy: ${quantityAccuracy.toFixed(1)}% (${atRiskShipments} with variances)
-- Financial Impact of Delays: $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()}
-- Cancelled Shipment Impact: $${financialImpacts.cancelledShipmentsImpact.toLocaleString()}
+TODAY'S OPERATIONAL PERFORMANCE:
+- Processed ${shipments.length} shipments (${onTimeShipments} on-time, ${delayedShipments} delayed)
+- Quantity accuracy running at ${quantityAccuracy.toFixed(1)}% (${atRiskShipments} with variances)
+- Financial impact from discrepancies: $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()}
+- Cancelled shipment losses: $${financialImpacts.cancelledShipmentsImpact.toLocaleString()}
 
-RISK & FINANCIAL EXPOSURE:
-- At-Risk Shipment Value: $${Math.round(totalShipmentValue).toLocaleString()}
-- Geographic Risk Concentration: ${geoRiskPercent.toFixed(1)}% from ${topRiskCountries.join(', ')}
-- Supplier Concentration Risk: ${supplierConcentration.toFixed(1)}% (top 3 suppliers)
-- Total Financial Risk: $${financialImpacts.totalFinancialRisk.toLocaleString()}
+RISK ASSESSMENT:
+- Total value at risk: $${Math.round(totalShipmentValue).toLocaleString()}
+- ${geoRiskPercent.toFixed(1)}% of shipments from high-risk countries: ${topRiskCountries.join(', ')}
+- Supplier concentration risk: ${supplierConcentration.toFixed(1)}% from top 3 suppliers
+- Total financial exposure: $${financialImpacts.totalFinancialRisk.toLocaleString()}
 
-EFFICIENCY & OPTIMIZATION OPPORTUNITIES:
-- Average Order Value: $${avgOrderValue.toFixed(2)}
-- Cost Per Shipment: $${costPerShipment.toFixed(2)}
-- Processing Efficiency: ${quantityAccuracy.toFixed(1)}% accuracy rate
-- Portfolio Optimization: ${((inactiveProducts / products.length) * 100).toFixed(1)}% inactive SKUs
+Speak like a knowledgeable assistant giving a morning briefing. Write 4-6 conversational sentences summarizing the most important issues for Callahan-Smith brand operations today. Be specific about problems and their financial impact. Sound professional but human, as if you're briefing the brand manager in their office.
 
-PROVIDE STRATEGIC ANALYSIS (2-4 insights based on data significance):
-Focus on the most critical operational issues with >$50K impact potential.
-
-Each insight must include:
-- Specific dollar impact (calculated from real data)
-- Timeline for implementation (30/60/90 days)
-- Success metrics to track progress
-- Actionable next steps (1-4 actions based on complexity)
-
-FORMAT AS ACTIONABLE JSON:
+Format as JSON with 2-3 insights maximum:
 [
   {
     "type": "warning",
-    "title": "Strategic Issue Title",
-    "description": "Detailed analysis with financial impact, timeline, and specific recommendations for operational improvement",
+    "title": "Brief insight title",
+    "description": "4-6 sentence conversational explanation of the issue, like: 'Good morning - I've reviewed today's operations data and there are a few things that need your attention. Our shipment accuracy is running at X% which is concerning because...'",
     "severity": "critical|warning|info",
-    "dollarImpact": actual_calculated_dollar_amount,
-    "suggestedActions": ["Review supplier contracts with XYZ Corp", "Implement inventory cycle counting for inactive SKUs", "Schedule leadership review of geographic risk exposure"]
+    "dollarImpact": actual_dollar_amount
   }
 ]
 
-CRITICAL: suggestedActions must be:
-- Specific, actionable tasks (not generic placeholders)
-- Ordered by priority (most important first, least important last)
-- Relevant to the actual data analyzed
-- Between 1-4 actions based on insight complexity
-- Include specific company names, SKU categories, or process names when available`,
+Make it sound like a real person talking, not a generic report.`,
           },
         ],
         max_tokens: 800,
@@ -388,6 +369,70 @@ CRITICAL: suggestedActions must be:
   }
   
   return insights;
+}
+
+/**
+ * This part of the code generates a conversational daily brief using OpenAI
+ * Sounds like a real assistant giving a morning briefing
+ */
+async function generateDailyBrief(
+  products: ProductData[],
+  shipments: ShipmentData[],
+  financialImpacts: any
+): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return `Good morning! I've reviewed Callahan-Smith's operations data. We're managing ${products.length} products with ${shipments.filter(s => s.expected_quantity !== s.received_quantity).length} shipments showing quantity discrepancies. The financial impact is approximately $${financialImpacts.totalFinancialRisk.toLocaleString()}. I recommend focusing on supplier communication to improve accuracy.`;
+  }
+
+  try {
+    const atRiskShipments = shipments.filter(s => s.expected_quantity !== s.received_quantity).length;
+    const cancelledShipments = shipments.filter(s => s.status === "cancelled").length;
+    const inactiveProducts = products.filter(p => !p.active).length;
+    const activeProducts = products.filter(p => p.active).length;
+
+    const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
+    const response = await fetch(openaiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [
+          {
+            role: "user",
+            content: `You are a senior operations assistant for Callahan-Smith brand. Give me a conversational 4-6 sentence daily brief as if you're speaking to the brand manager in person.
+
+CALLAHAN-SMITH STATUS TODAY:
+- Managing ${products.length} products (${activeProducts} active, ${inactiveProducts} inactive)
+- Processed ${shipments.length} shipments today
+- ${atRiskShipments} shipments have quantity discrepancies
+- ${cancelledShipments} shipments were cancelled
+- Financial impact from issues: $${financialImpacts.totalFinancialRisk.toLocaleString()}
+
+Write a conversational briefing that sounds like a real person talking. Start with "Good morning" and be specific about what needs attention. Sound professional but human.`,
+          },
+        ],
+        max_tokens: 200,
+        temperature: 0.3,
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (content) {
+        return content.replace(/"/g, ''); // Remove quotes for clean display
+      }
+    }
+  } catch (error) {
+    console.error("OpenAI daily brief failed:", error);
+  }
+
+  // Fallback conversational brief
+  return `Good morning! I've reviewed today's Callahan-Smith operations. We're currently managing ${products.length} products, with ${atRiskShipments} shipments showing quantity discrepancies that could impact our accuracy metrics. The financial exposure from these issues is approximately $${financialImpacts.totalFinancialRisk.toLocaleString()}. I recommend we prioritize supplier communication to address these discrepancies quickly.`;
 }
 
 /**
@@ -665,6 +710,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log(`📊 Sample brands in shipments:`, new Set(allShipments.map(s => s.brand_name)));
 
     const insights = await generateInsights(products, shipments);
+    
+    // This part of the code calculates financial impacts for daily brief
+    const financialImpacts = calculateFinancialImpacts(products, shipments);
+    const dailyBrief = await generateDailyBrief(products, shipments, financialImpacts);
 
     // This part of the code calculates new real-data analysis features
     const marginRisks = calculateMarginRisks(products, shipments);
@@ -820,6 +869,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ],
       marginRisks, // This part of the code adds real margin risk analysis data
       costVariances, // This part of the code adds real cost variance detection data
+      dailyBrief, // This part of the code adds conversational AI daily brief
       lastUpdated: new Date().toISOString(),
     };
 

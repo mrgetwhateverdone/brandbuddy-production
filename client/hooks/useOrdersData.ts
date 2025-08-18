@@ -18,14 +18,14 @@ export const useOrdersData = () => {
     queryKey: ["orders-data"],
     queryFn: async (): Promise<OrdersData> => {
       console.log(
-        "🔒 Client: Fetching Callahan-Smith orders data (using shipments as orders)...",
+        "🔒 Client: Fetching BrandBuddy orders data (using shipments as orders)...",
       );
 
       // This part of the code calls the server to fetch orders data securely
       // Server transforms shipments into order-like structure with proper mappings
       const ordersData = await internalApi.getOrdersData();
 
-      console.log("✅ Client: Callahan-Smith orders data loaded securely:", {
+      console.log("✅ Client: BrandBuddy orders data loaded securely:", {
         orders: ordersData.orders?.length || 0,
         kpis: ordersData.kpis ? Object.keys(ordersData.kpis).length : 0,
         insights: ordersData.insights?.length || 0,
@@ -37,7 +37,7 @@ export const useOrdersData = () => {
     ...queryConfig, // This part of the code applies user's cache and refresh settings
     meta: {
       errorMessage:
-        "Unable to load Callahan-Smith orders data - Refresh to retry or check API connection",
+        "Unable to load orders data - Refresh to retry or check API connection",
     },
   });
 };

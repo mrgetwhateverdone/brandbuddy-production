@@ -62,7 +62,7 @@ export default function Orders() {
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
         {/* This part of the code handles loading state for the entire orders dashboard */}
         {isLoading && (
-          <LoadingState message="Loading Callahan-Smith orders data..." />
+          <LoadingState message="Loading BrandBuddy orders data..." />
         )}
 
         {/* This part of the code handles error state with retry functionality */}
@@ -70,7 +70,7 @@ export default function Orders() {
           <ErrorDisplay
             message={
               error.message ||
-              "Unable to load Callahan-Smith orders data - Refresh to retry or check API connection"
+              "Unable to load orders data - Refresh to retry or check API connection"
             }
             onRetry={() => refetch()}
           />

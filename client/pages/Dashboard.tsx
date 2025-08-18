@@ -75,7 +75,7 @@ export default function Dashboard() {
                       </span>
                     </div>
                     <p className="text-2xl font-bold text-green-600 mt-2">
-                      {data.kpis?.atRiskOrders ? `$${(data.kpis.atRiskOrders * 150).toLocaleString()}` : 'N/A'}
+                      {data.quickOverview?.dollarImpact ? `$${data.quickOverview.dollarImpact.toLocaleString()}` : 'N/A'}
                     </p>
                   </div>
                 </div>

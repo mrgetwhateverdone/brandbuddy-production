@@ -651,10 +651,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       "📊 Vercel API: Fetching dashboard data with split environment variables...",
     );
 
-    const [products, shipments] = await Promise.all([
+    const [allProducts, allShipments] = await Promise.all([
       fetchProducts(),
       fetchShipments(),
     ]);
+
+    // This part of the code ensures we only use Callahan-Smith data by filtering client-side as well
+    const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
+    const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+    
+    console.log(`🔍 Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
+    console.log(`📊 Sample brands in products:`, new Set(allProducts.map(p => p.brand_name)));
+    console.log(`📊 Sample brands in shipments:`, new Set(allShipments.map(s => s.brand_name)));
 
     const insights = await generateInsights(products, shipments);
 

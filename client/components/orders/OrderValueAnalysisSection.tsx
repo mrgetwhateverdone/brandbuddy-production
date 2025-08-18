@@ -102,7 +102,7 @@ export function OrderValueAnalysisSection({ orders, isLoading }: OrderValueAnaly
     {
       title: "High-Value at Risk",
       value: formatCurrency(valueMetrics.highValueAtRisk),
-      description: "Orders >$200 with issues",
+      description: "Orders &gt;$200 with issues",
       icon: AlertTriangle,
       color: "text-red-600",
       bgColor: "bg-red-50",

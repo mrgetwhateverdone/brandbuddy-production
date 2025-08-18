@@ -262,10 +262,10 @@ export function StatusIntelligenceSection({ orders, isLoading }: StatusIntellige
                   <h4 className="text-sm font-medium text-yellow-800">
                     Processing Bottleneck
                   </h4>
-                  <p className="text-sm text-yellow-700 mt-1">
-                    {statusMetrics.ordersStuckInProcessing} orders stuck in processing >30 days. 
-                    Investigate workflow bottlenecks and resource allocation.
-                  </p>
+                                      <p className="text-sm text-yellow-700 mt-1">
+                      {statusMetrics.ordersStuckInProcessing} orders stuck in processing &gt;30 days. 
+                      Investigate workflow bottlenecks and resource allocation.
+                    </p>
                 </div>
               </div>
             )}

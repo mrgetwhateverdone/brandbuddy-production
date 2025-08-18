@@ -111,7 +111,7 @@ export function TimeAnalyticsSection({ orders, isLoading }: TimeAnalyticsSection
     {
       title: "Order Age Analysis",
       value: `${timeMetrics.ordersOlderThan6MonthsPercentage.toFixed(0)}%`,
-      description: `${timeMetrics.ordersOlderThan6Months} orders >6 months old`,
+      description: `${timeMetrics.ordersOlderThan6Months} orders &gt;6 months old`,
       icon: Calendar,
       color: timeMetrics.ordersOlderThan6MonthsPercentage > 30 ? "text-red-600" : "text-yellow-600",
       bgColor: timeMetrics.ordersOlderThan6MonthsPercentage > 30 ? "bg-red-50" : "bg-yellow-50",
@@ -127,7 +127,7 @@ export function TimeAnalyticsSection({ orders, isLoading }: TimeAnalyticsSection
     {
       title: "Aging Order Risk",
       value: formatCurrency(timeMetrics.agingOrderRisk),
-      description: "Orders >1 year old value",
+      description: "Orders &gt;1 year old value",
       icon: AlertCircle,
       color: timeMetrics.agingOrderRisk > 10000 ? "text-red-600" : "text-orange-600",
       bgColor: timeMetrics.agingOrderRisk > 10000 ? "bg-red-50" : "bg-orange-50",

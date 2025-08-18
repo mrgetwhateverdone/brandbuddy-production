@@ -27,11 +27,12 @@ const navigation = [
   { name: 'Overview', icon: LayoutDashboard, href: '/overview' },
   { name: 'Workflows', icon: GitBranch, href: '/workflows' },
   { name: 'Orders', icon: Package, href: '/orders' },
-  { name: 'Inbound', icon: Archive, href: '/inbound' },
   { name: 'Inventory', icon: Archive, href: '/inventory' },
   { name: 'Replenishment', icon: GitBranch, href: '/replenishment' },
+  { name: 'Inbound', icon: Warehouse, href: '/inbound' },
   { name: 'SLA Performance', icon: ChartNoAxesColumn, href: '/sla' },
-  { name: 'AI Assistant', icon: MessageSquare, href: '/assistant' }
+  { name: 'AI Assistant', icon: MessageSquare, href: '/assistant' },
+  { name: 'Settings', icon: Settings, href: '/settings' }
 ]
 
 export function Sidebar({ collapsed = false, onToggle, className, mobile = false }: SidebarProps) {

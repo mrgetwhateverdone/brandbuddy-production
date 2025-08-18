@@ -24,17 +24,14 @@ interface SidebarProps {
 }
 
 const navigation = [
-  { name: 'Dashboard', icon: LayoutDashboard, href: '/' },
-  { name: 'Workflows', icon: GitBranch, href: '/workflows' },
-  { name: 'Analytics', icon: ChartNoAxesColumn, href: '/analytics' },
+  { name: 'Overview', icon: LayoutDashboard, href: '/overview' },
   { name: 'Orders', icon: Package, href: '/orders' },
+  { name: 'Inbound', icon: Archive, href: '/inbound' },
   { name: 'Inventory', icon: Archive, href: '/inventory' },
-  { name: 'Warehouses', icon: Warehouse, href: '/warehouses' },
-  { name: 'Cost Management', icon: DollarSign, href: '/cost-management' },
-  { name: 'Economic Intelligence', icon: Globe, href: '/intelligence' },
-  { name: 'Generate Report', icon: FileText, href: '/reports' },
-  { name: 'AI Assistant', icon: MessageSquare, href: '/assistant' },
-  { name: 'Settings', icon: Settings, href: '/settings' }
+  { name: 'Replenishment', icon: GitBranch, href: '/replenishment' },
+  { name: 'SLA Performance', icon: ChartNoAxesColumn, href: '/sla' },
+  { name: 'Workflows', icon: GitBranch, href: '/workflows' },
+  { name: 'AI Assistant', icon: MessageSquare, href: '/assistant' }
 ]
 
 export function Sidebar({ collapsed = false, onToggle, className, mobile = false }: SidebarProps) {
@@ -85,7 +82,7 @@ export function Sidebar({ collapsed = false, onToggle, className, mobile = false
               className={cn(
                 'flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-blue-50 text-blue-700'
+                  ? 'bg-red-50 text-red-700'
                   : 'text-gray-700 hover:bg-gray-100',
                 collapsed && !mobile && 'justify-center px-2'
               )}

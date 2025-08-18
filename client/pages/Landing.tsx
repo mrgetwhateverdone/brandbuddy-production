@@ -37,8 +37,8 @@ export default function Landing() {
           <div className="flex justify-between items-center py-4">
             {/* Logo */}
             <div className="flex items-center">
-              <div className="text-2xl font-bold text-blue-600">CargoCore</div>
-              <div className="ml-2 text-sm text-gray-500">3PL Operations Platform</div>
+              <div className="text-2xl font-bold text-red-600">Brand Buddy</div>
+              <div className="ml-2 text-sm text-gray-500">Brand Operations Platform</div>
             </div>
             
             {/* Navigation Actions */}
@@ -47,7 +47,7 @@ export default function Landing() {
                 <div className="flex items-center space-x-4">
                   <Button 
                     onClick={handleGetDemo}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                    className="bg-red-600 hover:bg-red-700 text-white"
                   >
                     Go to Dashboard
                   </Button>
@@ -56,7 +56,7 @@ export default function Landing() {
               ) : (
                 <SignInButton mode="modal">
                   <Button 
-                    className="bg-blue-600 hover:bg-blue-700 !text-white border-0"
+                    className="bg-red-600 hover:bg-red-700 !text-white border-0"
                   >
                     Get Demo
                   </Button>
@@ -68,20 +68,20 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-50 to-white py-20">
+      <section className="bg-gradient-to-br from-red-50 to-white py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Hero Content */}
             <div>
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                 Optimize your{' '}
-                <span className="text-blue-600">3PL operations</span>{' '}
+                <span className="text-red-600">brand operations</span>{' '}
                 with AI-powered insights
               </h1>
               
               <p className="text-xl text-gray-600 mt-6 leading-relaxed">
-                Transform your logistics operations with real-time analytics, AI-driven insights, 
-                and automated workflows. Get instant visibility into your supply chain performance.
+                Transform your brand operations with real-time analytics, AI-driven insights, 
+                and automated workflows. Get instant visibility into your brand performance and operational health.
               </p>
               
               {/* CTA Buttons */}
@@ -97,7 +97,7 @@ export default function Landing() {
                 ) : (
                   <SignInButton mode="modal">
                     <Button 
-                      className="bg-blue-600 hover:bg-blue-700 !text-white px-8 py-4 text-lg font-semibold"
+                      className="bg-red-600 hover:bg-red-700 !text-white px-8 py-4 text-lg font-semibold"
                       size="lg"
                     >
                       Get Demo
@@ -132,28 +132,28 @@ export default function Landing() {
                   </div>
                   
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-blue-50 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">2,452</div>
-                      <div className="text-sm text-gray-600">Products Managed</div>
+                    <div className="bg-red-50 p-4 rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">114</div>
+                      <div className="text-sm text-gray-600">SKUs Managed</div>
                     </div>
                     <div className="bg-green-50 p-4 rounded-lg">
                       <div className="text-2xl font-bold text-green-600">98.5%</div>
                       <div className="text-sm text-gray-600">SLA Performance</div>
                     </div>
                     <div className="bg-purple-50 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-purple-600">7,672</div>
-                      <div className="text-sm text-gray-600">Shipments</div>
+                      <div className="text-2xl font-bold text-purple-600">147</div>
+                      <div className="text-sm text-gray-600">Behind SLA</div>
                     </div>
                     <div className="bg-orange-50 p-4 rounded-lg">
-                      <div className="text-2xl font-bold text-orange-600">$150K</div>
-                      <div className="text-sm text-gray-600">Cost Savings</div>
+                      <div className="text-2xl font-bold text-orange-600">$2.1M</div>
+                      <div className="text-sm text-gray-600">Revenue at Risk</div>
                     </div>
                   </div>
                 </div>
               </div>
               
               {/* Floating Elements */}
-              <div className="absolute -top-4 -right-4 w-20 h-20 bg-blue-500 rounded-full opacity-20"></div>
+              <div className="absolute -top-4 -right-4 w-20 h-20 bg-red-500 rounded-full opacity-20"></div>
               <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-purple-500 rounded-full opacity-20"></div>
             </div>
           </div>
@@ -167,13 +167,13 @@ export default function Landing() {
             <div>
               <h2 className="text-4xl font-bold text-gray-900 mb-6">
                 Instant insights. Lasting growth.{' '}
-                <span className="text-blue-600">Powered by AI.</span>
+                <span className="text-red-600">Powered by AI.</span>
               </h2>
               
               <p className="text-lg text-gray-600 mb-8">
-                AI-driven analytics and real-time monitoring help you identify optimization 
-                opportunities, predict issues before they happen, and make data-driven decisions 
-                that improve your bottom line.
+                AI-driven analytics and real-time monitoring help you identify brand optimization 
+                opportunities, predict operational issues before they happen, and make data-driven decisions 
+                that improve your brand performance and profitability.
               </p>
               
               <div className="space-y-4">
@@ -204,7 +204,7 @@ export default function Landing() {
             </div>
             
             {/* AI Insights Visual */}
-            <div className="bg-gradient-to-br from-blue-600 to-purple-700 rounded-xl p-8 text-white">
+            <div className="bg-gradient-to-br from-red-600 to-purple-700 rounded-xl p-8 text-white">
               <div className="space-y-6">
                 <h3 className="text-xl font-semibold">AI Insights Dashboard</h3>
                 
@@ -214,7 +214,7 @@ export default function Landing() {
                     <span className="text-sm font-medium">Optimization Opportunity</span>
                   </div>
                   <p className="text-sm opacity-90">
-                    Consolidating shipments to Zone 7 could reduce costs by 23% 
+                    Callahan-Smith: Consolidating supplier orders could reduce costs by 23% 
                     and improve delivery times by 1.2 days.
                   </p>
                 </div>
@@ -225,8 +225,8 @@ export default function Landing() {
                     <span className="text-sm font-medium">Predictive Alert</span>
                   </div>
                   <p className="text-sm opacity-90">
-                    Inventory levels for SKU-1247 trending toward stockout. 
-                    Recommend reorder within 5 days.
+                    Callahan-Smith SKU-1247 trending toward stockout. 
+                    Recommend urgent reorder within 5 days to prevent revenue loss.
                   </p>
                 </div>
               </div>
@@ -240,19 +240,19 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Everything you need to optimize your 3PL operations
+              Everything you need to optimize your brand operations
             </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Comprehensive tools and insights to streamline your logistics operations 
-              and drive growth for your business.
+              Comprehensive tools and insights to streamline your brand operations 
+              and drive growth for your brand business.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Feature Cards */}
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <BarChart3 className="w-6 h-6 text-blue-600" />
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6 text-red-600" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">Real-time Analytics</h3>
               <p className="text-gray-600">
@@ -351,12 +351,12 @@ export default function Landing() {
       <section className="bg-gray-900 text-white py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold mb-6">
-            Ready to optimize your 3PL operations?
+            Ready to optimize your brand operations?
           </h2>
           
           <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Join leading logistics companies using CargoCore to drive efficiency, 
-            reduce costs, and deliver exceptional results.
+            Join leading brand companies using Brand Buddy to drive efficiency, 
+            reduce costs, and deliver exceptional brand results.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -467,8 +467,8 @@ export default function Landing() {
       <footer className="bg-gray-50 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600 mb-2">CargoCore</div>
-            <p className="text-gray-600 mb-4">3PL Operations Platform</p>
+            <div className="text-2xl font-bold text-red-600 mb-2">Brand Buddy</div>
+            <p className="text-gray-600 mb-4">Brand Operations Platform</p>
             <p className="text-sm text-gray-500">© 2025 Heft IQ. All rights reserved.</p>
           </div>
         </div>

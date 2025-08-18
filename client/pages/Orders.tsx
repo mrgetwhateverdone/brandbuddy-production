@@ -22,7 +22,7 @@ import { OrderAIExplanationModal } from "@/components/orders/OrderAIExplanationM
 export default function Orders() {
   const { data, isLoading, error, refetch } = useOrdersData();
   const { getTablePageSize } = useSettingsIntegration();
-  const { orders, totalCount, hasMore } = useOrdersTable(getTablePageSize());
+  const { orders, totalCount, hasMore } = useOrdersTable(10);
   const [showViewAllModal, setShowViewAllModal] = useState(false);
   const [showViewAllShipmentsModal, setShowViewAllShipmentsModal] = useState(false);
   const [showAIExplanationModal, setShowAIExplanationModal] = useState(false);

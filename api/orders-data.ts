@@ -452,7 +452,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     );
 
     // This part of the code fetches shipments and transforms them into orders
-    const shipments = await fetchShipments();
+    const allShipments = await fetchShipments();
+    
+    // This part of the code filters shipments to ensure only Callahan-Smith data is processed
+    const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+    console.log(`🔍 Data filtered for Callahan-Smith: ${allShipments.length} total → ${shipments.length} Callahan-Smith shipments`);
+    
     const orders = transformShipmentsToOrders(shipments);
 
     // This part of the code calculates all orders metrics from transformed data

@@ -45,25 +45,25 @@ async function fetchProducts(): Promise<ProductData[]> {
 }
 
 function calculateEnhancedKPIs(products: ProductData[]) {
-  // Data is already filtered by company_url in the API call
-  const companyProducts = products;
+  // Data is already filtered for Callahan-Smith brand
+  const callahanSmithProducts = products;
   
   // Basic counts
-  const totalSKUs = companyProducts.length;
-  const activeSKUs = companyProducts.filter(p => p.active).length;
-  const inactiveSKUs = companyProducts.filter(p => !p.active).length;
-  const lowStockCount = companyProducts.filter(p => p.unit_quantity > 0 && p.unit_quantity < 10).length;
+  const totalSKUs = callahanSmithProducts.length;
+  const activeSKUs = callahanSmithProducts.filter(p => p.active).length;
+  const inactiveSKUs = callahanSmithProducts.filter(p => !p.active).length;
+  const lowStockCount = callahanSmithProducts.filter(p => p.unit_quantity > 0 && p.unit_quantity < 10).length;
   
   // Value calculations
-  const totalInventoryValue = companyProducts.reduce((sum, p) => {
+  const totalInventoryValue = callahanSmithProducts.reduce((sum, p) => {
     const cost = p.unit_cost || 0;
     return sum + (p.unit_quantity * cost);
   }, 0);
   
   // Legacy KPIs for compatibility
-  const inStockCount = companyProducts.filter(p => p.unit_quantity > 0).length;
-  const unfulfillableCount = companyProducts.filter(p => p.unit_quantity === 0).length;
-  const overstockedCount = companyProducts.filter(p => p.unit_quantity > 100).length;
+  const inStockCount = callahanSmithProducts.filter(p => p.unit_quantity > 0).length;
+  const unfulfillableCount = callahanSmithProducts.filter(p => p.unit_quantity === 0).length;
+  const overstockedCount = callahanSmithProducts.filter(p => p.unit_quantity > 100).length;
   
   return {
     // Enhanced KPIs
@@ -82,11 +82,11 @@ function calculateEnhancedKPIs(products: ProductData[]) {
 }
 
 function calculateBrandPerformance(products: ProductData[]) {
-  // Data is already filtered by company_url in the API call
-  const companyProducts = products;
+  // Data is already filtered for Callahan-Smith brand
+  const callahanSmithProducts = products;
   const brandMap = new Map<string, {skuCount: number, totalValue: number, totalQuantity: number}>();
   
-  companyProducts.forEach(p => {
+  callahanSmithProducts.forEach(p => {
     const cost = p.unit_cost || 0;
     const value = p.unit_quantity * cost;
     
@@ -120,11 +120,11 @@ function calculateBrandPerformance(products: ProductData[]) {
 }
 
 function calculateSupplierAnalysis(products: ProductData[]) {
-  // Data is already filtered by company_url in the API call
-  const companyProducts = products;
+  // Data is already filtered for Callahan-Smith brand
+  const callahanSmithProducts = products;
   const supplierMap = new Map<string, {skuCount: number, totalValue: number, countries: Set<string>}>();
   
-  companyProducts.forEach(p => {
+  callahanSmithProducts.forEach(p => {
     const cost = p.unit_cost || 0;
     const value = p.unit_quantity * cost;
     
@@ -148,14 +148,14 @@ function calculateSupplierAnalysis(products: ProductData[]) {
       sku_count: data.skuCount,
       total_value: Math.round(data.totalValue),
       countries: Array.from(data.countries),
-      concentration_risk: Math.round((data.totalValue / companyProducts.reduce((sum, p) => sum + (p.unit_quantity * (p.unit_cost || 0)), 0)) * 100)
+      concentration_risk: Math.round((data.totalValue / callahanSmithProducts.reduce((sum, p) => sum + (p.unit_quantity * (p.unit_cost || 0)), 0)) * 100)
     }))
     .sort((a, b) => b.total_value - a.total_value)
     .slice(0, 15);
 }
 
 function transformToEnhancedInventoryItems(products: ProductData[]) {
-  // Data is already filtered by company_url in the API call
+  // Data is already filtered for Callahan-Smith brand
   return products
     .map(p => {
       const cost = p.unit_cost || 0;
@@ -206,7 +206,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log("🔒 Phase 2: Building world-class inventory dashboard...");
 
     // Fetch real data and calculate enhanced analytics
-    const products = await fetchProducts();
+    const allProducts = await fetchProducts();
+    
+    // This part of the code ensures only Callahan-Smith products are processed
+    const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
+    console.log(`🔍 Data filtered for Callahan-Smith: ${allProducts.length} total → ${products.length} Callahan-Smith products`);
     
     if (products.length === 0) {
       // No data available - return clean empty state

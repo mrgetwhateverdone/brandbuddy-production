@@ -30,6 +30,7 @@ import Workflows from "./pages/Workflows";
 import Analytics from "./pages/Analytics";
 import Orders from "./pages/Orders";
 import Inventory from "./pages/Inventory";
+import Replenishment from "./pages/Replenishment";
 import Warehouses from "./pages/Warehouses";
 import CostManagement from "./pages/CostManagement";
 import EconomicIntelligence from "./pages/EconomicIntelligence";
@@ -118,6 +119,14 @@ const App = () => {
                     element={
                       <SignedIn>
                         <Inventory />
+                      </SignedIn>
+                    } 
+                  />
+                  <Route 
+                    path="/replenishment" 
+                    element={
+                      <SignedIn>
+                        <Replenishment />
                       </SignedIn>
                     } 
                   />

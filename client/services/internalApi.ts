@@ -554,6 +554,38 @@ class InternalApiService {
   }
 
   /**
+   * Fetch complete replenishment data from secure server endpoint
+   * NO external API keys - server handles TinyBird + OpenAI calls
+   */
+  async getReplenishmentData(): Promise<any> {
+    try {
+      console.log("🔒 Client: Fetching replenishment data from secure server...");
+
+      const response = await fetch(`${this.baseUrl}/api/replenishment-data`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<any> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch replenishment data");
+      }
+
+      console.log("✅ Client: Replenishment data received securely from server");
+      return result.data;
+    } catch (error) {
+      console.error("❌ Client: Replenishment API call failed:", error);
+      throw new Error(
+        `Unable to load replenishment data: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
    * This part of the code fetches warehouse data with performance metrics
    */
   async getWarehousesData(): Promise<WarehousesData> {

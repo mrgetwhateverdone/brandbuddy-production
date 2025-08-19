@@ -27,13 +27,9 @@ import Landing from "./pages/Landing";
 import Contact from "./pages/Contact";
 import Dashboard from "./pages/Dashboard";
 import Workflows from "./pages/Workflows";
-import Analytics from "./pages/Analytics";
 import Orders from "./pages/Orders";
 import Inventory from "./pages/Inventory";
 import Replenishment from "./pages/Replenishment";
-import Warehouses from "./pages/Warehouses";
-import CostManagement from "./pages/CostManagement";
-import EconomicIntelligence from "./pages/EconomicIntelligence";
 import Reports from "./pages/Reports";
 import AIAssistant from "./pages/AIAssistant";
 import Settings from "./pages/Settings";
@@ -98,14 +94,7 @@ const App = () => {
                       </SignedIn>
                     } 
                   />
-                  <Route 
-                    path="/analytics" 
-                    element={
-                      <SignedIn>
-                        <Analytics />
-                      </SignedIn>
-                    } 
-                  />
+
                   <Route 
                     path="/orders" 
                     element={
@@ -130,30 +119,7 @@ const App = () => {
                       </SignedIn>
                     } 
                   />
-                  <Route 
-                    path="/warehouses" 
-                    element={
-                      <SignedIn>
-                        <Warehouses />
-                      </SignedIn>
-                    } 
-                  />
-                  <Route 
-                    path="/cost-management" 
-                    element={
-                      <SignedIn>
-                        <CostManagement />
-                      </SignedIn>
-                    } 
-                  />
-                <Route
-                  path="/intelligence"
-                    element={
-                      <SignedIn>
-                        <EconomicIntelligence />
-                      </SignedIn>
-                    }
-                  />
+
                   <Route 
                     path="/reports" 
                     element={

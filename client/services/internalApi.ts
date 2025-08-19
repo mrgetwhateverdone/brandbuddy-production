@@ -11,13 +11,9 @@ import type {
   ProductData,
   ShipmentData,
   AIInsight,
-  AnalyticsData,
   OrdersData,
   OrderSuggestion,
   InventoryData,
-  CostData,
-  EconomicIntelligenceData,
-  WarehousesData,
   ReportTemplatesResponse,
   ReportData,
   ReportFilters,
@@ -199,37 +195,7 @@ class InternalApiService {
     }
   }
 
-  /**
-   * Fetch complete analytics data from secure server endpoint
-   * NO external API keys - server handles TinyBird + OpenAI calls
-   */
-  async getAnalyticsData(): Promise<AnalyticsData> {
-    try {
-      console.log("🔒 Client: Fetching analytics data from secure server...");
 
-      const response = await fetch(`${this.baseUrl}/api/analytics-data`);
-
-      if (!response.ok) {
-        throw new Error(
-          `Internal API Error: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      const result: APIResponse<AnalyticsData> = await response.json();
-
-      if (!result.success || !result.data) {
-        throw new Error(result.message || "Failed to fetch analytics data");
-      }
-
-      console.log("✅ Client: Analytics data received securely from server");
-      return result.data;
-    } catch (error) {
-      console.error("❌ Client: Analytics API call failed:", error);
-      throw new Error(
-        `Unable to load analytics data: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-    }
-  }
 
   /**
    * Fetch complete orders data from secure server endpoint
@@ -334,36 +300,7 @@ class InternalApiService {
     }
   }
 
-  /**
-   * This part of the code fetches cost management data with warehouse metrics
-   */
-  async getCostData(): Promise<CostData> {
-    try {
-      console.log("🔒 Client: Fetching cost data from secure server...");
 
-      const response = await fetch(`${this.baseUrl}/api/cost-data`);
-
-      if (!response.ok) {
-        throw new Error(
-          `Internal API Error: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      const result: APIResponse<CostData> = await response.json();
-
-      if (!result.success || !result.data) {
-        throw new Error(result.message || "Failed to fetch cost data");
-      }
-
-      console.log("✅ Client: Cost data received securely from server");
-      return result.data;
-    } catch (error) {
-      console.error("❌ Client: Cost API call failed:", error);
-      throw new Error(
-        `Unable to load cost data: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-    }
-  }
 
 
 
@@ -521,36 +458,7 @@ class InternalApiService {
     }
   }
 
-  /**
-   * This part of the code fetches economic intelligence data with real operational analysis
-   */
-  async getEconomicIntelligenceData(): Promise<EconomicIntelligenceData> {
-    try {
-      console.log("🔒 Client: Fetching economic intelligence data from secure server...");
 
-      const response = await fetch(`${this.baseUrl}/api/economic-intelligence`);
-
-      if (!response.ok) {
-        throw new Error(
-          `Internal API Error: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      const result: APIResponse<EconomicIntelligenceData> = await response.json();
-
-      if (!result.success || !result.data) {
-        throw new Error(result.message || "Failed to fetch economic intelligence data");
-      }
-
-      console.log("✅ Client: Economic intelligence data received securely from server");
-      return result.data;
-    } catch (error) {
-      console.error("❌ Client: Economic intelligence API call failed:", error);
-      throw new Error(
-        `Unable to load economic intelligence data: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-    }
-  }
 
   /**
    * Fetch complete replenishment data from secure server endpoint
@@ -584,36 +492,7 @@ class InternalApiService {
     }
   }
 
-  /**
-   * This part of the code fetches warehouse data with performance metrics
-   */
-  async getWarehousesData(): Promise<WarehousesData> {
-    try {
-      console.log("🔒 Client: Fetching warehouses data from secure server...");
 
-      const response = await fetch(`${this.baseUrl}/api/warehouses-data`);
-
-      if (!response.ok) {
-        throw new Error(
-          `Internal API Error: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      const result: APIResponse<WarehousesData> = await response.json();
-
-      if (!result.success || !result.data) {
-        throw new Error(result.message || "Failed to fetch warehouses data");
-      }
-
-      console.log("✅ Client: Warehouses data received securely from server");
-      return result.data;
-    } catch (error) {
-      console.error("❌ Client: Warehouses API call failed:", error);
-      throw new Error(
-        `Unable to load warehouses data: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-    }
-  }
 
   /**
    * Health check - verify server is responding

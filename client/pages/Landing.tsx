@@ -249,14 +249,14 @@ export default function Landing() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature Cards */}
+            {/* Feature Cards - Updated for BrandBuddy */}
             <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
               <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
                 <BarChart3 className="w-6 h-6 text-red-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Real-time Analytics</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Overview Dashboard</h3>
               <p className="text-gray-600">
-                Get instant visibility into your operations with live dashboards and real-time KPI monitoring.
+                Get instant visibility into your brand operations with live KPIs, daily briefings, and real-time insights.
               </p>
             </div>
             
@@ -266,7 +266,17 @@ export default function Landing() {
               </div>
               <h3 className="text-xl font-semibold text-gray-900 mb-3">AI-Powered Insights</h3>
               <p className="text-gray-600">
-                Leverage machine learning to identify patterns, predict trends, and optimize operations.
+                Leverage AI intelligence agents to identify patterns, predict trends, and optimize your brand operations.
+              </p>
+            </div>
+            
+            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Orders Management</h3>
+              <p className="text-gray-600">
+                Track order performance, analyze supplier relationships, and monitor fulfillment across all channels.
               </p>
             </div>
             
@@ -274,9 +284,9 @@ export default function Landing() {
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                 <Shield className="w-6 h-6 text-purple-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">SLA Monitoring</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Inventory Intelligence</h3>
               <p className="text-gray-600">
-                Track service level agreements and ensure consistent performance across all operations.
+                Monitor SKU performance, track stock levels, and get intelligent alerts for optimal inventory management.
               </p>
             </div>
             
@@ -284,19 +294,9 @@ export default function Landing() {
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
                 <DollarSign className="w-6 h-6 text-orange-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Cost Management</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Replenishment Intelligence</h3>
               <p className="text-gray-600">
-                Optimize costs across your entire operation with intelligent resource allocation.
-              </p>
-            </div>
-            
-            <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-200">
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                <TrendingUp className="w-6 h-6 text-red-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Performance Tracking</h3>
-              <p className="text-gray-600">
-                Monitor KPIs, track improvements, and measure ROI across all operational metrics.
+                AI-powered reorder recommendations, financial impact analysis, and smart replenishment planning.
               </p>
             </div>
             
@@ -304,9 +304,9 @@ export default function Landing() {
               <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
                 <Users className="w-6 h-6 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-3">Multi-Warehouse</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-3">Supplier Management</h3>
               <p className="text-gray-600">
-                Manage multiple warehouses and locations from a single, unified platform.
+                Monitor supplier performance, track reliability scores, and optimize supplier relationships for your brand.
               </p>
             </div>
           </div>

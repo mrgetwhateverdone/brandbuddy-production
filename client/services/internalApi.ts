@@ -16,7 +16,6 @@ import type {
   OrderSuggestion,
   InventoryData,
   CostData,
-  EconomicData,
   EconomicIntelligenceData,
   WarehousesData,
   ReportTemplatesResponse,

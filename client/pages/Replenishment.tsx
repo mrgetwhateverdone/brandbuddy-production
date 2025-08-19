@@ -7,6 +7,9 @@ import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 // Replenishment Components
 import { ReplenishmentKPISection } from "@/components/replenishment/ReplenishmentKPISection";
 import { InsightsSection } from "@/components/dashboard/InsightsSection";
+import { SupplierReliabilitySection } from "@/components/replenishment/SupplierReliabilitySection";
+import { ReorderPointSection } from "@/components/replenishment/ReorderPointSection";
+import { FinancialImpactSection } from "@/components/replenishment/FinancialImpactSection";
 
 export default function Replenishment() {
   const { data, isLoading, error, refetch } = useReplenishmentData();
@@ -62,8 +65,25 @@ export default function Replenishment() {
           />
         )}
 
-        {/* This part of the code will display additional replenishment sections in future iterations */}
-        {/* Future sections: Critical Items Table, Reorder Suggestions, Supplier Performance */}
+        {/* This part of the code displays the Supplier Reliability Scorecard */}
+        <SupplierReliabilitySection
+          products={data.products || []}
+          shipments={data.shipments || []}
+          isLoading={isLoading}
+        />
+
+        {/* This part of the code displays the Reorder Point Intelligence */}
+        <ReorderPointSection
+          products={data.products || []}
+          isLoading={isLoading}
+        />
+
+        {/* This part of the code displays the Financial Impact Calculator */}
+        <FinancialImpactSection
+          products={data.products || []}
+          kpis={data.kpis}
+          isLoading={isLoading}
+        />
       </div>
     </Layout>
   );

@@ -11,6 +11,8 @@ interface ReplenishmentKPIs {
 interface ReplenishmentData {
   kpis: ReplenishmentKPIs;
   insights: any[];
+  products: ProductData[];
+  shipments: ShipmentData[];
   criticalItems: any[];
   supplierPerformance: any[];
   reorderSuggestions: any[];
@@ -276,6 +278,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             createdAt: new Date().toISOString(),
             source: "replenishment_agent" as const,
           }],
+          products: [],
+          shipments: [],
           criticalItems: [],
           supplierPerformance: [],
           reorderSuggestions: [],
@@ -293,6 +297,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const replenishmentData: ReplenishmentData = {
       kpis,
       insights,
+      products, // Raw product data for client-side calculations
+      shipments, // Raw shipment data for client-side calculations
       criticalItems: [], // Will be populated in future iterations
       supplierPerformance: [], // Will be populated in future iterations  
       reorderSuggestions: [], // Will be populated in future iterations

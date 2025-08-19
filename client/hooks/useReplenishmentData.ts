@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { internalApi } from "@/services/internalApi";
 import { useSettingsIntegration } from "./useSettingsIntegration";
+import type { ProductData, ShipmentData } from "@/types/api";
 
 interface ReplenishmentKPIs {
   criticalSKUs: number;
@@ -12,6 +13,8 @@ interface ReplenishmentKPIs {
 interface ReplenishmentData {
   kpis: ReplenishmentKPIs;
   insights: any[];
+  products: ProductData[];
+  shipments: ShipmentData[];
   criticalItems: any[];
   supplierPerformance: any[];
   reorderSuggestions: any[];

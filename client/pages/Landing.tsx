@@ -381,7 +381,7 @@ export default function Landing() {
             <Button 
               variant="outline" 
               asChild
-              className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-8 py-4 text-lg font-semibold"
+              className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-8 py-4 text-lg font-semibold bg-white"
               size="lg"
             >
               <Link to="/contact">Get Started</Link>

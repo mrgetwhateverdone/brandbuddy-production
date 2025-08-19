@@ -214,7 +214,7 @@ export default function Landing() {
                     <span className="text-sm font-medium">Optimization Opportunity</span>
                   </div>
                   <p className="text-sm opacity-90">
-                    Callahan-Smith: Consolidating supplier orders could reduce costs by 23% 
+                    Nexus Brands: Consolidating supplier orders could reduce costs by 23% 
                     and improve delivery times by 1.2 days.
                   </p>
                 </div>
@@ -225,7 +225,7 @@ export default function Landing() {
                     <span className="text-sm font-medium">Predictive Alert</span>
                   </div>
                   <p className="text-sm opacity-90">
-                    Callahan-Smith SKU-1247 trending toward stockout. 
+                    Nexus Brands SKU-1247 trending toward stockout. 
                     Recommend urgent reorder within 5 days to prevent revenue loss.
                   </p>
                 </div>
@@ -348,13 +348,13 @@ export default function Landing() {
       </section>
 
       {/* Final CTA Section */}
-      <section className="bg-gray-900 text-white py-20">
+      <section className="bg-white py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold mb-6">
+          <h2 className="text-4xl font-bold mb-6 text-gray-900">
             Ready to optimize your brand operations?
           </h2>
           
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
             Join leading brand companies using Brand Buddy to drive efficiency, 
             reduce costs, and deliver exceptional brand results.
           </p>
@@ -363,7 +363,7 @@ export default function Landing() {
             {isSignedIn ? (
               <Button 
                 onClick={handleGetDemo}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold"
+                className="bg-red-600 hover:bg-red-700 text-white px-8 py-4 text-lg font-semibold"
                 size="lg"
               >
                 Go to Dashboard
@@ -371,7 +371,7 @@ export default function Landing() {
             ) : (
               <SignInButton mode="modal">
                 <Button 
-                  className="bg-blue-600 hover:bg-blue-700 !text-white px-8 py-4 text-lg font-semibold"
+                  className="bg-red-600 hover:bg-red-700 !text-white px-8 py-4 text-lg font-semibold"
                   size="lg"
                 >
                   Get Demo
@@ -381,95 +381,93 @@ export default function Landing() {
             <Button 
               variant="outline" 
               asChild
-              className="border-white text-white hover:bg-white hover:text-gray-900 px-8 py-4 text-lg font-semibold"
+              className="border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-8 py-4 text-lg font-semibold"
               size="lg"
             >
               <Link to="/contact">Get Started</Link>
             </Button>
           </div>
           
-          <p className="text-sm text-gray-400 mt-6">
+          <p className="text-sm text-gray-500 mt-6">
             See immediate results. Setup takes minutes, not months.
           </p>
         </div>
       </section>
 
       {/* Footer */}
-      {/* Powered by Heft IQ Footer */}
-      <div className="bg-white border-t border-gray-200 py-4">
-        <div className="flex items-center justify-center space-x-3">
-          {/* Powered by text */}
-          <span className="text-gray-500 text-sm">
-            Powered by
-          </span>
-          
-          {/* Heft IQ Logo */}
-          <div className="flex items-center space-x-2">
-            {/* This part of the code creates the Heft IQ logo using SVG */}
-            <svg 
-              width="24" 
-              height="24" 
-              viewBox="0 0 100 100" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-purple-600"
-            >
-              {/* Central hub */}
-              <circle 
-                cx="50" 
-                cy="50" 
-                r="12" 
-                stroke="currentColor" 
-                strokeWidth="3" 
-                fill="none"
-              />
-              
-              {/* Connecting lines and outer nodes */}
-              {/* Top */}
-              <line x1="50" y1="38" x2="50" y2="20" stroke="currentColor" strokeWidth="3"/>
-              <circle cx="50" cy="15" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
-              
-              {/* Top Right */}
-              <line x1="58.5" y1="41.5" x2="70.7" y2="29.3" stroke="currentColor" strokeWidth="3"/>
-              <circle cx="75.3" cy="24.7" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
-              
-              {/* Right */}
-              <line x1="62" y1="50" x2="80" y2="50" stroke="currentColor" strokeWidth="3"/>
-              <circle cx="85" cy="50" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
-              
-              {/* Bottom Right */}
-              <line x1="58.5" y1="58.5" x2="70.7" y2="70.7" stroke="currentColor" strokeWidth="3"/>
-              <circle cx="75.3" cy="75.3" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
-              
-              {/* Bottom */}
-              <line x1="50" y1="62" x2="50" y2="80" stroke="currentColor" strokeWidth="3"/>
-              <circle cx="50" cy="85" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
-              
-              {/* Bottom Left */}
-              <line x1="41.5" y1="58.5" x2="29.3" y2="70.7" stroke="currentColor" strokeWidth="3"/>
-              <circle cx="24.7" cy="75.3" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
-              
-              {/* Left */}
-              <line x1="38" y1="50" x2="20" y2="50" stroke="currentColor" strokeWidth="3"/>
-              <circle cx="15" cy="50" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
-              
-              {/* Top Left */}
-              <line x1="41.5" y1="41.5" x2="29.3" y2="29.3" stroke="currentColor" strokeWidth="3"/>
-              <circle cx="24.7" cy="24.7" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
-            </svg>
-            
-            {/* This part of the code displays the Heft IQ text logo */}
-            <span className="text-lg font-bold text-purple-600">HEFT IQ</span>
-          </div>
-        </div>
-      </div>
-
       <footer className="bg-gray-50 border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <div className="text-2xl font-bold text-red-600 mb-2">Brand Buddy</div>
             <p className="text-gray-600 mb-4">Brand Operations Platform</p>
-            <p className="text-sm text-gray-500">© 2025 Heft IQ. All rights reserved.</p>
+            <p className="text-sm text-gray-500 mb-6">© 2025 Heft IQ. All rights reserved.</p>
+            
+            {/* Powered by Heft IQ Footer - moved here */}
+            <div className="flex items-center justify-center space-x-3 pt-4 border-t border-gray-300">
+              {/* Powered by text */}
+              <span className="text-gray-500 text-sm">
+                Powered by
+              </span>
+              
+              {/* Heft IQ Logo */}
+              <div className="flex items-center space-x-2">
+                {/* This part of the code creates the Heft IQ logo using SVG */}
+                <svg 
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 100 100" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="text-purple-600"
+                >
+                  {/* Central hub */}
+                  <circle 
+                    cx="50" 
+                    cy="50" 
+                    r="12" 
+                    stroke="currentColor" 
+                    strokeWidth="3" 
+                    fill="none"
+                  />
+                  
+                  {/* Connecting lines and outer nodes */}
+                  {/* Top */}
+                  <line x1="50" y1="38" x2="50" y2="20" stroke="currentColor" strokeWidth="3"/>
+                  <circle cx="50" cy="15" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                  
+                  {/* Top Right */}
+                  <line x1="58.5" y1="41.5" x2="70.7" y2="29.3" stroke="currentColor" strokeWidth="3"/>
+                  <circle cx="75.3" cy="24.7" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                  
+                  {/* Right */}
+                  <line x1="62" y1="50" x2="80" y2="50" stroke="currentColor" strokeWidth="3"/>
+                  <circle cx="85" cy="50" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                  
+                  {/* Bottom Right */}
+                  <line x1="58.5" y1="58.5" x2="70.7" y2="70.7" stroke="currentColor" strokeWidth="3"/>
+                  <circle cx="75.3" cy="75.3" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                  
+                  {/* Bottom */}
+                  <line x1="50" y1="62" x2="50" y2="80" stroke="currentColor" strokeWidth="3"/>
+                  <circle cx="50" cy="85" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                  
+                  {/* Bottom Left */}
+                  <line x1="41.5" y1="58.5" x2="29.3" y2="70.7" stroke="currentColor" strokeWidth="3"/>
+                  <circle cx="24.7" cy="75.3" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                  
+                  {/* Left */}
+                  <line x1="38" y1="50" x2="20" y2="50" stroke="currentColor" strokeWidth="3"/>
+                  <circle cx="15" cy="50" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                  
+                  {/* Top Left */}
+                  <line x1="41.5" y1="41.5" x2="29.3" y2="29.3" stroke="currentColor" strokeWidth="3"/>
+                  <circle cx="24.7" cy="24.7" r="5" stroke="currentColor" strokeWidth="3" fill="none"/>
+                </svg>
+                
+                {/* This part of the code displays the Heft IQ text logo */}
+                <span className="text-lg font-bold text-purple-600">HEFT IQ</span>
+              </div>
+            </div>
           </div>
         </div>
       </footer>

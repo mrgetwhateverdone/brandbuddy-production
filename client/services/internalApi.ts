@@ -497,7 +497,7 @@ class InternalApiService {
     try {
       console.log("🔒 Client: Fetching quick actions from secure server...");
 
-      const response = await fetch(`${this.baseUrl}/api/ai-chat/quick-actions`);
+      const response = await fetch(`${this.baseUrl}/api/ai-chat?quick-actions=true`);
 
       if (!response.ok) {
         throw new Error(

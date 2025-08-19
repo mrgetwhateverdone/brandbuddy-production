@@ -2,6 +2,33 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import type { ProductData, ShipmentData, DashboardData, InventoryData, OrdersData, CostData, AnalyticsData } from "../client/types/api";
 
 /**
+ * This part of the code defines the quick actions available for AI assistant
+ * Each action provides predefined prompts that leverage real operational data
+ */
+const QUICK_ACTIONS = [
+  {
+    id: "top-brands",
+    label: "Name my top brands",
+    prompt: "Based on my current operational data, name my top 5 brands by total activity (SKUs + shipments). Include specific metrics for each brand and their operational performance."
+  },
+  {
+    id: "warehouse-status", 
+    label: "List my warehouses",
+    prompt: "List all my active warehouses with their current SLA performance, shipment volume, and operational status. Rank them by performance and identify any that need attention."
+  },
+  {
+    id: "daily-priorities",
+    label: "What should I act on today?",
+    prompt: "Analyze my current operations and identify the top 3-5 most critical issues I should address today. Focus on at-risk shipments, processing problems, and financial impact."
+  },
+  {
+    id: "at-risk-orders",
+    label: "Show at-risk orders",
+    prompt: "Identify all shipments and orders that are currently at-risk. Include quantity discrepancies, cancelled orders, and delayed shipments with their potential financial impact."
+  }
+];
+
+/**
  * This part of the code defines the AI chat message interface for real-time conversations
  * Supports user messages and AI responses with operational context
  */
@@ -184,28 +211,7 @@ ${shipments.slice(0, 3).map(s =>
 This operational data is live from your TinyBird warehouse management system as of ${timestamp}.`;
 }
 
-/**
- * This part of the code defines quick action prompts with real operational context
- * Each prompt is designed to leverage actual business data for specific insights
- */
-const QUICK_ACTIONS = {
-  "top-brands": {
-    label: "Name my top brands",
-    prompt: "Based on my current operational data, name my top 5 brands by total activity (SKUs + shipments). Include specific metrics for each brand and their operational performance."
-  },
-  "warehouse-status": {
-    label: "List my warehouses", 
-    prompt: "List all my active warehouses with their current SLA performance, shipment volume, and operational status. Rank them by performance and identify any that need attention."
-  },
-  "daily-priorities": {
-    label: "What should I act on today?",
-    prompt: "Analyze my current operations and identify the top 3-5 most critical issues I should address today. Focus on at-risk shipments, processing problems, and financial impact."
-  },
-  "at-risk-orders": {
-    label: "Show at-risk orders",
-    prompt: "Identify all shipments and orders that are currently at-risk. Include quantity discrepancies, cancelled orders, and delayed shipments with their potential financial impact."
-  }
-};
+
 
 /**
  * This part of the code handles AI conversation with real operational context
@@ -298,10 +304,34 @@ You have access to live data about products, shipments, warehouses, brands, and 
 }
 
 /**
- * This part of the code handles the main API endpoint for AI chat
- * Processes messages and returns AI responses with operational context
+ * This part of the code handles both AI chat and quick actions endpoints
+ * Supports POST for chat and GET for quick actions
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // This part of the code handles quick actions GET requests
+  if (req.method === "GET" && req.url?.includes('quick-actions')) {
+    try {
+      console.log("🚀 Quick Actions API: Fetching available actions...");
+      
+      res.status(200).json({
+        success: true,
+        data: QUICK_ACTIONS,
+        message: "Quick actions retrieved successfully",
+        timestamp: new Date().toISOString()
+      });
+      return;
+
+    } catch (error) {
+      console.error("❌ Quick Actions API Error:", error);
+      
+      res.status(500).json({
+        error: "Failed to fetch quick actions",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
+      return;
+    }
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

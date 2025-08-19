@@ -13,22 +13,30 @@ export function KPISection({ kpis, isLoading }: KPISectionProps) {
     {
       title: "Total Orders Today",
       value: kpis.totalOrdersToday,
+      description: "New orders received today",
       className: "bg-white",
+      colorClass: "text-blue-600",
     },
     {
       title: "At-Risk Orders",
       value: kpis.atRiskOrders,
+      description: "Orders with delays or issues",
       className: "bg-white",
+      colorClass: kpis.atRiskOrders > 0 ? "text-red-600" : "text-gray-600",
     },
     {
       title: "Open POs",
       value: kpis.openPOs,
+      description: "Active purchase orders",
       className: "bg-white",
+      colorClass: "text-green-600",
     },
     {
       title: "Unfulfillable SKUs",
       value: kpis.unfulfillableSKUs,
+      description: "SKUs with fulfillment issues",
       className: "bg-white",
+      colorClass: kpis.unfulfillableSKUs > 0 ? "text-orange-600" : "text-gray-600",
     },
   ];
 
@@ -39,15 +47,23 @@ export function KPISection({ kpis, isLoading }: KPISectionProps) {
           key={index}
           className={`${kpi.className} p-4 rounded-lg border border-gray-200 shadow-sm`}
         >
+          {/* This part of the code displays the KPI title */}
           <div className="text-sm font-medium text-gray-500 mb-1">
             {kpi.title}
           </div>
-          <div className="text-2xl font-semibold text-gray-900">
+          
+          {/* This part of the code displays the KPI value with appropriate coloring */}
+          <div className={`text-2xl font-semibold mb-1 ${kpi.colorClass}`}>
             {isLoading ? (
               <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
             ) : (
               formatNumber(kpi.value)
             )}
+          </div>
+          
+          {/* This part of the code displays the KPI description */}
+          <div className="text-sm text-gray-500">
+            {kpi.description}
           </div>
         </div>
       ))}

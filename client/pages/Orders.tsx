@@ -62,7 +62,7 @@ export default function Orders() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* This part of the code handles loading state for the entire orders dashboard */}
         {isLoading && (
           <LoadingState message="Loading BrandBuddy orders data..." />

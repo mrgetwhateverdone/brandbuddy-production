@@ -47,11 +47,11 @@ export function OrdersKPISection({ kpis, isLoading }: OrdersKPISectionProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
+            className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm"
           >
             <div className="text-sm font-medium text-gray-500 mb-1">
               <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
@@ -69,11 +69,11 @@ export function OrdersKPISection({ kpis, isLoading }: OrdersKPISectionProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {kpiCards.map((kpi, index) => (
         <div
           key={index}
-          className={`${kpi.className} p-4 rounded-lg border border-gray-200 shadow-sm`}
+          className={`${kpi.className} p-6 rounded-lg border border-gray-200 shadow-sm`}
         >
           {/* This part of the code displays the KPI title */}
           <div className="text-sm font-medium text-gray-500 mb-1">

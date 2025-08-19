@@ -2,11 +2,12 @@
 // It provides comprehensive workflow tracking with status management and automatic refresh capabilities
 
 import React, { useState } from 'react';
-import { RefreshCw, Plus, Bot, Settings, Calendar, Trash2, Play, CheckCircle, Clock } from 'lucide-react';
+import { Plus, Settings, Trash2, Play, CheckCircle } from 'lucide-react';
 import { Layout } from '../components/layout/Layout';
 import { useWorkflows } from '../hooks/useWorkflows';
 import { CreatedWorkflow } from '../utils/workflowStorage';
 import { BrainIcon } from '../components/ui/BrainIcon';
+import { InsightsSection } from '../components/dashboard/InsightsSection';
 
 export default function Workflows() {
   const { workflows, loading, stats, workflowsByStatus, updateWorkflowStatus, removeWorkflow, refreshWorkflows } = useWorkflows();
@@ -140,77 +141,43 @@ export default function Workflows() {
 
   return (
     <Layout>
-      <div className="space-y-6">
-        {/* This part of the code renders the page header with title and refresh functionality */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Workflows</h1>
-            <p className="text-sm text-gray-500">
-              Last updated: {new Date().toLocaleString()}
-            </p>
-          </div>
-          <button
-            onClick={refreshWorkflows}
-            className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            <RefreshCw className="h-4 w-4" />
-            <span>Refresh</span>
-          </button>
-        </div>
+      <div className="max-w-7xl mx-auto space-y-6">
 
-        {/* This part of the code displays the KPI cards with real-time workflow statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Active Workflows</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
-              </div>
-              <Clock className="h-8 w-8 text-blue-600" />
-            </div>
+
+        {/* This part of the code displays the KPI cards with standardized layout matching other pages */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+            <div className="text-sm font-medium text-gray-500 mb-1">Active Workflows</div>
+            <div className="text-2xl font-semibold mb-1 text-blue-600">{stats.active}</div>
+            <div className="text-sm text-gray-500">Workflows currently in progress</div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Completed This Week</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completedThisWeek}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
+          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+            <div className="text-sm font-medium text-gray-500 mb-1">Completed This Week</div>
+            <div className="text-2xl font-semibold mb-1 text-green-600">{stats.completedThisWeek}</div>
+            <div className="text-sm text-gray-500">Workflows finished this week</div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Overdue Workflows</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.overdue}</p>
-              </div>
-              <Calendar className="h-8 w-8 text-red-600" />
-            </div>
+          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+            <div className="text-sm font-medium text-gray-500 mb-1">Overdue Workflows</div>
+            <div className="text-2xl font-semibold mb-1 text-red-600">{stats.overdue}</div>
+            <div className="text-sm text-gray-500">Workflows past due date</div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">$ Saved</p>
-                <p className="text-2xl font-bold text-gray-900">${stats.totalSaved.toLocaleString()}</p>
-              </div>
-              <div className="text-2xl">💰</div>
-            </div>
+          <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+            <div className="text-sm font-medium text-gray-500 mb-1">$ Saved</div>
+            <div className="text-2xl font-semibold mb-1 text-green-600">${stats.totalSaved.toLocaleString()}</div>
+            <div className="text-sm text-gray-500">Total cost savings achieved</div>
           </div>
         </div>
 
-        {/* This part of the code shows the Workflows AI Assistant section */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Workflows AI Assistant</h2>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 text-center">
-            <Bot className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">
-              No insights available. AI recommendations will appear here when new workflow opportunities are detected.
-            </p>
-          </div>
-        </div>
+        {/* This part of the code shows the Workflows AI Assistant section using standardized InsightsSection */}
+        <InsightsSection 
+          insights={[]} 
+          isLoading={loading}
+          title="Insights"
+          subtitle="0 insights from Workflow Intelligence Agent"
+        />
 
         {/* This part of the code provides the workflow management interface with tabs and filtering */}
         <div className="bg-white border border-gray-200 rounded-lg">

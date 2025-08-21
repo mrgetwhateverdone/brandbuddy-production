@@ -30,14 +30,18 @@ async function fetchProducts(): Promise<ProductData[]> {
   }
 
   try {
-    const url = `${TINYBIRD_BASE_URL}/v0/pipes/product_details_mv.json?brand_name=Callahan-Smith&token=${TINYBIRD_TOKEN}`;
+    // This part of the code uses the same proven URL pattern as working inventory API
+    const url = `${TINYBIRD_BASE_URL}?token=${TINYBIRD_TOKEN}&limit=1000&brand_name=Callahan-Smith`;
+    console.log("🔒 Fetching products from TinyBird:", url.replace(TINYBIRD_TOKEN, "[TOKEN]"));
     const response = await fetch(url);
     
     if (!response.ok) {
+      console.log("⚠️ TinyBird API failed:", response.status, response.statusText);
       throw new Error(`TinyBird API error: ${response.status}`);
     }
 
     const result = await response.json();
+    console.log("✅ TinyBird response:", result.data?.length || 0, "products");
     return result.data || [];
   } catch (error) {
     console.log("⚠️ TinyBird fetch failed:", error);
@@ -47,23 +51,27 @@ async function fetchProducts(): Promise<ProductData[]> {
 
 // This part of the code fetches shipment data from TinyBird for supplier performance analysis
 async function fetchShipments(): Promise<ShipmentData[]> {
-  const TINYBIRD_BASE_URL = process.env.TINYBIRD_BASE_URL;
-  const TINYBIRD_TOKEN = process.env.TINYBIRD_TOKEN;
+  const baseUrl = process.env.WAREHOUSE_BASE_URL;
+  const token = process.env.WAREHOUSE_TOKEN;
 
-  if (!TINYBIRD_BASE_URL || !TINYBIRD_TOKEN) {
-    console.log("⚠️ TinyBird credentials not available");
+  if (!baseUrl || !token) {
+    console.log("⚠️ Warehouse credentials not available");
     return [];
   }
 
   try {
-    const url = `${TINYBIRD_BASE_URL}/v0/pipes/inbound_shipments_details_mv.json?brand_name=Callahan-Smith&token=${TINYBIRD_TOKEN}`;
+    // This part of the code uses the same proven URL pattern as working orders API
+    const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
+    console.log("🔒 Fetching shipments from TinyBird:", url.replace(token, "[TOKEN]"));
     const response = await fetch(url);
     
     if (!response.ok) {
+      console.log("⚠️ TinyBird API failed:", response.status, response.statusText);
       throw new Error(`TinyBird API error: ${response.status}`);
     }
 
     const result = await response.json();
+    console.log("✅ TinyBird response:", result.data?.length || 0, "shipments");
     return result.data || [];
   } catch (error) {
     console.log("⚠️ TinyBird fetch failed:", error);

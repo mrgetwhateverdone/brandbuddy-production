@@ -492,7 +492,37 @@ class InternalApiService {
     }
   }
 
+  /**
+   * Fetch complete inbound operations data from secure server endpoint
+   * NO external API keys - server handles TinyBird + OpenAI calls
+   */
+  async getInboundData(): Promise<any> {
+    try {
+      console.log("🔒 Client: Fetching inbound operations data from secure server...");
 
+      const response = await fetch(`${this.baseUrl}/api/inbound-data`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<any> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch inbound operations data");
+      }
+
+      console.log("✅ Client: Inbound operations data received securely from server");
+      return result.data;
+    } catch (error) {
+      console.error("❌ Client: Inbound operations API call failed:", error);
+      throw new Error(
+        `Unable to load inbound operations data: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
 
   /**
    * Health check - verify server is responding

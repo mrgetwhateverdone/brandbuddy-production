@@ -143,24 +143,6 @@ export default function AIAssistant() {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
-        {/* This part of the code creates the clean header with connection status */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <MessageCircle className="h-6 w-6 text-blue-600" />
-              AI Assistant
-            </h1>
-            <p className="text-gray-600 text-sm">
-              Your intelligent 3PL operations assistant with real-time data access
-            </p>
-          </div>
-          
-          {/* This part of the code shows connection status */}
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-            <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
-            Connected to CargoCore
-          </Badge>
-        </div>
 
         {/* This part of the code creates the main chat layout - clean and accessible */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 items-stretch">
@@ -180,7 +162,7 @@ export default function AIAssistant() {
                       <div className="space-y-3">
                         <MessageCircle className="h-12 w-12 text-gray-400 mx-auto" />
                         <div>
-                          <p className="text-gray-700 font-medium">Welcome to CargoCore AI</p>
+                          <p className="text-gray-700 font-medium">Hello, I am your Brand Buddy Agent</p>
                           <p className="text-sm text-gray-500">
                             Ask me anything about your operations, or use the quick actions
                           </p>

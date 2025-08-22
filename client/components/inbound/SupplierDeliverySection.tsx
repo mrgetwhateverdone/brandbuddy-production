@@ -141,6 +141,21 @@ export function SupplierDeliverySection({ shipments, isLoading }: SupplierDelive
     let aVal: any = (a as any)[sortField];
     let bVal: any = (b as any)[sortField];
     
+    // This part of the code handles special sorting for date fields
+    if (sortField === 'lastDelivery') {
+      const dateA = aVal ? new Date(aVal).getTime() : 0;
+      const dateB = bVal ? new Date(bVal).getTime() : 0;
+      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+    }
+    
+    // This part of the code handles special sorting for risk level (High > Medium > Low)
+    if (sortField === 'riskLevel') {
+      const riskOrder = { 'High': 3, 'Medium': 2, 'Low': 1 };
+      const riskA = riskOrder[aVal as keyof typeof riskOrder] || 0;
+      const riskB = riskOrder[bVal as keyof typeof riskOrder] || 0;
+      return sortDirection === 'asc' ? riskA - riskB : riskB - riskA;
+    }
+    
     if (typeof aVal === 'number' && typeof bVal === 'number') {
       return sortDirection === 'asc' ? aVal - bVal : bVal - aVal;
     }
@@ -335,11 +350,27 @@ export function SupplierDeliverySection({ shipments, isLoading }: SupplierDelive
                     )}
                   </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Delivery
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('lastDelivery')}
+                >
+                  <div className="flex items-center">
+                    Last Delivery
+                    {sortField === 'lastDelivery' && (
+                      <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </div>
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Risk Level
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('riskLevel')}
+                >
+                  <div className="flex items-center">
+                    Risk Level
+                    {sortField === 'riskLevel' && (
+                      <span className="ml-1">{sortDirection === 'asc' ? '↑' : '↓'}</span>
+                    )}
+                  </div>
                 </th>
               </tr>
             </thead>

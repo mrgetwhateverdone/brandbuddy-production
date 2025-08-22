@@ -17,13 +17,13 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
 
-    /* Linting */
+    /* Linting - Gradually enable strict mode */
     "strict": false,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noImplicitAny": false,
-    "noFallthroughCasesInSwitch": false,
-    "strictNullChecks": false,
+    "noFallthroughCasesInSwitch": true,
+    "strictNullChecks": true,
 
     /* Path mapping */
     "baseUrl": ".",

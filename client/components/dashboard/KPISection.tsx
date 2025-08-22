@@ -1,6 +1,7 @@
 import type { DashboardKPIs } from "@/types/api";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 import { FormattedNumber } from "@/components/ui/formatted-value";
+import { formatKPIValue } from "@/lib/formatters";
 
 interface KPISectionProps {
   kpis: DashboardKPIs;
@@ -57,8 +58,8 @@ export function KPISection({ kpis, isLoading }: KPISectionProps) {
             {isLoading ? (
               <div className="h-8 w-16 bg-gray-200 rounded animate-pulse" />
             ) : (
-              // This part of the code formats numbers to show whole numbers when no meaningful decimals
-              kpi.value != null && kpi.value % 1 === 0 ? kpi.value.toString() : formatNumber(kpi.value)
+              // This part of the code uses centralized KPI formatting for consistency
+              formatKPIValue(kpi.value)
             )}
           </div>
           

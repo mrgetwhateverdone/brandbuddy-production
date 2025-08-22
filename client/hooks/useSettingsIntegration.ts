@@ -139,7 +139,7 @@ export function useSettingsIntegration() {
     const refreshInterval = settings.display.refreshInterval;
     
     // Convert refresh interval setting to milliseconds
-    const getRefetchInterval = () => {
+    const getRefetchInterval = (): number | false => {
       switch (refreshInterval) {
         case '30s': return 30 * 1000;
         case '1min': return 60 * 1000;

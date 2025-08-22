@@ -1,12 +1,22 @@
 import { cn } from "@/lib/utils";
-import { AlertTriangle, RefreshCw, Wifi, WifiOff } from "lucide-react";
+import { AlertTriangle, RefreshCw, WifiOff } from "lucide-react";
 import { Button } from "./button";
+import { AppError } from "@/lib/errors/AppError";
 
 interface ErrorDisplayProps {
   message?: string;
+  error?: AppError;
   onRetry?: () => void;
   className?: string;
   showRetry?: boolean;
+}
+
+// This part of the code provides enhanced error display with AppError support
+interface EnhancedErrorDisplayProps {
+  error: AppError;
+  onRetry?: () => void;
+  className?: string;
+  showDetails?: boolean;
 }
 
 export function ErrorDisplay({
@@ -79,6 +89,99 @@ export function ErrorCard({
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// This part of the code provides enhanced error display with severity-based styling
+export function EnhancedErrorDisplay({
+  error,
+  onRetry,
+  className,
+  showDetails = false
+}: EnhancedErrorDisplayProps) {
+  const getSeverityIcon = () => {
+    switch (error.severity) {
+      case 'critical':
+        return <AlertTriangle className="h-8 w-8 text-red-600" />;
+      case 'high':
+        return <AlertTriangle className="h-8 w-8 text-orange-600" />;
+      case 'medium':
+        return <WifiOff className="h-8 w-8 text-yellow-600" />;
+      default:
+        return <RefreshCw className="h-8 w-8 text-blue-600" />;
+    }
+  };
+
+  const getSeverityStyles = () => {
+    switch (error.severity) {
+      case 'critical':
+        return {
+          container: 'bg-red-50 border-red-200',
+          text: 'text-red-900',
+          button: 'bg-red-600 hover:bg-red-700'
+        };
+      case 'high':
+        return {
+          container: 'bg-orange-50 border-orange-200',
+          text: 'text-orange-900',
+          button: 'bg-orange-600 hover:bg-orange-700'
+        };
+      case 'medium':
+        return {
+          container: 'bg-yellow-50 border-yellow-200',
+          text: 'text-yellow-900',
+          button: 'bg-yellow-600 hover:bg-yellow-700'
+        };
+      default:
+        return {
+          container: 'bg-blue-50 border-blue-200',
+          text: 'text-blue-900',
+          button: 'bg-blue-600 hover:bg-blue-700'
+        };
+    }
+  };
+
+  const styles = getSeverityStyles();
+
+  return (
+    <div className={cn(
+      "flex flex-col items-center justify-center py-12 px-6 rounded-lg border",
+      styles.container,
+      className
+    )}>
+      <div className="flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4">
+        {getSeverityIcon()}
+      </div>
+
+      <h3 className={cn("text-lg font-medium mb-2", styles.text)}>
+        {error.code.replace('_', ' ')} Error
+      </h3>
+      
+      <p className={cn("text-sm text-center max-w-md mb-4", styles.text)}>
+        {error.message}
+      </p>
+
+      {showDetails && error.context && (
+        <details className="mb-4 text-xs">
+          <summary className={cn("cursor-pointer", styles.text)}>
+            Technical Details
+          </summary>
+          <pre className={cn("mt-2 p-2 bg-white rounded text-xs", styles.text)}>
+            {JSON.stringify(error.context, null, 2)}
+          </pre>
+        </details>
+      )}
+
+      {onRetry && (
+        <Button
+          onClick={onRetry}
+          className={cn("text-white", styles.button)}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          {error.isCritical() ? 'Reload Page' : 'Try Again'}
+        </Button>
+      )}
     </div>
   );
 }

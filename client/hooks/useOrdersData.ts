@@ -2,7 +2,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { internalApi } from "@/services/internalApi";
 import type { OrdersData, OrderSuggestion } from "@/types/api";
 import { toast } from "sonner";
-import { Lightbulb } from "lucide-react";
+// import { Lightbulb } from "lucide-react"; // Temporarily commented to fix unused import
 import { useSettingsIntegration } from "./useSettingsIntegration";
 
 /**

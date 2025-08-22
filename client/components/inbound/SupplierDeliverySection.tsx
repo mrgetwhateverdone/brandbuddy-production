@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import type { ShipmentData } from "@/types/api";
+import { formatCurrency, formatDate } from "@/lib/formatters";
+import { getRiskLevelColor, getPerformanceColor } from "@/lib/colors";
 
 interface SupplierDeliverySectionProps {
   shipments: ShipmentData[];
@@ -168,46 +170,7 @@ export function SupplierDeliverySection({ shipments, isLoading }: SupplierDelive
     return 0;
   });
 
-  // This part of the code determines risk level styling
-  const getRiskLevelColor = (riskLevel: string) => {
-    switch (riskLevel) {
-      case 'Low': return 'bg-green-100 text-green-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'High': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  // This part of the code determines performance rating colors
-  const getPerformanceColor = (percentage: number) => {
-    if (percentage >= 95) return 'text-green-600';
-    if (percentage >= 85) return 'text-orange-600';
-    return 'text-red-600';
-  };
-
-  // This part of the code formats currency values
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
-  // This part of the code formats dates
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '—';
-    try {
-      return new Date(dateString).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    } catch {
-      return '—';
-    }
-  };
+  // Note: Utility functions moved to shared libraries for consistency
 
   if (isLoading) {
     return (

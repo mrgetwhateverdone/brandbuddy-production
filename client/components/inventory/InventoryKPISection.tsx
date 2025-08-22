@@ -1,4 +1,5 @@
 import type { InventoryKPIs } from "@/types/api";
+import { formatCurrency, formatNumber } from "@/lib/formatters";
 
 interface InventoryKPISectionProps {
   kpis: InventoryKPIs;
@@ -7,11 +8,7 @@ interface InventoryKPISectionProps {
 
 export function InventoryKPISection({ kpis, isLoading }: InventoryKPISectionProps) {
   // This part of the code defines enhanced KPI cards with business-critical metrics
-  const formatCurrency = (value: number) => {
-    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-    return `$${value.toLocaleString()}`;
-  };
+  // This part of the code uses centralized formatting utilities
 
   const kpiCards = [
     {
@@ -20,7 +17,7 @@ export function InventoryKPISection({ kpis, isLoading }: InventoryKPISectionProp
       description: "Products available for sale",
       className: "bg-white",
       colorClass: "text-blue-600",
-      format: (val: number | null) => val?.toString() || "0",
+      format: (val: number | null) => formatNumber(val),
     },
     {
       title: "Total Inventory Value",

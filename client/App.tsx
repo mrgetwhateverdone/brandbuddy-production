@@ -22,19 +22,25 @@ if (!CLERK_PUBLISHABLE_KEY) {
   throw new Error("Missing Clerk Publishable Key");
 }
 
-// Page imports
+// This part of the code implements route-based code splitting for better performance
+import { lazy } from "react";
+import { ProtectedPageWrapper, PublicPageWrapper } from "./components/routing/LazyPageWrapper";
+
+// Eagerly loaded pages (critical for first load)
 import Landing from "./pages/Landing";
-import Contact from "./pages/Contact";
-import Dashboard from "./pages/Dashboard";
-import Workflows from "./pages/Workflows";
-import Orders from "./pages/Orders";
-import Inventory from "./pages/Inventory";
-import Replenishment from "./pages/Replenishment";
-import Inbound from "./pages/Inbound";
-import Reports from "./pages/Reports";
-import AIAssistant from "./pages/AIAssistant";
-import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+
+// Lazy loaded pages (loaded on-demand)
+const Contact = lazy(() => import("./pages/Contact"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Workflows = lazy(() => import("./pages/Workflows"));
+const Orders = lazy(() => import("./pages/Orders"));
+const Inventory = lazy(() => import("./pages/Inventory"));
+const Replenishment = lazy(() => import("./pages/Replenishment"));
+const Inbound = lazy(() => import("./pages/Inbound"));
+const Reports = lazy(() => import("./pages/Reports"));
+const AIAssistant = lazy(() => import("./pages/AIAssistant"));
+const Settings = lazy(() => import("./pages/Settings"));
 import { SmartRouter } from "./components/SmartRouter";
 
 // Configure TanStack Query for real-time data
@@ -68,89 +74,93 @@ const App = () => {
               <Routes>
                   {/* Public Landing & Contact Pages */}
                   <Route path="/" element={<Landing />} />
-                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/contact" element={
+                    <PublicPageWrapper loadingMessage="Loading contact page...">
+                      <Contact />
+                    </PublicPageWrapper>
+                  } />
 
                   {/* Protected Dashboard & App Pages */}
                   <Route 
                     path="/overview" 
                     element={
-                      <SignedIn>
+                      <ProtectedPageWrapper loadingMessage="Loading BrandBuddy dashboard...">
                         <Dashboard />
-                      </SignedIn>
+                      </ProtectedPageWrapper>
                     } 
                   />
                   <Route 
                     path="/dashboard" 
                     element={
-                      <SignedIn>
+                      <ProtectedPageWrapper loadingMessage="Loading BrandBuddy dashboard...">
                         <Dashboard />
-                      </SignedIn>
+                      </ProtectedPageWrapper>
                     } 
                   />
                   <Route 
                     path="/workflows" 
                     element={
-                      <SignedIn>
+                      <ProtectedPageWrapper loadingMessage="Loading workflows...">
                         <Workflows />
-                      </SignedIn>
+                      </ProtectedPageWrapper>
                     } 
                   />
 
                   <Route 
                     path="/orders" 
                     element={
-                      <SignedIn>
+                      <ProtectedPageWrapper loadingMessage="Loading orders...">
                         <Orders />
-                      </SignedIn>
+                      </ProtectedPageWrapper>
                     } 
                   />
                   <Route 
                     path="/inventory" 
                     element={
-                      <SignedIn>
+                      <ProtectedPageWrapper loadingMessage="Loading inventory...">
                         <Inventory />
-                      </SignedIn>
+                      </ProtectedPageWrapper>
                     } 
                   />
                   <Route 
                     path="/replenishment" 
                     element={
-                      <SignedIn>
+                      <ProtectedPageWrapper loadingMessage="Loading replenishment...">
                         <Replenishment />
-                      </SignedIn>
+                      </ProtectedPageWrapper>
                     } 
                   />
                   <Route 
                     path="/inbound" 
                     element={
-                      <SignedIn>
+                      <ProtectedPageWrapper loadingMessage="Loading inbound operations...">
                         <Inbound />
-                      </SignedIn>
+                      </ProtectedPageWrapper>
                     } 
                   />
 
                   <Route 
                     path="/reports" 
                     element={
-                      <SignedIn>
+                      <ProtectedPageWrapper loadingMessage="Loading reports...">
                         <Reports />
-                      </SignedIn>
+                      </ProtectedPageWrapper>
                     } 
                   />
                   <Route 
                     path="/assistant" 
                     element={
-                      <SignedIn>
+                      <ProtectedPageWrapper loadingMessage="Loading BrandBuddy Agent...">
                         <AIAssistant />
-                      </SignedIn>
+                      </ProtectedPageWrapper>
                     } 
                   />
                   <Route 
                     path="/settings" 
                     element={
-                      <SignedIn>
+                      <ProtectedPageWrapper loadingMessage="Loading settings...">
                         <Settings />
-                      </SignedIn>
+                      </ProtectedPageWrapper>
                     } 
                   />
 

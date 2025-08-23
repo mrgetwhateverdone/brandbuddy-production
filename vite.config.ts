@@ -15,12 +15,46 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: "dist/spa",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // This part of the code optimizes bundle splitting for better caching
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-clerk': ['@clerk/clerk-react'],
+          'vendor-query': ['@tanstack/react-query'],
+          'vendor-ui': ['lucide-react', '@radix-ui/react-toast', '@radix-ui/react-tooltip'],
+          'vendor-charts': ['recharts'],
+          'utils': ['clsx', 'tailwind-merge', 'date-fns']
+        }
+      }
+    },
+    // This part of the code optimizes build performance
+    sourcemap: false,
+    target: 'esnext',
+    minify: 'esbuild',
+    chunkSizeWarningLimit: 1000
   },
   plugins: [react(), expressPlugin()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./client"),
       "@shared": path.resolve(__dirname, "./shared"),
+    },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./client/test-setup.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: ['client/**/*.{ts,tsx}'],
+      exclude: [
+        'client/**/*.test.{ts,tsx}',
+        'client/**/*.spec.{ts,tsx}',
+        'client/test-utils/**',
+        'client/mocks/**',
+      ],
     },
   },
 }));

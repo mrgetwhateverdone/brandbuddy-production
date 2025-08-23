@@ -4,7 +4,7 @@
  */
 
 import { Suspense, ReactNode } from 'react';
-import { SignedIn } from '@clerk/clerk-react';
+import { useAuth, RedirectToSignIn } from '@clerk/clerk-react';
 import { LoadingState } from '@/components/ui/loading-spinner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -20,19 +20,38 @@ export function LazyPageWrapper({
   loadingMessage = "Loading page...", 
   requireAuth = false 
 }: LazyPageWrapperProps) {
-  const content = (
+  const { isSignedIn, isLoaded } = useAuth();
+  
+  // For public pages, don't check auth - just render with lazy loading
+  if (!requireAuth) {
+    return (
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingState message={loadingMessage} />}>
+          {children}
+        </Suspense>
+      </ErrorBoundary>
+    );
+  }
+  
+  // For protected pages, auth is already loaded by AuthenticatedApp
+  // So we can directly check authentication status
+  if (!isLoaded) {
+    // This should rarely happen now due to AuthenticatedApp preloading
+    return <LoadingState message="Checking authentication..." />;
+  }
+  
+  if (!isSignedIn) {
+    return <RedirectToSignIn />;
+  }
+  
+  // User is authenticated - render the protected page with lazy loading
+  return (
     <ErrorBoundary>
       <Suspense fallback={<LoadingState message={loadingMessage} />}>
         {children}
       </Suspense>
     </ErrorBoundary>
   );
-
-  if (requireAuth) {
-    return <SignedIn>{content}</SignedIn>;
-  }
-
-  return content;
 }
 
 // This part of the code provides specific wrappers for different page types

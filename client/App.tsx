@@ -22,9 +22,40 @@ if (!CLERK_PUBLISHABLE_KEY) {
   throw new Error("Missing Clerk Publishable Key");
 }
 
+// This part of the code customizes Clerk appearance to match BrandBuddy theme
+const clerkAppearance = {
+  layout: {
+    showOptionalFields: false,
+  },
+  elements: {
+    // Override Clerk's loading states to match our gray-50 background
+    loadingButtonSpinner: "text-blue-600",
+    spinner: "text-blue-600",
+    loadingButton: "bg-gray-50 border-gray-200",
+    // Ensure cards match our theme
+    card: "bg-gray-50 shadow-none border-0",
+    rootBox: "bg-gray-50",
+    main: "bg-gray-50",
+    // Override any potential dark backgrounds during loading
+    body: "bg-gray-50",
+    // Style form elements consistently
+    formButtonPrimary: "bg-blue-600 hover:bg-blue-700 text-white",
+    formFieldInput: "bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500",
+  },
+  variables: {
+    colorBackground: "#f9fafb",     // gray-50 background to match Layout
+    colorPrimary: "#2563eb",        // blue-600 primary color
+    colorText: "#111827",           // gray-900 text
+    colorTextSecondary: "#6b7280",  // gray-500 secondary text
+    colorNeutral: "#f3f4f6",        // gray-100 neutral
+    borderRadius: "0.5rem",         // rounded-lg
+  }
+};
+
 // This part of the code implements route-based code splitting for better performance
 import { lazy } from "react";
 import { ProtectedPageWrapper, PublicPageWrapper } from "./components/routing/LazyPageWrapper";
+import { AuthenticatedApp } from "./components/auth/AuthenticatedApp";
 
 // Eagerly loaded pages (critical for first load)
 import Landing from "./pages/Landing";
@@ -61,15 +92,19 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <QueryClientProvider client={queryClient}>
-            <SettingsProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <WorkflowToastListener />
-            <BrowserRouter>
+      <ClerkProvider 
+        publishableKey={CLERK_PUBLISHABLE_KEY}
+        appearance={clerkAppearance}
+      >
+        <AuthenticatedApp>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <QueryClientProvider client={queryClient}>
+              <SettingsProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Sonner />
+                  <WorkflowToastListener />
+                  <BrowserRouter>
                 <SmartRouter />
               <Routes>
                   {/* Public Landing & Contact Pages */}
@@ -167,11 +202,12 @@ const App = () => {
                 {/* 404 Catch-all */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-            </SettingsProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
+                  </BrowserRouter>
+                </TooltipProvider>
+              </SettingsProvider>
+            </QueryClientProvider>
+          </ThemeProvider>
+        </AuthenticatedApp>
       </ClerkProvider>
     </ErrorBoundary>
   );

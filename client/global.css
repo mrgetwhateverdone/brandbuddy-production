@@ -148,3 +148,29 @@
     @apply text-gray-700 hover:bg-gray-100;
   }
 }
+
+/* This part of the code ensures Clerk loading states match our theme */
+@layer base {
+  .cl-loading,
+  .cl-loadingButtonSpinner,
+  .cl-spinner {
+    background-color: #f9fafb !important; /* gray-50 */
+    color: #2563eb !important; /* blue-600 */
+  }
+
+  .cl-card,
+  .cl-rootBox,
+  .cl-main,
+  .cl-internal-1xt09q9 {
+    background-color: #f9fafb !important;
+    box-shadow: none !important;
+  }
+
+  /* Ensure no dark backgrounds during any loading states */
+  .cl-loading,
+  .cl-loadingButton,
+  .cl-loadingButtonSpinner {
+    background-color: #f9fafb !important;
+    border-color: #e5e7eb !important;
+  }
+}

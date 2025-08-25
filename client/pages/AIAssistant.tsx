@@ -202,7 +202,7 @@ export default function AIAssistant() {
                     <div className="flex justify-start">
                       <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg flex items-center space-x-2">
                         <LoadingSpinner size="sm" />
-                        <span className="text-sm text-gray-600">CargoCore AI is thinking...</span>
+                        <span className="text-sm text-gray-600">BrandBuddy AI is thinking...</span>
                       </div>
                     </div>
                   )}

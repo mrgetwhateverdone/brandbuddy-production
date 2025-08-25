@@ -70,6 +70,7 @@ const Inventory = lazy(() => import("./pages/Inventory"));
 const Replenishment = lazy(() => import("./pages/Replenishment"));
 const Inbound = lazy(() => import("./pages/Inbound"));
 const Reports = lazy(() => import("./pages/Reports"));
+const SLA = lazy(() => import("./pages/SLA"));
 const AIAssistant = lazy(() => import("./pages/AIAssistant"));
 const Settings = lazy(() => import("./pages/Settings"));
 import { SmartRouter } from "./components/SmartRouter";
@@ -179,6 +180,14 @@ const App = () => {
                     element={
                       <ProtectedPageWrapper loadingMessage="Loading reports...">
                         <Reports />
+                      </ProtectedPageWrapper>
+                    } 
+                  />
+                  <Route 
+                    path="/sla" 
+                    element={
+                      <ProtectedPageWrapper loadingMessage="Loading SLA performance...">
+                        <SLA />
                       </ProtectedPageWrapper>
                     } 
                   />

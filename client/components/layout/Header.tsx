@@ -21,6 +21,8 @@ const routeTitles: Record<string, string> = {
   "/orders": "Orders",
   "/inventory": "Inventory",
   "/replenishment": "Replenishment",
+  "/inbound": "Inbound",
+  "/sla": "SLA Performance",
   "/reports": "Generate Report",
   "/assistant": "AI Assistant",
   "/settings": "Settings",

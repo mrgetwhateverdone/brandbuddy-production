@@ -525,6 +525,34 @@ class InternalApiService {
   }
 
   /**
+   * Fetch complete SLA performance data from secure server endpoint
+   * NO external API keys - server handles TinyBird + OpenAI calls
+   */
+  async getSLAData(): Promise<any> {
+    try {
+      console.log("🔒 Client: Fetching SLA performance data from secure server...");
+
+      const response = await fetch(`${this.baseUrl}/api/sla-data`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result = await response.json();
+
+      console.log("✅ Client: SLA performance data received securely from server");
+      return result;
+    } catch (error) {
+      console.error("❌ Client: SLA performance API call failed:", error);
+      throw new Error(
+        `Unable to load SLA performance data: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
    * Health check - verify server is responding
    */
   async healthCheck(): Promise<boolean> {

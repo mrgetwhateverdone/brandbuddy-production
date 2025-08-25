@@ -48,6 +48,7 @@ export interface PageSettings {
   inventory: boolean;
   replenishment: boolean;
   inbound: boolean;
+  sla: boolean;
   warehouses: boolean;
   liveIntelligence: boolean;
 }
@@ -137,6 +138,7 @@ export const DEFAULT_SETTINGS: CargoSettings = {
     inventory: true,
     replenishment: true,
     inbound: true,
+    sla: true,
     warehouses: true,
     liveIntelligence: true
   },

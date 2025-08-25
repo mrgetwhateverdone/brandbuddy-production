@@ -251,16 +251,16 @@ export function InsightOverlay({ isOpen, onClose, insight, agentName = "Dashboar
                 const priorityLabel = index === 0 ? 'HIGH PRIORITY' : 
                                     index === insight.suggestedActions.length - 1 ? 'SUPPORTING' : 
                                     'MEDIUM PRIORITY';
-                const priorityColor = index === 0 ? 'text-red-600 bg-red-50 border-red-200' : 
-                                     index === insight.suggestedActions.length - 1 ? 'text-gray-600 bg-gray-50 border-gray-200' : 
-                                     'text-orange-600 bg-orange-50 border-orange-200';
+                const priorityColor = index === 0 ? 'text-white bg-red-600 border-red-700' : 
+                                     index === insight.suggestedActions.length - 1 ? 'text-white bg-gray-600 border-gray-700' : 
+                                     'text-white bg-orange-600 border-orange-700';
                 
                 return (
                   <button
                     key={index}
                     onClick={() => handleActionClick(action, index)}
                     disabled={creating || processingActionId !== null}
-                    className="w-full text-left p-3 bg-white border border-blue-200 rounded-md hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full text-left p-3 bg-blue-600 border border-blue-700 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -269,7 +269,7 @@ export function InsightOverlay({ isOpen, onClose, insight, agentName = "Dashboar
                             {priorityLabel}
                           </span>
                         </div>
-                        <span className="text-sm font-medium text-blue-900">{action}</span>
+                        <span className="text-sm font-medium text-white">{action}</span>
                       </div>
                       {processingActionId === index ? (
                         <div className="flex items-center text-blue-600 ml-3">
@@ -277,7 +277,7 @@ export function InsightOverlay({ isOpen, onClose, insight, agentName = "Dashboar
                           <span className="text-xs">Creating Workflow...</span>
                         </div>
                       ) : (
-                        <span className="text-xs text-blue-600 font-medium ml-3">+ Add to Workflows</span>
+                        <span className="text-xs text-white font-medium ml-3">+ Add to Workflows</span>
                       )}
                     </div>
                   </button>

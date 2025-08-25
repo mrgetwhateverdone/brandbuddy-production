@@ -8,6 +8,8 @@ import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 import { SLAKPISection } from "@/components/sla/SLAKPISection";
 import { SLAPerformanceTrendsSection } from "@/components/sla/SLAPerformanceTrendsSection";
 import { SupplierScorecardSection } from "@/components/sla/SupplierScorecardSection";
+import { FinancialImpactSection } from "@/components/sla/FinancialImpactSection";
+import { SLAOptimizationSection } from "@/components/sla/SLAOptimizationSection";
 import { InsightsSection } from "@/components/dashboard/InsightsSection";
 
 /**
@@ -77,6 +79,18 @@ export default function SLA() {
         {/* This part of the code displays supplier performance scorecard */}
         <SupplierScorecardSection 
           suppliers={data.supplierScorecard} 
+          isLoading={isLoading} 
+        />
+
+        {/* This part of the code displays financial impact analysis */}
+        <FinancialImpactSection 
+          financialImpact={data.financialImpact} 
+          isLoading={isLoading} 
+        />
+
+        {/* This part of the code displays optimization recommendations */}
+        <SLAOptimizationSection 
+          recommendations={data.optimizationRecommendations} 
           isLoading={isLoading} 
         />
       </div>

@@ -46,10 +46,41 @@ export interface SLAInsight {
   data?: any;
 }
 
+export interface SLAFinancialImpact {
+  totalSLABreachCost: number;
+  averageBreachCost: number;
+  opportunityCost: number;
+  potentialSavings: number;
+  monthlyTrend: Array<{
+    month: string;
+    breachCost: number;
+    missedOpportunity: number;
+  }>;
+  supplierCostBreakdown: Array<{
+    supplier: string;
+    totalCost: number;
+    avgCostPerBreach: number;
+    breachCount: number;
+  }>;
+}
+
+export interface SLAOptimizationRecommendation {
+  type: 'supplier' | 'route' | 'inventory' | 'contract';
+  priority: 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+  estimatedImpact: string;
+  actionRequired: string;
+  timeline: string;
+  difficulty: 'easy' | 'medium' | 'complex';
+}
+
 export interface SLAData {
   kpis: SLAKPIs;
   performanceTrends: SLAPerformanceTrends;
   supplierScorecard: SLASupplierScorecard[];
+  financialImpact: SLAFinancialImpact;
+  optimizationRecommendations: SLAOptimizationRecommendation[];
   insights: SLAInsight[];
 }
 

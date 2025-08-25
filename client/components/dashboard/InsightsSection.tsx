@@ -115,26 +115,26 @@ export function InsightsSection({
   const getInsightIcon = (severity: string) => {
     switch (severity) {
       case "critical":
-        return <TriangleAlert className="h-5 w-5" />;
+        return <TriangleAlert className="h-5 w-5 text-white" />;
       case "warning":
-        return <TriangleAlert className="h-5 w-5" />;
+        return <TriangleAlert className="h-5 w-5 text-white" />;
       case "info":
-        return <Info className="h-5 w-5" />;
+        return <Info className="h-5 w-5 text-white" />;
       default:
-        return <Info className="h-5 w-5" />;
+        return <Info className="h-5 w-5 text-white" />;
     }
   };
 
   const getInsightStyles = (severity: string) => {
     switch (severity) {
       case "critical":
-        return "bg-red-50 border-red-200 text-red-800";
+        return "bg-blue-600 border-blue-700 text-white";
       case "warning":
-        return "bg-yellow-50 border-yellow-200 text-yellow-800";
+        return "bg-blue-600 border-blue-700 text-white";
       case "info":
-        return "bg-blue-50 border-blue-200 text-blue-800";
+        return "bg-blue-600 border-blue-700 text-white";
       default:
-        return "bg-gray-50 border-gray-200 text-gray-800";
+        return "bg-blue-600 border-blue-700 text-white";
     }
   };
 
@@ -181,17 +181,17 @@ export function InsightsSection({
               <div className="flex items-center">
                 {getInsightIcon(insight.severity)}
                 <h3 className="ml-2 font-semibold text-sm">{insight.title}</h3>
-                {/* This part of the code adds a blue brain icon to indicate AI-generated content */}
-                <BrainIcon className="h-5 w-5 ml-2 text-blue-600" />
+                {/* This part of the code adds a white brain icon to indicate AI-generated content */}
+                <BrainIcon className="h-5 w-5 ml-2 text-white" />
               </div>
               {/* This part of the code adds the small + button for quick workflow creation */}
               <button
                 onClick={(e) => handleQuickAdd(e, insight)}
                 disabled={creating}
-                className="p-1 hover:bg-white hover:bg-opacity-50 rounded-full transition-colors disabled:opacity-50"
+                className="p-1 hover:bg-white hover:bg-opacity-20 rounded-full transition-colors disabled:opacity-50"
                 title="Quick add to workflows"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4 text-white" />
               </button>
             </div>
 
@@ -200,14 +200,14 @@ export function InsightsSection({
             </p>
 
             {insight.dollarImpact > 0 && (
-              <div className="flex items-center text-sm font-medium mb-3">
-                <DollarSign className="h-4 w-4 mr-1" />
+              <div className="flex items-center text-sm font-medium mb-3 text-white">
+                <DollarSign className="h-4 w-4 mr-1 text-white" />
                 <FormattedCurrency value={insight.dollarImpact} /> impact
               </div>
             )}
 
-            <button className="flex items-center text-sm font-medium hover:underline">
-              <Target className="h-4 w-4 mr-1" />
+            <button className="flex items-center text-sm font-medium hover:underline text-white">
+              <Target className="h-4 w-4 mr-1 text-white" />
               Track
             </button>
           </div>

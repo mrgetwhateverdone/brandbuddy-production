@@ -142,10 +142,10 @@ export default function AIAssistant() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
+      <div className="max-w-7xl mx-auto h-full">
 
         {/* This part of the code creates the main chat layout with fixed height */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 h-[calc(100vh-200px)] min-h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 h-[calc(100vh-180px)] min-h-[600px]">
           
           {/* This part of the code creates the chat conversation area with fixed dimensions */}
           <div className="lg:col-span-3 h-full">

@@ -149,7 +149,10 @@ export function InsightOverlay({ isOpen, onClose, insight, agentName = "Dashboar
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div 
+      className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
+      onClick={onClose}
+    >
       <div 
         className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
@@ -176,9 +179,10 @@ export function InsightOverlay({ isOpen, onClose, insight, agentName = "Dashboar
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-1 hover:bg-gray-100 transition-colors"
+            title="Close"
           >
-            <X className="h-5 w-5 text-gray-400" />
+            <X className="h-6 w-6 text-gray-600" />
           </button>
         </div>
 

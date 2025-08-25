@@ -112,8 +112,14 @@ export function ViewAllInventoryModal({ isOpen, onClose, inventory, totalCount }
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-full max-h-[90vh] flex flex-col">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-lg shadow-xl w-full max-w-7xl h-full max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">All Inventory</h2>
@@ -124,9 +130,10 @@ export function ViewAllInventoryModal({ isOpen, onClose, inventory, totalCount }
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="p-1 hover:bg-gray-100 transition-colors"
+            title="Close"
           >
-            <X className="h-6 w-6" />
+            <X className="h-6 w-6 text-gray-600" />
           </button>
         </div>
 
@@ -136,7 +143,7 @@ export function ViewAllInventoryModal({ isOpen, onClose, inventory, totalCount }
             <input
               type="text"
               placeholder="Search by SKU, product name, brand, status, or supplier..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black placeholder-black"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />

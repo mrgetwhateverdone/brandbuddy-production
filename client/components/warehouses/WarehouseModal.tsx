@@ -72,9 +72,10 @@ export function WarehouseModal({
             )}
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md"
+              className="p-1 hover:bg-gray-100 transition-colors"
+              title="Close"
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6 text-gray-600" />
             </button>
           </div>
         </div>
@@ -92,7 +93,7 @@ export function WarehouseModal({
                     placeholder={searchPlaceholder}
                     value={searchTerm}
                     onChange={handleSearchChange}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full pl-10 pr-4 py-2 bg-white border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder-black"
                   />
                 </div>
               )}

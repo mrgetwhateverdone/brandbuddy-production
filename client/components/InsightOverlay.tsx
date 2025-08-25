@@ -251,9 +251,9 @@ export function InsightOverlay({ isOpen, onClose, insight, agentName = "Dashboar
                 const priorityLabel = index === 0 ? 'HIGH PRIORITY' : 
                                     index === insight.suggestedActions.length - 1 ? 'SUPPORTING' : 
                                     'MEDIUM PRIORITY';
-                const priorityColor = index === 0 ? 'text-white bg-red-600 border-red-700' : 
-                                     index === insight.suggestedActions.length - 1 ? 'text-white bg-gray-600 border-gray-700' : 
-                                     'text-white bg-orange-600 border-orange-700';
+                const priorityColor = index === 0 ? 'text-red-600 bg-red-50 border-red-200' : 
+                                     index === insight.suggestedActions.length - 1 ? 'text-gray-600 bg-gray-50 border-gray-200' : 
+                                     'text-orange-600 bg-orange-50 border-orange-200';
                 
                 return (
                   <button
@@ -265,14 +265,16 @@ export function InsightOverlay({ isOpen, onClose, insight, agentName = "Dashboar
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs px-2 py-1 rounded-full border font-medium ${priorityColor}`}>
+                          <span className={`text-xs px-2 py-1 rounded-full border font-medium ${index === 0 ? 'text-red-800 bg-red-100 border-red-300' : 
+                                     index === insight.suggestedActions.length - 1 ? 'text-gray-700 bg-gray-100 border-gray-300' : 
+                                     'text-orange-800 bg-orange-100 border-orange-300'}`}>
                             {priorityLabel}
                           </span>
                         </div>
                         <span className="text-sm font-medium text-white">{action}</span>
                       </div>
                       {processingActionId === index ? (
-                        <div className="flex items-center text-blue-600 ml-3">
+                        <div className="flex items-center text-white ml-3">
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           <span className="text-xs">Creating Workflow...</span>
                         </div>

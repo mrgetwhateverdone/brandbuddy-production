@@ -31,9 +31,21 @@ export function InsightsSection({
     return null;
   }
 
-  // This part of the code filters insights based on agent settings
+  // This part of the code filters insights based on agent settings with null safety
   const agentSettings = getAgentSettings();
-  const filteredInsights = insights.filter(insight => {
+  const filteredInsights = (insights || []).filter(insight => {
+    // Add null safety checks for insight properties
+    if (!insight || typeof insight !== 'object') {
+      console.warn('Invalid insight object:', insight);
+      return false;
+    }
+    
+    // Ensure required properties exist
+    if (!insight.id || !insight.title || !insight.description) {
+      console.warn('Missing required insight properties:', insight);
+      return false;
+    }
+    
     // Only show insights if the corresponding agent is enabled
     if (insight.source === 'dashboard_agent' && !agentSettings.dashboard.enabled) {
       return false;

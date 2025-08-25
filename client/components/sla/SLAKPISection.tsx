@@ -71,10 +71,6 @@ export function SLAKPISection({ kpis, isLoading }: SLAKPISectionProps) {
   if (isLoading) {
     return (
       <div className="mb-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">
-          SLA Performance Overview
-        </h2>
-        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
             <div key={i} className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
@@ -95,10 +91,6 @@ export function SLAKPISection({ kpis, isLoading }: SLAKPISectionProps) {
 
   return (
     <div className="mb-6">
-      <h2 className="text-lg font-medium text-gray-900 mb-4">
-        SLA Performance Overview
-      </h2>
-
       {/* This part of the code displays the SLA KPI cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((card, index) => {

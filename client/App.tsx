@@ -98,14 +98,14 @@ const App = () => {
         appearance={clerkAppearance}
       >
         <AuthenticatedApp>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <QueryClientProvider client={queryClient}>
-              <SettingsProvider>
-                <TooltipProvider>
-                  <Toaster />
-                  <Sonner />
-                  <WorkflowToastListener />
-                  <BrowserRouter>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <QueryClientProvider client={queryClient}>
+            <SettingsProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <WorkflowToastListener />
+            <BrowserRouter>
                 <SmartRouter />
               <Routes>
                   {/* Public Landing & Contact Pages */}
@@ -175,13 +175,13 @@ const App = () => {
                     } 
                   />
 
-                  <Route 
+                <Route
                     path="/reports" 
                     element={
                       <ProtectedPageWrapper loadingMessage="Loading reports...">
                         <Reports />
                       </ProtectedPageWrapper>
-                    } 
+                    }
                   />
                   <Route 
                     path="/sla" 
@@ -211,11 +211,11 @@ const App = () => {
                 {/* 404 Catch-all */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-                  </BrowserRouter>
-                </TooltipProvider>
-              </SettingsProvider>
-            </QueryClientProvider>
-          </ThemeProvider>
+            </BrowserRouter>
+          </TooltipProvider>
+            </SettingsProvider>
+        </QueryClientProvider>
+      </ThemeProvider>
         </AuthenticatedApp>
       </ClerkProvider>
     </ErrorBoundary>

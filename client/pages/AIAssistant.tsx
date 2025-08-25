@@ -144,19 +144,19 @@ export default function AIAssistant() {
     <Layout>
       <div className="max-w-7xl mx-auto space-y-4 md:space-y-6">
 
-        {/* This part of the code creates the main chat layout - clean and accessible */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 items-stretch">
+        {/* This part of the code creates the main chat layout with fixed height */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 md:gap-6 h-[calc(100vh-200px)] min-h-[600px]">
           
-          {/* This part of the code creates the chat conversation area */}
-          <div className="lg:col-span-3">
+          {/* This part of the code creates the chat conversation area with fixed dimensions */}
+          <div className="lg:col-span-3 h-full">
             <Card className="bg-white shadow-sm rounded-lg overflow-hidden h-full flex flex-col">
               <CardHeader className="border-b border-gray-200 pb-4 flex-shrink-0">
                 <CardTitle className="text-lg font-semibold text-gray-900">Conversation</CardTitle>
               </CardHeader>
-              <CardContent className="p-0 flex-1 flex flex-col">
+              <CardContent className="p-0 flex-1 flex flex-col min-h-0">
                 
-                {/* This part of the code creates the scrollable message area */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {/* This part of the code creates the scrollable message area with fixed height */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
                   {messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full text-center">
                       <div className="space-y-3">
@@ -176,13 +176,13 @@ export default function AIAssistant() {
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
-                          className={`max-w-[80%] p-3 rounded-lg ${
+                          className={`max-w-[80%] p-3 rounded-lg break-words ${
                             message.role === 'user'
                               ? 'bg-blue-600 text-white'
                               : 'bg-gray-50 text-gray-900 border border-gray-200'
                           }`}
                         >
-                          <p className="whitespace-pre-wrap text-sm leading-relaxed">
+                          <p className="whitespace-pre-wrap text-sm leading-relaxed word-wrap break-words">
                             {message.content}
                           </p>
                           {message.timestamp && (
@@ -249,8 +249,8 @@ export default function AIAssistant() {
             </Card>
           </div>
 
-          {/* This part of the code creates the quick actions sidebar */}
-          <div className="lg:col-span-1">
+          {/* This part of the code creates the quick actions sidebar with fixed height */}
+          <div className="lg:col-span-1 h-full">
             <Card className="bg-white shadow-sm rounded-lg overflow-hidden h-full flex flex-col">
               <CardHeader className="border-b border-gray-200 pb-4 flex-shrink-0">
                 <CardTitle className="text-lg font-semibold text-gray-900">Quick Actions</CardTitle>

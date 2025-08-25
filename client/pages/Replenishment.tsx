@@ -50,7 +50,7 @@ export default function Replenishment() {
 
   return (
     <Layout>
-      <div className="p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* This part of the code displays the replenishment KPI cards */}
         <ReplenishmentKPISection kpis={data.kpis} isLoading={isLoading} />
 

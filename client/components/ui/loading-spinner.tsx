@@ -18,7 +18,7 @@ export function LoadingSpinner({
 
   return (
     <Loader2
-      className={cn("animate-spin text-blue-600", sizeClasses[size], className)}
+      className={cn("animate-spin text-gray-400", sizeClasses[size], className)}
     />
   );
 }

@@ -29,8 +29,8 @@ const clerkAppearance = {
   },
   elements: {
     // Override Clerk's loading states to match our gray-50 background
-    loadingButtonSpinner: "text-blue-600",
-    spinner: "text-blue-600",
+    loadingButtonSpinner: "text-gray-400",
+    spinner: "text-gray-400",
     loadingButton: "bg-gray-50 border-gray-200",
     // Ensure cards match our theme
     card: "bg-gray-50 shadow-none border-0",
@@ -44,7 +44,7 @@ const clerkAppearance = {
   },
   variables: {
     colorBackground: "#f9fafb",     // gray-50 background to match Layout
-    colorPrimary: "#2563eb",        // blue-600 primary color
+    colorPrimary: "#9ca3af",        // gray-400 to prevent blue flash
     colorText: "#111827",           // gray-900 text
     colorTextSecondary: "#6b7280",  // gray-500 secondary text
     colorNeutral: "#f3f4f6",        // gray-100 neutral

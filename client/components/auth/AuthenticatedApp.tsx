@@ -19,7 +19,7 @@ export function AuthenticatedApp({ children }: AuthenticatedAppProps) {
   if (!isLoaded) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <LoadingState message="Loading BrandBuddy..." />
+        <LoadingState message="Initializing BrandBuddy..." />
       </div>
     );
   }

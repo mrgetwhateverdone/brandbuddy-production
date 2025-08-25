@@ -9,8 +9,8 @@
    * A different format will require also updating the theme in tailwind.config.ts.
   */
   :root {
-    /* CargoCore Brand Colors */
-    --background: 0 0% 98%;
+    /* CargoCore Brand Colors - aligned with Layout bg-gray-50 (#f9fafb) */
+    --background: 210 20% 98%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -113,8 +113,16 @@
     @apply border-border;
   }
 
+  html {
+    @apply bg-gray-50;
+  }
+
   body {
     @apply bg-background text-foreground;
+  }
+
+  #root {
+    @apply bg-gray-50 min-h-screen;
   }
 }
 
@@ -155,7 +163,7 @@
   .cl-loadingButtonSpinner,
   .cl-spinner {
     background-color: #f9fafb !important; /* gray-50 */
-    color: #2563eb !important; /* blue-600 */
+    color: #9ca3af !important; /* gray-400 - no more blue flash */
   }
 
   .cl-card,

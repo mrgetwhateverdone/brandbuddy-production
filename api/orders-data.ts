@@ -354,6 +354,8 @@ Focus on comprehensive order analytics covering value optimization, supplier per
 
 Each insight should address implementable changes with 30-90 day impact timelines based on the complete order analytics dashboard and your proven methodologies.
 
+CRITICAL: You MUST provide exactly 3-5 strategic insights. Each insight MUST include 3-5 specific, actionable suggestedActions.
+
 FORMAT AS ORDER FULFILLMENT EXCELLENCE JSON:
 [
   {
@@ -362,9 +364,11 @@ FORMAT AS ORDER FULFILLMENT EXCELLENCE JSON:
     "description": "Expert analysis covering order value, supplier performance, time patterns, and status intelligence with specific implementation roadmap based on proven industry best practices",
     "severity": "critical|warning|info",
     "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Set up automated alerts for orders approaching SLA deadlines", "Create supplier performance scorecards with penalty clauses", "Implement order prioritization workflow based on customer tier and value"]
+    "suggestedActions": ["Set up automated alerts for orders approaching SLA deadlines", "Create supplier performance scorecards with penalty clauses", "Implement order prioritization workflow based on customer tier and value", "Configure escalation process for at-risk orders", "Establish real-time order tracking dashboard"]
   }
 ]
+
+EACH INSIGHT MUST HAVE 3-5 DETAILED SUGGESTED ACTIONS. NO EXCEPTIONS.
 
 CRITICAL REQUIREMENTS for Chief Fulfillment Officer:
 - Reference specific data from order value, supplier, time, and status analytics
@@ -435,10 +439,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               ? ("warning" as const)
               : ("info" as const),
         dollarImpact: insight.dollarImpact || 0,
-        suggestedActions: insight.suggestedActions || [
-          `Address ${insight.title.toLowerCase()}`,
-          "Implement corrective measures",
-        ],
+        suggestedActions: insight.suggestedActions || [],
         createdAt: new Date().toISOString(),
         source: "orders_agent" as const,
       })),

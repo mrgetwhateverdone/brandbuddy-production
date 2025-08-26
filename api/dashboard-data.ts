@@ -298,6 +298,8 @@ RISK ASSESSMENT:
 
 Based on your proven track record of reducing operational costs by 30-40% and improving efficiency metrics across multiple organizations, provide strategic insights with specific workflows that address the most critical operational bottlenecks. Each recommendation should include estimated financial impact and implementation timeline.
 
+CRITICAL: You MUST provide exactly 3-5 strategic insights. Each insight MUST include 3-5 specific, actionable suggestedActions.
+
 Format as JSON with 3-5 strategic insights:
 [
   {
@@ -306,9 +308,11 @@ Format as JSON with 3-5 strategic insights:
     "description": "Professional analysis of the operational issue with specific data points, financial impact, and implementation strategy. Include your expert assessment of root causes and proven solutions.",
     "severity": "critical|warning|info",
     "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Implement automated reorder triggers for critical SKUs below safety stock", "Create escalation workflow for shipments approaching SLA deadlines", "Set up supplier performance scorecard with penalty clauses"]
+    "suggestedActions": ["Implement automated reorder triggers for critical SKUs below safety stock", "Create escalation workflow for shipments approaching SLA deadlines", "Set up supplier performance scorecard with penalty clauses", "Establish real-time inventory monitoring dashboard", "Configure automated supplier notification system"]
   }
 ]
+
+EACH INSIGHT MUST HAVE 3-5 DETAILED SUGGESTED ACTIONS. NO EXCEPTIONS.
 
 Draw from your extensive experience in operational excellence and provide insights that deliver measurable business value.`,
           },
@@ -866,10 +870,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               ? ("warning" as const)
               : ("info" as const),
         dollarImpact: insight.dollarImpact || 0, // This part of the code uses real financial impact from AI or calculations
-        suggestedActions: insight.suggestedActions || [
-          `Review ${insight.title.toLowerCase()}`,
-          "Take corrective action",
-        ],
+        suggestedActions: insight.suggestedActions || [],
         createdAt: new Date().toISOString(),
         source: "dashboard_agent" as const,
       })),

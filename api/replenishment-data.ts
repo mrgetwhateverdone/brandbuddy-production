@@ -222,7 +222,7 @@ async function generateReplenishmentInsights(
     );
 
     // This part of the code analyzes supplier performance for insights
-    const suppliers = [...new Set(products.map(p => p.product_supplier || p.supplier_name).filter(Boolean))];
+    const suppliers = Array.from(new Set(products.map(p => p.product_supplier || p.supplier_name).filter(Boolean)));
     const recentShipments = shipments.filter(s => {
       if (!s.created_date) return false;
       const shipmentDate = new Date(s.created_date);

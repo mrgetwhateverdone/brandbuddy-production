@@ -260,26 +260,20 @@ export function InsightOverlay({ isOpen, onClose, insight, agentName = "Dashboar
                     key={index}
                     onClick={() => handleActionClick(action, index)}
                     disabled={creating || processingActionId !== null}
-                    className="w-full text-left p-3 bg-blue-600 border border-blue-700 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                    className="w-full text-left p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className={`text-xs px-2 py-1 rounded-full border font-medium ${index === 0 ? 'text-red-800 bg-red-100 border-red-300' : 
-                                     index === insight.suggestedActions.length - 1 ? 'text-gray-700 bg-gray-100 border-gray-300' : 
-                                     'text-orange-800 bg-orange-100 border-orange-300'}`}>
-                            {priorityLabel}
-                          </span>
-                        </div>
-                        <span className="text-sm font-medium text-white">{action}</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <TrendingUp className="h-5 w-5 text-blue-600 mr-3" />
+                        <span className="text-sm font-medium text-gray-900">{action}</span>
                       </div>
                       {processingActionId === index ? (
-                        <div className="flex items-center text-white ml-3">
+                        <div className="flex items-center text-blue-600 ml-3">
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
                           <span className="text-xs">Creating Workflow...</span>
                         </div>
                       ) : (
-                        <span className="text-xs text-white font-medium ml-3">+ Add to Workflows</span>
+                        <span className="text-xs text-blue-600 font-medium ml-3">+ Add to Workflows</span>
                       )}
                     </div>
                   </button>

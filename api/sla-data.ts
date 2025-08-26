@@ -680,8 +680,131 @@ function generateOptimizationRecommendations(
 }
 
 /**
+ * This part of the code generates AI-powered SLA insights using Customer Success Director expertise
+ */
+async function generateAISLAInsights(
+  products: ProductData[],
+  shipments: ShipmentData[],
+  slaData: any
+): Promise<any[]> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
+  
+  if (!apiKey) {
+    console.log('❌ No OpenAI API key found - returning fallback insights');
+    return generateSLAInsights(products, shipments, slaData);
+  }
+
+  try {
+    const atRiskShipments = slaData.kpis.atRiskShipments || 0;
+    const poorPerformers = slaData.supplierScorecard.filter((s: any) => s.performanceScore < 80);
+    const highValuePoorPerformers = slaData.supplierScorecard.filter((s: any) => 
+      s.performanceScore < 85 && s.totalValue > 100000
+    );
+
+    const prompt = `You are a Customer Success Director with 19+ years of experience in service level management, customer retention, and operational excellence. You have maintained 99%+ SLA compliance rates and improved customer satisfaction scores by implementing proactive service management strategies.
+
+Analyze SLA performance data including on-time delivery rates, processing times, and service level agreements. Identify areas where SLAs are consistently missed and root causes. Suggest workflows like 'Create automated SLA monitoring with escalation triggers', 'Implement service recovery processes for SLA breaches', or 'Set up proactive customer communication for potential delays'. Apply your expertise in customer service excellence and performance management to ensure service commitments are consistently met.
+
+SLA PERFORMANCE DASHBOARD:
+==========================
+
+CRITICAL METRICS:
+- Overall SLA Compliance: ${slaData.kpis.overallSLACompliance || 0}% (Target: 95%)
+- Average Delivery Performance: ${slaData.kpis.averageDeliveryPerformance || 0} days variance
+- At-Risk Shipments: ${atRiskShipments} currently at risk
+- Total SLA Breach Cost: $${(slaData.kpis.costOfSLABreaches || 0).toLocaleString()}
+
+SUPPLIER PERFORMANCE:
+- Total Suppliers: ${slaData.supplierScorecard.length} partners
+- Poor Performers (<80%): ${poorPerformers.length} suppliers
+- High-Value Poor Performers: ${highValuePoorPerformers.length} critical suppliers
+- Total Shipments Tracked: ${shipments.length}
+
+FINANCIAL IMPACT:
+- SLA Breach Costs: $${(slaData.financialImpact.totalSLABreachCost || 0).toLocaleString()}
+- Opportunity Cost: $${(slaData.financialImpact.opportunityCost || 0).toLocaleString()}
+- Potential Savings: $${(slaData.financialImpact.potentialSavings || 0).toLocaleString()}
+- Average Breach Cost: $${Math.round(slaData.financialImpact.averageBreachCost || 0).toLocaleString()}
+
+Based on your proven track record of maintaining 99%+ SLA compliance and improving customer satisfaction scores, provide strategic insights focused on service level management, proactive customer communication, and performance optimization. Apply your expertise in customer service excellence to identify root causes and implement service recovery processes.
+
+Format as JSON array with 3-5 strategic insights:
+[
+  {
+    "id": "sla-insight-1",
+    "title": "Strategic SLA insight based on proven service management methodologies",
+    "description": "Expert analysis referencing SLA data with specific numbers and actionable recommendations drawing from your 19+ years of experience in operational excellence",
+    "severity": "critical|warning|info",
+    "dollarImpact": calculated_financial_impact,
+    "suggestedActions": ["Create automated SLA monitoring with escalation triggers", "Implement service recovery processes for SLA breaches", "Set up proactive customer communication for potential delays"],
+    "createdAt": "${new Date().toISOString()}",
+    "source": "dashboard_agent"
+  }
+]
+
+Focus on immediate SLA improvement priorities, customer retention strategies, and proactive service management based on your expertise in maintaining exceptional service levels.`;
+
+    const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
+    console.log('🤖 SLA Agent: Calling OpenAI for comprehensive SLA insights...');
+    
+    const response = await fetch(openaiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 1000,
+        temperature: 0.2,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const aiContent = data.choices?.[0]?.message?.content || '';
+    console.log('🤖 Raw OpenAI response:', aiContent);
+
+    // This part of the code uses JSON parsing like working dashboard API
+    try {
+      const insights = JSON.parse(aiContent);
+      console.log('✅ SLA insights parsed successfully:', insights.length);
+      
+      // This part of the code ensures proper structure for client consumption
+      return insights.map((insight: any, index: number) => ({
+        id: insight.id || `sla-insight-${index}`,
+        title: insight.title || `SLA Alert ${index + 1}`,
+        description: insight.description || insight.content || 'Analysis pending',
+        severity: insight.severity || 'warning',
+        dollarImpact: insight.dollarImpact || Math.round((slaData.kpis.costOfSLABreaches || 0) * 0.2),
+        suggestedActions: insight.suggestedActions || ["Create automated SLA monitoring", "Implement service recovery processes", "Set up proactive customer communication"],
+        createdAt: insight.createdAt || new Date().toISOString(),
+        source: insight.source || "dashboard_agent",
+      }));
+    } catch (parseError) {
+      console.error('❌ JSON parsing failed:', parseError);
+      console.log('🔍 Attempting fallback parsing...');
+      
+      // This part of the code provides fallback when JSON parsing fails
+      return generateSLAInsights(products, shipments, slaData);
+    }
+
+  } catch (error) {
+    console.error("❌ SLA AI analysis failed:", error);
+  }
+  
+  // This part of the code returns fallback insights when AI fails
+  return generateSLAInsights(products, shipments, slaData);
+}
+
+/**
  * This part of the code generates enhanced SLA insights with financial context
- * Provides comprehensive insights following the standard AIInsight format
+ * Provides comprehensive insights following the standard AIInsight format (fallback)
  */
 function generateSLAInsights(products: ProductData[], shipments: ShipmentData[], slaData: any) {
   const insights = [];
@@ -823,7 +946,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       optimizationRecommendations
     };
 
-    const insights = generateSLAInsights(products, shipments, slaData);
+    const insights = await generateAISLAInsights(products, shipments, slaData);
 
     const response: SLAData = {
       kpis,

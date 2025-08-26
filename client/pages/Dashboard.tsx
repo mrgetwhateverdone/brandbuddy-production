@@ -1,8 +1,9 @@
 import React from "react";
 import { Layout } from "@/components/layout/Layout";
-import { useDashboardData } from "@/hooks/useDashboardData";
+import { useDashboardDataFast, useDashboardInsights } from "@/hooks/useDashboardData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
+import { InsightLoadingMessage } from "@/components/ui/insight-skeleton";
 
 // BrandBuddy Overview Components
 import { InsightsSection } from "@/components/dashboard/InsightsSection";
@@ -10,7 +11,14 @@ import { KPISection } from "@/components/dashboard/KPISection";
 
 
 export default function Dashboard() {
-  const { data, isLoading, error, refetch } = useDashboardData();
+  // This part of the code uses progressive loading for better performance
+  // Load fast data first, then AI insights separately in background
+  const { data, isLoading, error, refetch } = useDashboardDataFast();
+  const { 
+    data: insightsData, 
+    isLoading: insightsLoading, 
+    error: insightsError 
+  } = useDashboardInsights();
 
   // This part of the code formats the current date for the overview header
   const getCurrentDate = () => {
@@ -63,13 +71,34 @@ export default function Dashboard() {
               </span>
             </div>
 
-            {/* AI Insights Section - Using real OpenAI insights from Callahan-Smith data */}
-            <InsightsSection 
-              insights={data.insights} 
-              isLoading={isLoading}
-              title="Insights"
-              subtitle={`(${data.insights?.length || 0})`}
-            />
+            {/* AI Insights Section - Progressive loading with fast data + separate AI insights */}
+            {insightsLoading && !insightsData ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
+                  <span className="text-sm text-gray-500">(Loading...)</span>
+                </div>
+                <InsightLoadingMessage />
+              </div>
+            ) : insightsError ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
+                  <span className="text-sm text-red-500">(Failed to load)</span>
+                </div>
+                <ErrorDisplay
+                  message="Unable to load AI insights - Using real data without AI recommendations"
+                  onRetry={() => window.location.reload()}
+                />
+              </div>
+            ) : (
+              <InsightsSection 
+                insights={insightsData?.insights || []} 
+                isLoading={false}
+                title="Insights"
+                subtitle={`(${insightsData?.insights?.length || 0})`}
+              />
+            )}
 
             {/* Daily Brief Section */}
             <div className="bg-white rounded-lg shadow">
@@ -82,19 +111,33 @@ export default function Dashboard() {
                   <div className="border-l-4 border-red-600 pl-4">
                     <h3 className="font-medium text-gray-900">Callahan-Smith Operations Summary</h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      {data.insights?.length > 0 
-                        ? `${data.insights.length} insights identified for immediate attention. `
-                        : "All operations running smoothly. No critical issues detected. "
+                      {insightsData?.insights?.length > 0 
+                        ? `${insightsData.insights.length} insights identified for immediate attention. `
+                        : insightsLoading 
+                          ? "Analyzing operations for insights... "
+                          : "All operations running smoothly. No critical issues detected. "
                       }
                       {data.products?.length > 0 && `Managing ${data.products.length} products across operations.`}
                     </p>
                   </div>
 
-                  {/* AI Executive Brief */}
-                  {data.dailyBrief ? (
+                  {/* AI Executive Brief - Progressive loading */}
+                  {insightsLoading ? (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mt-0.5 mr-3"></div>
+                        <div>
+                          <h4 className="text-sm font-medium text-blue-800">Generating Executive Brief</h4>
+                          <p className="text-sm text-blue-700 mt-1">
+                            AI is analyzing operational data to provide strategic briefing...
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ) : insightsData?.dailyBrief ? (
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <p className="text-sm text-gray-800 leading-relaxed font-medium">
-                        {data.dailyBrief}
+                        {insightsData.dailyBrief}
                       </p>
                     </div>
                   ) : (
@@ -129,12 +172,12 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  {/* Top Priority Today */}
-                  {data.insights && data.insights.length > 0 && (
+                  {/* Top Priority Today - Progressive loading */}
+                  {insightsData?.insights && insightsData.insights.length > 0 && (
                     <div className="bg-red-50 p-3 rounded-lg">
                       <h4 className="text-sm font-medium text-red-800 mb-1">🔴 Top Priority Today</h4>
                       <p className="text-sm text-red-700">
-                        {data.insights[0]?.title || "Review operational insights"}
+                        {insightsData.insights[0]?.title || "Review operational insights"}
                       </p>
                     </div>
                   )}

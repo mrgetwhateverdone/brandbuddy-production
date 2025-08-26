@@ -1,8 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 /**
- * This part of the code standardizes the data interfaces to match the server implementation
- * Ensuring consistency between local development and Vercel production environments
+ * This part of the code provides FAST dashboard data without AI insights
+ * Loads only real data (products, shipments, KPIs) for immediate page rendering
+ * AI insights load separately in background for better performance
  */
 
 // TinyBird Product Details API Response - standardized interface
@@ -64,7 +65,7 @@ interface ShipmentData {
 
 /**
  * This part of the code fetches products data from TinyBird API using standardized parameters
- * Matches the server implementation to ensure consistent data structure
+ * Fast data fetching without AI processing for immediate page load
  */
 async function fetchProducts(): Promise<ProductData[]> {
   const baseUrl = process.env.TINYBIRD_BASE_URL;
@@ -89,7 +90,7 @@ async function fetchProducts(): Promise<ProductData[]> {
 
 /**
  * This part of the code fetches shipments data from TinyBird API using standardized parameters
- * Matches the server implementation to ensure consistent data structure
+ * Fast data fetching without AI processing for immediate page load
  */
 async function fetchShipments(): Promise<ShipmentData[]> {
   const baseUrl = process.env.WAREHOUSE_BASE_URL;
@@ -157,324 +158,7 @@ function calculateFinancialImpacts(products: ProductData[], shipments: ShipmentD
 }
 
 /**
- * This part of the code generates AI insights using real financial data
- * Matches the server implementation calculations for consistent results
- */
-interface InsightData {
-  type: string;
-  title: string;
-  description: string;
-  severity: "critical" | "warning" | "info";
-  dollarImpact?: number;
-  suggestedActions?: string[];
-}
-
-async function generateInsights(
-  products: ProductData[],
-  shipments: ShipmentData[],
-): Promise<InsightData[]> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  console.log('🔑 Dashboard Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
-  if (!apiKey) {
-    console.log('❌ OPENAI_API_KEY not found in environment variables');
-    // This part of the code generates data-driven insights with real financial impact when AI is not available
-    const insights: InsightData[] = [];
-    const financialImpacts = calculateFinancialImpacts(products, shipments);
-    
-    const atRiskCount = shipments.filter(
-      (shipment) =>
-        shipment.expected_quantity !== shipment.received_quantity ||
-        shipment.status === "cancelled",
-    ).length;
-    
-    const atRiskPercentage = shipments.length > 0 ? (atRiskCount / shipments.length * 100).toFixed(1) : 0;
-    
-    // Only include insights if they represent actual issues or notable conditions
-    if (atRiskCount > 0 && financialImpacts.quantityDiscrepancyImpact > 0) {
-      insights.push({
-        type: "warning",
-        title: "Improve Shipment and Fulfillment Performance", 
-        description: `${atRiskCount} shipments (${atRiskPercentage}%) have quantity discrepancies with financial impact of $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()}.`,
-        severity: financialImpacts.quantityDiscrepancyImpact > 10000 ? "critical" : "warning",
-        dollarImpact: financialImpacts.quantityDiscrepancyImpact,
-      });
-    }
-    
-    if (financialImpacts.cancelledShipmentsImpact > 0) {
-      const cancelledCount = shipments.filter(s => s.status === "cancelled").length;
-      insights.push({
-        type: "warning", 
-        title: "Reduce Supplier Concentration Risk",
-        description: `${cancelledCount} cancelled shipments represent $${financialImpacts.cancelledShipmentsImpact.toLocaleString()} in lost inventory value.`,
-        severity: financialImpacts.cancelledShipmentsImpact > 5000 ? "critical" : "warning",
-        dollarImpact: financialImpacts.cancelledShipmentsImpact,
-      });
-    }
-    
-    const inactiveProducts = products.filter((p) => !p.active).length;
-    if (inactiveProducts > 0 && financialImpacts.inactiveProductsValue > 0) {
-      insights.push({
-        type: "info",
-        title: "Optimize Inventory and Product Portfolio",
-        description: `${inactiveProducts} inactive products represent potential opportunity cost of $${financialImpacts.inactiveProductsValue.toLocaleString()}.`,
-        severity: "info",
-        dollarImpact: financialImpacts.inactiveProductsValue,
-      });
-    }
-    
-    return insights;
-  }
-
-  try {
-    const financialImpacts = calculateFinancialImpacts(products, shipments);
-    
-    // This part of the code calculates enhanced operational intelligence metrics
-    const atRiskShipments = shipments.filter(s => s.expected_quantity !== s.received_quantity).length;
-    const cancelledShipments = shipments.filter(s => s.status === "cancelled").length;
-    const inactiveProducts = products.filter(p => !p.active).length;
-    const activeProducts = products.filter(p => p.active).length;
-    const totalShipmentValue = shipments.reduce((sum, s) => sum + (s.received_quantity * (s.unit_cost || 0)), 0);
-    
-    // Enhanced analytics calculations
-    const uniqueBrands = new Set(products.map(p => p.brand_name)).size;
-    const uniqueSuppliers = new Set(products.map(p => p.supplier_name)).size;
-    const skuUtilization = activeProducts / products.length * 100;
-    const onTimeShipments = shipments.filter(s => s.status === "completed" || s.status === "delivered").length;
-    const delayedShipments = shipments.filter(s => s.status.includes("delayed") || s.status === "late").length;
-    const quantityAccuracy = shipments.length > 0 ? (shipments.filter(s => s.expected_quantity === s.received_quantity).length / shipments.length) * 100 : 100;
-    const avgOrderValue = totalShipmentValue / shipments.length;
-    const costPerShipment = totalShipmentValue / shipments.length;
-    
-    // Geographic and supplier risk analysis
-    const geoRiskCountries = shipments.filter(s => s.ship_from_country && ['China', 'Russia', 'Ukraine', 'Taiwan'].includes(s.ship_from_country)).length;
-    const geoRiskPercent = shipments.length > 0 ? (geoRiskCountries / shipments.length) * 100 : 0;
-    const topRiskCountries = Array.from(new Set(shipments.filter(s => s.ship_from_country && ['China', 'Russia', 'Ukraine', 'Taiwan'].includes(s.ship_from_country)).map(s => s.ship_from_country))).slice(0, 3);
-    
-    // Supplier concentration analysis
-    const supplierCounts = shipments.reduce((acc, s) => {
-      const supplier = s.supplier || 'Unknown';
-      acc[supplier] = (acc[supplier] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    const topSuppliers = Object.entries(supplierCounts).sort(([,a], [,b]) => b - a).slice(0, 3);
-    const supplierConcentration = topSuppliers.reduce((sum, [,count]) => sum + count, 0) / shipments.length * 100;
-    
-    const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
-    const response = await fetch(openaiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "user",
-            content: `You are a Senior Operations Director with 15+ years of experience in supply chain management and business intelligence. You specialize in identifying critical operational bottlenecks and implementing data-driven solutions that improve efficiency and reduce costs.
-
-Analyze the current operational data including ${shipments.length} shipments, ${products.length} products, and ${new Set(shipments.map(s => s.warehouse_id)).size} warehouses. Identify the top 3-5 most critical operational issues that need immediate attention. Focus on: shipment delays, inventory discrepancies, cost overruns, and performance bottlenecks. For each issue, provide specific actionable workflows like 'Implement automated reorder triggers for low-stock items' or 'Create escalation process for at-risk shipments'. Include financial impact estimates and ROI projections based on your extensive industry experience.
-
-OPERATIONAL DATA OVERVIEW:
-==========================================
-
-BRAND PORTFOLIO STATUS:
-- Managing ${products.length} products (${activeProducts} active, ${inactiveProducts} inactive)
-- Working with ${uniqueSuppliers} suppliers across operations
-- Current SKU utilization at ${skuUtilization.toFixed(1)}%
-- Potential opportunity cost from inactive products: $${financialImpacts.inactiveProductsValue.toLocaleString()}
-
-TODAY'S OPERATIONAL PERFORMANCE:
-- Processed ${shipments.length} shipments (${onTimeShipments} on-time, ${delayedShipments} delayed)
-- Quantity accuracy running at ${quantityAccuracy.toFixed(1)}% (${atRiskShipments} with variances)
-- Financial impact from discrepancies: $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()}
-- Cancelled shipment losses: $${financialImpacts.cancelledShipmentsImpact.toLocaleString()}
-
-RISK ASSESSMENT:
-- Total value at risk: $${Math.round(totalShipmentValue).toLocaleString()}
-- ${geoRiskPercent.toFixed(1)}% of shipments from high-risk countries: ${topRiskCountries.join(', ')}
-- Supplier concentration risk: ${supplierConcentration.toFixed(1)}% from top 3 suppliers
-- Total financial exposure: $${financialImpacts.totalFinancialRisk.toLocaleString()}
-
-Based on your proven track record of reducing operational costs by 30-40% and improving efficiency metrics across multiple organizations, provide strategic insights with specific workflows that address the most critical operational bottlenecks. Each recommendation should include estimated financial impact and implementation timeline.
-
-CRITICAL: You MUST provide exactly 3-5 strategic insights. Each insight MUST include 3-5 specific, actionable suggestedActions.
-
-Format as JSON with 3-5 strategic insights:
-[
-  {
-    "type": "warning",
-    "title": "Strategic operational insight title",
-    "description": "Professional analysis of the operational issue with specific data points, financial impact, and implementation strategy. Include your expert assessment of root causes and proven solutions.",
-    "severity": "critical|warning|info",
-    "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Implement automated reorder triggers for critical SKUs below safety stock", "Create escalation workflow for shipments approaching SLA deadlines", "Set up supplier performance scorecard with penalty clauses", "Establish real-time inventory monitoring dashboard", "Configure automated supplier notification system"]
-  }
-]
-
-EACH INSIGHT MUST HAVE 3-5 DETAILED SUGGESTED ACTIONS. NO EXCEPTIONS.
-
-Draw from your extensive experience in operational excellence and provide insights that deliver measurable business value.`,
-          },
-        ],
-        max_tokens: 300, // OPTIMIZED for speed
-        temperature: 0.2,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content;
-      if (content) {
-        console.log('🤖 Dashboard Agent Raw OpenAI Response:', content.substring(0, 500) + '...');
-        try {
-          const parsed = JSON.parse(content);
-          console.log('✅ Dashboard Agent Parsed Insights:', parsed.length, 'insights with actions:', parsed.map(p => p.suggestedActions?.length || 0));
-          return parsed;
-        } catch (parseError) {
-          console.error('❌ Dashboard Agent JSON Parse Error:', parseError);
-          console.error('❌ Raw content that failed:', content?.substring(0, 500));
-          throw parseError;
-        }
-      }
-    } else {
-      console.error('❌ OpenAI API Error:', response.status, response.statusText);
-    }
-  } catch (error) {
-    console.error('❌ Dashboard OpenAI analysis failed:', error);
-  }
-
-  // This part of the code generates data-driven insights with real financial impact when AI fails
-  const insights: InsightData[] = [];
-  const financialImpacts = calculateFinancialImpacts(products, shipments);
-  
-  const atRiskCount = shipments.filter(
-    (shipment) =>
-      shipment.expected_quantity !== shipment.received_quantity ||
-      shipment.status === "cancelled",
-  ).length;
-  
-  const atRiskPercentage = shipments.length > 0 ? (atRiskCount / shipments.length * 100).toFixed(1) : 0;
-  
-  // Only include insights if they represent actual issues or notable conditions
-  if (atRiskCount > 0 && financialImpacts.quantityDiscrepancyImpact > 0) {
-    insights.push({
-      type: "warning",
-      title: "Improve Shipment and Fulfillment Performance",
-      description: `${atRiskCount} shipments (${atRiskPercentage}%) have quantity discrepancies with financial impact of $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()}.`,
-      severity: financialImpacts.quantityDiscrepancyImpact > 10000 ? "critical" : "warning",
-      dollarImpact: financialImpacts.quantityDiscrepancyImpact,
-    });
-  }
-  
-  if (financialImpacts.cancelledShipmentsImpact > 0) {
-    const cancelledCount = shipments.filter(s => s.status === "cancelled").length;
-    insights.push({
-      type: "warning", 
-        title: "Reduce Supplier Concentration Risk",
-      description: `${cancelledCount} cancelled shipments represent $${financialImpacts.cancelledShipmentsImpact.toLocaleString()} in lost inventory value.`,
-      severity: financialImpacts.cancelledShipmentsImpact > 5000 ? "critical" : "warning",
-      dollarImpact: financialImpacts.cancelledShipmentsImpact,
-    });
-  }
-  
-  const inactiveProducts = products.filter((p) => !p.active).length;
-  if (inactiveProducts > 0 && financialImpacts.inactiveProductsValue > 0) {
-    insights.push({
-      type: "info",
-      title: "Optimize Inventory and Product Portfolio",
-      description: `${inactiveProducts} inactive products represent potential opportunity cost of $${financialImpacts.inactiveProductsValue.toLocaleString()}.`,
-      severity: "info",
-      dollarImpact: financialImpacts.inactiveProductsValue,
-    });
-  }
-  
-  return insights;
-}
-
-/**
- * This part of the code generates a conversational daily brief using OpenAI
- * Sounds like a real assistant giving a morning briefing
- */
-async function generateDailyBrief(
-  products: ProductData[],
-  shipments: ShipmentData[],
-  financialImpacts: any
-): Promise<string | null> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return null; // No fallback - require real OpenAI connection
-  }
-
-  try {
-    const atRiskShipments = shipments.filter(s => s.expected_quantity !== s.received_quantity).length;
-    const cancelledShipments = shipments.filter(s => s.status === "cancelled").length;
-    const inactiveProducts = products.filter(p => !p.active).length;
-    const activeProducts = products.filter(p => p.active).length;
-    const onTimeShipments = shipments.filter(s => s.status === "completed" || s.status === "delivered").length;
-
-    // Calculate supplier concentration for risk analysis
-    const supplierCounts = shipments.reduce((acc, s) => {
-      const supplier = s.supplier || 'Unknown';
-      acc[supplier] = (acc[supplier] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    const topSuppliers = Object.entries(supplierCounts).sort(([,a], [,b]) => b - a).slice(0, 3);
-    const supplierConcentration = topSuppliers.length > 0 ? Math.round(topSuppliers.reduce((sum, [,count]) => sum + count, 0) / shipments.length * 100) : 0;
-
-    const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
-    const response = await fetch(openaiUrl, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4",
-        messages: [
-          {
-            role: "user",
-            content: `You are a senior operations assistant for Callahan-Smith brand. Analyze today's operational data and provide a world-class executive briefing. Be direct, specific, and actionable.
-
-CALLAHAN-SMITH OPERATIONAL STATUS:
-- Portfolio: ${products.length} total products (${activeProducts} active, ${inactiveProducts} inactive)
-- Shipment Performance: ${shipments.length} processed (${onTimeShipments} on-time, ${atRiskShipments} with discrepancies, ${cancelledShipments} cancelled)
-- Financial Exposure: $${financialImpacts.totalFinancialRisk.toLocaleString()} at risk from operational issues
-- Supplier Risk: ${supplierConcentration}% concentration with top 3 suppliers
-- Key Suppliers: ${topSuppliers.map(([name]) => name).join(', ')}
-
-Write a 4-6 sentence executive brief that:
-- Identifies today's highest-priority operational risks
-- Quantifies financial impact in dollar terms
-- Suggests immediate actions needed
-- Mentions specific issues requiring attention
-
-Example tone: "Today's high-priority risks center around delayed replenishment, missed inbound SLA, and fulfillment breakdown. Immediate actions are suggested on 3 of 4 issues to prevent over $22K in potential loss."
-
-Do NOT include greetings, pleasantries, or source attributions. Start directly with the operational analysis.`,
-          },
-        ],
-        max_tokens: 100, // OPTIMIZED for speed
-        temperature: 0.2,
-      }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      const content = data.choices?.[0]?.message?.content;
-      if (content) {
-        return content.trim().replace(/"/g, ''); // Clean up quotes and whitespace
-      }
-    }
-  } catch (error) {
-    console.error("OpenAI daily brief failed:", error);
-  }
-
-  return null; // Return null if OpenAI fails - no fallback
-}
-
-/**
- * This part of the code analyzes real margin risks using actual brand and cost data
+ * This part of the code calculates real margin risks using actual brand and cost data
  * Calculates risk factors based on brand performance, SKU complexity, and cost pressures
  */
 interface MarginRiskAlert {
@@ -731,7 +415,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     console.log(
-      "📊 Vercel API: Fetching dashboard data with split environment variables...",
+      "⚡ FAST API: Fetching dashboard data WITHOUT AI insights for immediate page load...",
     );
 
     const [allProducts, allShipments] = await Promise.all([
@@ -743,15 +427,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
     const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
     
-    console.log(`🔍 Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
-    console.log(`📊 Sample brands in products:`, new Set(allProducts.map(p => p.brand_name)));
-    console.log(`📊 Sample brands in shipments:`, new Set(allShipments.map(s => s.brand_name)));
-
-    const insights = await generateInsights(products, shipments);
-    
-    // This part of the code calculates financial impacts for daily brief
-    const financialImpacts = calculateFinancialImpacts(products, shipments);
-    const dailyBrief = await generateDailyBrief(products, shipments, financialImpacts);
+    console.log(`🔍 FAST: Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
 
     // This part of the code calculates new real-data analysis features
     const marginRisks = calculateMarginRisks(products, shipments);
@@ -859,21 +535,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           averageCost: Math.round(averageCost || 0),
         };
       }),
-      insights: insights.map((insight, index) => ({
-        id: `insight-${index}`,
-        title: insight.title,
-        description: insight.description,
-        severity:
-          insight.severity === "critical"
-            ? ("critical" as const)
-            : insight.severity === "warning"
-              ? ("warning" as const)
-              : ("info" as const),
-        dollarImpact: insight.dollarImpact || 0, // This part of the code uses real financial impact from AI or calculations
-        suggestedActions: insight.suggestedActions || [],
-        createdAt: new Date().toISOString(),
-        source: "dashboard_agent" as const,
-      })),
+      // NOTE: insights will be loaded separately by dashboard-insights endpoint
+      insights: [], // Empty for fast loading - insights load separately
       anomalies: [
         ...(unfulfillableSKUs > 100
           ? [
@@ -904,21 +567,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ],
       marginRisks, // This part of the code adds real margin risk analysis data
       costVariances, // This part of the code adds real cost variance detection data
-      dailyBrief, // This part of the code adds conversational AI daily brief
+      dailyBrief: null, // Will be loaded separately by insights endpoint
       lastUpdated: new Date().toISOString(),
     };
 
-    console.log("✅ Vercel API: Dashboard data compiled successfully");
+    console.log("✅ FAST API: Dashboard data compiled successfully (NO AI insights for speed)");
     res.status(200).json({
       success: true,
       data: dashboardData,
-      message: "Dashboard data retrieved successfully",
+      message: "Fast dashboard data retrieved successfully",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("❌ Vercel API Error:", error);
+    console.error("❌ FAST API Error:", error);
     res.status(500).json({
-      error: "Failed to fetch dashboard data",
+      error: "Failed to fetch fast dashboard data",
       details: error instanceof Error ? error.message : "Unknown error",
     });
   }

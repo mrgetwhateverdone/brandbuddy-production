@@ -66,6 +66,70 @@ class InternalApiService {
   }
 
   /**
+   * Fetch FAST dashboard data without AI insights for immediate page load
+   * NO external API keys - server handles TinyBird calls only
+   */
+  async getDashboardDataFast(): Promise<DashboardData> {
+    try {
+      console.log("⚡ Client: Fetching FAST dashboard data (no AI insights)...");
+
+      const response = await fetch(`${this.baseUrl}/api/dashboard-data-fast`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<DashboardData> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch fast dashboard data");
+      }
+
+      console.log("✅ Client: Fast dashboard data received securely from server");
+      return result.data;
+    } catch (error) {
+      console.error("❌ Client: Fast dashboard API call failed:", error);
+      throw new Error(
+        `Unable to load fast dashboard data: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
+   * Fetch dashboard AI insights separately for progressive loading
+   * NO external API keys - server handles OpenAI calls
+   */
+  async getDashboardInsights(): Promise<{ insights: AIInsight[]; dailyBrief: string | null }> {
+    try {
+      console.log("🤖 Client: Fetching dashboard AI insights...");
+
+      const response = await fetch(`${this.baseUrl}/api/dashboard-insights`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<{ insights: AIInsight[]; dailyBrief: string | null }> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch dashboard insights");
+      }
+
+      console.log("✅ Client: Dashboard insights received securely from server");
+      return result.data;
+    } catch (error) {
+      console.error("❌ Client: Dashboard insights API call failed:", error);
+      throw new Error(
+        `Unable to load dashboard insights: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
    * Fetch products data only from secure server endpoint
    */
   async getProductsData(): Promise<ProductData[]> {

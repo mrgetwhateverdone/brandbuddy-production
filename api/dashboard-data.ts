@@ -166,6 +166,7 @@ interface InsightData {
   description: string;
   severity: "critical" | "warning" | "info";
   dollarImpact?: number;
+  suggestedActions?: string[];
 }
 
 async function generateInsights(
@@ -173,7 +174,9 @@ async function generateInsights(
   shipments: ShipmentData[],
 ): Promise<InsightData[]> {
   const apiKey = process.env.OPENAI_API_KEY;
+  console.log('🔑 Dashboard Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
   if (!apiKey) {
+    console.log('❌ OPENAI_API_KEY not found in environment variables');
     // This part of the code generates data-driven insights with real financial impact when AI is not available
     const insights: InsightData[] = [];
     const financialImpacts = calculateFinancialImpacts(products, shipments);
@@ -319,11 +322,22 @@ Draw from your extensive experience in operational excellence and provide insigh
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (content) {
-        return JSON.parse(content);
+        console.log('🤖 Dashboard Agent Raw OpenAI Response:', content.substring(0, 500) + '...');
+        try {
+          const parsed = JSON.parse(content);
+          console.log('✅ Dashboard Agent Parsed Insights:', parsed.length, 'insights with actions:', parsed.map(p => p.suggestedActions?.length || 0));
+          return parsed;
+        } catch (parseError) {
+          console.error('❌ Dashboard Agent JSON Parse Error:', parseError);
+          console.error('❌ Raw content that failed:', content?.substring(0, 500));
+          throw parseError;
+        }
       }
+    } else {
+      console.error('❌ OpenAI API Error:', response.status, response.statusText);
     }
   } catch (error) {
-    console.error("OpenAI analysis failed:", error);
+    console.error('❌ Dashboard OpenAI analysis failed:', error);
   }
 
   // This part of the code generates data-driven insights with real financial impact when AI fails
@@ -852,7 +866,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               ? ("warning" as const)
               : ("info" as const),
         dollarImpact: insight.dollarImpact || 0, // This part of the code uses real financial impact from AI or calculations
-        suggestedActions: [
+        suggestedActions: insight.suggestedActions || [
           `Review ${insight.title.toLowerCase()}`,
           "Take corrective action",
         ],

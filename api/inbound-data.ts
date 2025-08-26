@@ -186,7 +186,9 @@ async function generateInboundInsights(
 
     const suppliers = [...new Set(shipments.map(s => s.supplier).filter(Boolean))];
     
-    const prompt = `You are the Inbound Operations Agent for BrandBuddy analyzing Callahan-Smith inbound logistics operations. Generate strategic insights based on comprehensive receiving and delivery data.
+    const prompt = `You are a Senior Procurement and Inbound Operations Manager with 17+ years of experience in supplier relationship management, receiving operations, and quality control. You have successfully streamlined inbound processes that reduced receiving times by 60% and improved inventory accuracy to 99.5%.
+
+Evaluate inbound operations including supplier performance, receiving accuracy, and processing times. Identify bottlenecks in the inbound supply chain. Recommend workflows such as 'Implement supplier scorecards with performance metrics', 'Create automated receiving quality checks', or 'Set up advance shipping notification processing'. Draw from your proven experience in vendor management and inbound logistics optimization.
 
 INBOUND OPERATIONS DASHBOARD:
 =============================
@@ -214,23 +216,23 @@ INBOUND DASHBOARD SECTIONS:
 - Receiving Performance: Quality and efficiency metrics
 - Supplier Delivery: On-time performance tracking across ${suppliers.length} suppliers
 
-Provide strategic insights focused on inbound operations covering receiving optimization, delivery performance, and arrival planning. Reference specific data from all dashboard sections.
+Based on your extensive experience in streamlining inbound processes and improving inventory accuracy to 99.5%, provide strategic insights focused on inbound operations covering receiving optimization, delivery performance, and arrival planning. Reference specific data from all dashboard sections and apply your proven methodologies in vendor management and quality control.
 
-Format as JSON array with 2-3 insights:
+Format as JSON array with 3-5 strategic insights:
 [
   {
     "type": "warning",
-    "title": "Specific insight about receiving efficiency or delivery optimization",
-    "description": "Detailed analysis referencing dashboard data with specific numbers and actionable recommendations for Callahan-Smith inbound operations",
+    "title": "Strategic inbound operations insight based on proven methodologies",
+    "description": "Expert analysis referencing dashboard data with specific numbers and actionable recommendations drawing from your 17+ years of experience in inbound logistics optimization",
     "severity": "critical|warning|info",
     "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["specific action 1", "specific action 2", "specific action 3"],
+    "suggestedActions": ["Implement supplier scorecards with performance metrics", "Create automated receiving quality checks", "Set up advance shipping notification processing"],
     "createdAt": "${new Date().toISOString()}",
     "source": "inbound_operations_agent"
   }
 ]
 
-Focus on immediate receiving priorities, delivery optimization, and operational efficiency improvements.`;
+Focus on immediate receiving priorities, delivery optimization, and operational efficiency improvements based on your track record of reducing receiving times by 60%.`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     console.log('🤖 Inbound Operations Agent: Calling OpenAI for comprehensive dashboard insights...');

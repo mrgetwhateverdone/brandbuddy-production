@@ -332,7 +332,11 @@ async function generateReportInsights(
     }
 
     const insightPrompt = `
-    As a Report Analytics Agent, analyze the following REAL business data and provide 2-3 strategic insights:
+    You are a Chief Data Officer with 14+ years of experience in business analytics, predictive modeling, and performance optimization. You specialize in turning complex data into actionable business insights and have built analytics platforms that drive strategic decision-making.
+
+    Analyze performance metrics, KPI trends, and operational patterns to identify strategic improvement opportunities. Look for correlations between performance indicators and business outcomes. Suggest analytical workflows like 'Create predictive models for demand forecasting', 'Implement real-time dashboard alerts for KPI thresholds', or 'Set up automated performance reports for stakeholders'. Apply your expertise in data science and business intelligence to recommend solutions that provide measurable competitive advantages.
+
+    Analyze the following REAL business data and provide 3-5 strategic insights:
     
     ${templateSpecificPrompt}
     
@@ -350,7 +354,7 @@ async function generateReportInsights(
         "description": "string (explain what the data shows and why it matters)", 
         "severity": "high|medium|low",
         "dollarImpact": number,
-        "suggestedActions": ["specific action 1", "specific action 2", "specific action 3"]
+        "suggestedActions": ["Create predictive models for demand forecasting", "Implement real-time dashboard alerts for KPI thresholds", "Set up automated performance reports for stakeholders"]
       }
     ]
     `;
@@ -366,7 +370,7 @@ async function generateReportInsights(
         messages: [
           {
             role: "system", 
-            content: "You are a Report Analytics Agent providing strategic business insights based on real operational data. Focus on actionable recommendations with realistic financial impacts."
+            content: "You are a Chief Data Officer with 14+ years of experience in business analytics, predictive modeling, and performance optimization. You specialize in turning complex data into actionable business insights and have built analytics platforms that drive strategic decision-making. Focus on actionable recommendations with realistic financial impacts based on your expertise in data science and business intelligence."
           },
           {
             role: "user",

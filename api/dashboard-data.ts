@@ -268,9 +268,11 @@ async function generateInsights(
         messages: [
           {
             role: "user",
-            content: `You are a senior brand operations assistant for Callahan-Smith. Analyze today's operational data and provide a conversational briefing as if you're reporting directly to leadership in person.
+            content: `You are a Senior Operations Director with 15+ years of experience in supply chain management and business intelligence. You specialize in identifying critical operational bottlenecks and implementing data-driven solutions that improve efficiency and reduce costs.
 
-CALLAHAN-SMITH DAILY OPERATIONS BRIEFING:
+Analyze the current operational data including ${shipments.length} shipments, ${products.length} products, and ${new Set(shipments.map(s => s.warehouse_id)).size} warehouses. Identify the top 3-5 most critical operational issues that need immediate attention. Focus on: shipment delays, inventory discrepancies, cost overruns, and performance bottlenecks. For each issue, provide specific actionable workflows like 'Implement automated reorder triggers for low-stock items' or 'Create escalation process for at-risk shipments'. Include financial impact estimates and ROI projections based on your extensive industry experience.
+
+OPERATIONAL DATA OVERVIEW:
 ==========================================
 
 BRAND PORTFOLIO STATUS:
@@ -291,20 +293,21 @@ RISK ASSESSMENT:
 - Supplier concentration risk: ${supplierConcentration.toFixed(1)}% from top 3 suppliers
 - Total financial exposure: $${financialImpacts.totalFinancialRisk.toLocaleString()}
 
-Speak like a knowledgeable assistant giving a morning briefing. Write 4-6 conversational sentences summarizing the most important issues for Callahan-Smith brand operations today. Be specific about problems and their financial impact. Sound professional but human, as if you're briefing the brand manager in their office.
+Based on your proven track record of reducing operational costs by 30-40% and improving efficiency metrics across multiple organizations, provide strategic insights with specific workflows that address the most critical operational bottlenecks. Each recommendation should include estimated financial impact and implementation timeline.
 
-Format as JSON with 2-3 insights maximum:
+Format as JSON with 3-5 strategic insights:
 [
   {
     "type": "warning",
-    "title": "Brief insight title",
-    "description": "4-6 sentence conversational explanation of the issue, like: 'Good morning - I've reviewed today's operations data and there are a few things that need your attention. Our shipment accuracy is running at X% which is concerning because...'",
+    "title": "Strategic operational insight title",
+    "description": "Professional analysis of the operational issue with specific data points, financial impact, and implementation strategy. Include your expert assessment of root causes and proven solutions.",
     "severity": "critical|warning|info",
-    "dollarImpact": actual_dollar_amount
+    "dollarImpact": calculated_financial_impact,
+    "suggestedActions": ["Implement automated reorder triggers for critical SKUs below safety stock", "Create escalation workflow for shipments approaching SLA deadlines", "Set up supplier performance scorecard with penalty clauses"]
   }
 ]
 
-Make it sound like a real person talking, not a generic report.`,
+Draw from your extensive experience in operational excellence and provide insights that deliver measurable business value.`,
           },
         ],
         max_tokens: 800,

@@ -345,30 +345,34 @@ FINANCIAL RISK ASSESSMENT:
   'Low geographic concentration risk'}
 - Recovery Capacity: ${Math.max(1, 10 - (inboundIntelligence.delayedShipments.percentage || 0) / 10).toFixed(1)}/10
 
-AS ORDER ANALYSIS AGENT, PROVIDE STRATEGIC OPERATIONAL INSIGHTS (2-4 insights):
-Focus on comprehensive order analytics covering value optimization, supplier performance, time efficiency, and status intelligence with measurable business impact.
+You are a Chief Fulfillment Officer with 18+ years of experience in order management, customer service, and logistics optimization. You have successfully reduced order fulfillment times by 40% and improved customer satisfaction scores across multiple Fortune 500 companies.
 
-Each insight should address implementable changes with 30-90 day impact timelines based on the complete order analytics dashboard.
+Based on ${orders.length} orders with ${atRiskOrders} at-risk and ${cancelledOrders} cancellations, identify critical order management improvements. Analyze patterns in order delays, cancellations, and SLA breaches. Recommend specific workflows such as 'Set up automated alerts for orders approaching SLA deadlines', 'Create supplier performance scorecards', or 'Implement order prioritization based on customer tier'. Draw from your proven track record of improving order accuracy and reducing fulfillment costs.
 
-FORMAT AS ORDER ANALYSIS PLAYBOOK JSON:
+AS ORDER FULFILLMENT EXPERT, PROVIDE STRATEGIC OPERATIONAL INSIGHTS (3-5 insights):
+Focus on comprehensive order analytics covering value optimization, supplier performance, time efficiency, and status intelligence with measurable business impact based on your extensive experience in reducing fulfillment costs by 25-35%.
+
+Each insight should address implementable changes with 30-90 day impact timelines based on the complete order analytics dashboard and your proven methodologies.
+
+FORMAT AS ORDER FULFILLMENT EXCELLENCE JSON:
 [
   {
     "type": "warning",
-    "title": "Order Analytics Strategic Initiative",
-    "description": "Comprehensive analysis covering order value, supplier performance, time patterns, and status intelligence with specific implementation roadmap",
+    "title": "Order Fulfillment Strategic Initiative",
+    "description": "Expert analysis covering order value, supplier performance, time patterns, and status intelligence with specific implementation roadmap based on proven industry best practices",
     "severity": "critical|warning|info",
     "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Optimize high-value order processing for top suppliers", "Implement real-time status tracking for aging orders", "Diversify supplier portfolio to reduce concentration risk"]
+    "suggestedActions": ["Set up automated alerts for orders approaching SLA deadlines", "Create supplier performance scorecards with penalty clauses", "Implement order prioritization workflow based on customer tier and value"]
   }
 ]
 
-CRITICAL REQUIREMENTS for Order Analysis Agent:
+CRITICAL REQUIREMENTS for Chief Fulfillment Officer:
 - Reference specific data from order value, supplier, time, and status analytics
 - Include supplier names, financial impacts, or processing timeframes when relevant  
 - Address operational issues across the entire orders dashboard scope
 - Ordered by business impact (financial/operational urgency first)
-- Between 2-4 actionable insights based on comprehensive order analysis
-- Focus on measurable ROI and operational efficiency improvements`,
+- Between 3-5 actionable insights based on comprehensive order analysis
+- Focus on measurable ROI and operational efficiency improvements based on your proven track record`,
           },
         ],
         max_tokens: 700,

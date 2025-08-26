@@ -175,7 +175,9 @@ async function generateReplenishmentInsights(
       return daysAgo <= 30;
     });
 
-    const prompt = `You are the Replenishment Intelligence Agent for BrandBuddy analyzing Callahan-Smith brand operations. Generate strategic insights based on comprehensive replenishment data including all sections visible on the replenishment dashboard.
+    const prompt = `You are a Supply Chain Planning Director with 21+ years of experience in demand planning, supplier management, and inventory replenishment strategies. You have implemented vendor-managed inventory programs and advanced replenishment systems that reduced stockouts by 80% while minimizing excess inventory.
+
+Review replenishment patterns, lead times, and stock rotation data. Identify opportunities to optimize inventory replenishment strategies. Recommend workflows such as 'Implement vendor-managed inventory for key suppliers', 'Create seasonal replenishment calendars', or 'Set up automated purchase order generation based on consumption patterns'. Leverage your deep understanding of supply chain dynamics and proven replenishment methodologies to optimize inventory flow and reduce total cost of ownership.
 
 REPLENISHMENT INTELLIGENCE DASHBOARD:
 =====================================
@@ -209,23 +211,23 @@ REPLENISHMENT DASHBOARD SECTIONS:
 - Reorder Point Intelligence: Smart calculations for ${kpis.reorderRecommendations} critical SKUs
 - Financial Impact Calculator: Risk analysis for $${kpis.replenishmentValue.toLocaleString()} replenishment value
 
-Provide strategic insights focused on the complete replenishment dashboard covering supplier reliability, reorder intelligence, and financial impact. Reference specific data from all dashboard sections.
+Based on your proven track record of reducing inventory carrying costs by 25-35% and implementing successful VMI programs, provide strategic insights focused on the complete replenishment dashboard covering supplier reliability, reorder intelligence, and financial impact. Reference specific data from all dashboard sections and apply your expertise in advanced forecasting models.
 
-Format as JSON array with 2-3 insights:
+Format as JSON array with 3-5 strategic insights:
 [
   {
     "type": "warning",
-    "title": "Specific insight about supplier reliability or reorder priorities",
-    "description": "Detailed analysis referencing dashboard data with specific numbers and actionable recommendations for Callahan-Smith replenishment operations",
+    "title": "Strategic replenishment insight based on proven methodologies",
+    "description": "Expert analysis referencing dashboard data with specific numbers and actionable recommendations drawing from your 21+ years of experience in supply chain optimization",
     "severity": "critical|warning|info",
     "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["specific action 1", "specific action 2", "specific action 3"],
+    "suggestedActions": ["Implement vendor-managed inventory for key suppliers", "Create seasonal replenishment calendars", "Set up automated purchase order generation based on consumption patterns"],
     "createdAt": "${new Date().toISOString()}",
     "source": "replenishment_agent"
   }
 ]
 
-Focus on immediate replenishment priorities, supplier risk mitigation, and financial optimization opportunities.`;
+Focus on immediate replenishment priorities, supplier risk mitigation, and financial optimization opportunities based on your deep expertise in supply chain dynamics.`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     console.log('🤖 Replenishment Agent: Calling OpenAI for comprehensive dashboard insights...');

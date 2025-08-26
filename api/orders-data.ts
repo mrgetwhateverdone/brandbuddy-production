@@ -435,7 +435,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
               ? ("warning" as const)
               : ("info" as const),
         dollarImpact: insight.dollarImpact || 0,
-        suggestedActions: [
+        suggestedActions: insight.suggestedActions || [
           `Address ${insight.title.toLowerCase()}`,
           "Implement corrective measures",
         ],

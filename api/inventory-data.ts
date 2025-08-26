@@ -326,7 +326,7 @@ Focus on immediate inventory optimization priorities, supplier risk mitigation, 
 
 // This part of the code provides fallback insights when OpenAI is not available
 function generateFallbackInventoryInsights(kpis: any, supplierAnalysis: any[]): any[] {
-  const insights = [];
+  const insights: any[] = [];
   
   // Stock health insights
   if (kpis.inactiveSKUs > 0) {

@@ -412,12 +412,97 @@ CRITICAL REQUIREMENTS for Chief Fulfillment Officer:
   return [];
 }
 
+// This part of the code handles fast mode for quick orders data loading without AI insights
+async function handleFastMode(req: VercelRequest, res: VercelResponse) {
+  console.log("⚡ Orders Fast Mode: Loading data without AI insights...");
+  
+  // This part of the code fetches shipments and transforms them into orders
+  const allShipments = await fetchShipments();
+  
+  // This part of the code filters shipments to ensure only Callahan-Smith data is processed
+  const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+  console.log(`🔍 Fast Mode - Data filtered for Callahan-Smith: ${allShipments.length} total → ${shipments.length} Callahan-Smith shipments`);
+  
+  const orders = transformShipmentsToOrders(shipments);
+
+  // This part of the code calculates all orders metrics from transformed data
+  const kpis = calculateOrdersKPIs(orders);
+  const inboundIntelligence = calculateInboundIntelligence(orders);
+
+  const ordersData = {
+    orders: orders.slice(0, 500), // Show up to 500 orders for comprehensive view while maintaining performance
+    kpis,
+    insights: [], // Empty for fast mode
+    inboundIntelligence,
+    lastUpdated: new Date().toISOString(),
+  };
+
+  console.log("✅ Orders Fast Mode: Data compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: ordersData,
+    message: "Orders fast data retrieved successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// This part of the code handles insights mode for AI-generated orders insights only
+async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
+  console.log("🤖 Orders Insights Mode: Loading AI insights only...");
+  
+  // This part of the code fetches shipments and transforms them into orders
+  const allShipments = await fetchShipments();
+  
+  // This part of the code filters shipments to ensure only Callahan-Smith data is processed
+  const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${allShipments.length} total → ${shipments.length} Callahan-Smith shipments`);
+  
+  const orders = transformShipmentsToOrders(shipments);
+
+  // This part of the code calculates all orders metrics from transformed data
+  const kpis = calculateOrdersKPIs(orders);
+  const inboundIntelligence = calculateInboundIntelligence(orders);
+
+  // This part of the code generates orders-specific AI insights
+  const insightsData = await generateOrdersInsights(orders, kpis, inboundIntelligence);
+
+  console.log("✅ Orders Insights Mode: AI insights compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: {
+      insights: insightsData.map((insight, index) => ({
+        id: `orders-insight-${index + 1}`,
+        title: insight.title,
+        description: insight.description,
+        severity: insight.severity as 'low' | 'medium' | 'high' | 'critical' | 'info' | 'warning',
+        dollarImpact: insight.dollarImpact,
+        suggestedActions: insight.suggestedActions || [],
+        createdAt: new Date().toISOString(),
+        source: 'orders_agent'
+      })),
+      lastUpdated: new Date().toISOString(),
+    },
+    message: "Orders insights retrieved successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    const { mode } = req.query;
+    
+    // This part of the code handles different loading modes for performance
+    if (mode === 'fast') {
+      return handleFastMode(req, res);
+    } else if (mode === 'insights') {
+      return handleInsightsMode(req, res);
+    }
+    
+    // Default: full data with insights (backward compatibility)
     console.log(
       "📦 Vercel API: Fetching orders data (using shipments as orders)...",
     );

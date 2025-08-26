@@ -254,7 +254,7 @@ function applyFilters(
 /**
  * This part of the code calculates KPIs using defensive programming patterns from working pages
  */
-function calculateReportKPIs(products: ProductData[], shipments: ShipmentData[], template: string) {
+function calculateReportKPIs(products: ProductData[], shipments: ShipmentData[], _template: string) {
   // This part of the code uses defensive programming to prevent crashes
   const totalProducts = products?.length || 0;
   const totalShipments = shipments?.length || 0;

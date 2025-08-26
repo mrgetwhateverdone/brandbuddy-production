@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import type { ProductData, ShipmentData } from "@/types/api";
+import type { ShipmentData } from "@/types/api";
+// This part of the code imports only necessary types for inbound operations
 
 /**
  * This part of the code provides inbound operations data endpoint for Vercel serverless deployment

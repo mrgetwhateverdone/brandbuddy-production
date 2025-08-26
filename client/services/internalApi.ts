@@ -73,7 +73,7 @@ class InternalApiService {
     try {
       console.log("⚡ Client: Fetching FAST dashboard data (no AI insights)...");
 
-      const response = await fetch(`${this.baseUrl}/api/dashboard-data-fast`);
+      const response = await fetch(`${this.baseUrl}/api/dashboard-data?mode=fast`);
 
       if (!response.ok) {
         throw new Error(
@@ -105,7 +105,7 @@ class InternalApiService {
     try {
       console.log("🤖 Client: Fetching dashboard AI insights...");
 
-      const response = await fetch(`${this.baseUrl}/api/dashboard-insights`);
+      const response = await fetch(`${this.baseUrl}/api/dashboard-data?mode=insights`);
 
       if (!response.ok) {
         throw new Error(
@@ -302,7 +302,7 @@ class InternalApiService {
     try {
       console.log("⚡ Client: Fetching FAST orders data (no AI insights)...");
 
-      const response = await fetch(`${this.baseUrl}/api/orders-data-fast`);
+      const response = await fetch(`${this.baseUrl}/api/orders-data?mode=fast`);
 
       if (!response.ok) {
         throw new Error(
@@ -334,7 +334,7 @@ class InternalApiService {
     try {
       console.log("🤖 Client: Fetching orders AI insights...");
 
-      const response = await fetch(`${this.baseUrl}/api/orders-insights`);
+      const response = await fetch(`${this.baseUrl}/api/orders-data?mode=insights`);
 
       if (!response.ok) {
         throw new Error(
@@ -390,43 +390,7 @@ class InternalApiService {
     }
   }
 
-  /**
-   * Generate AI suggestion for a specific order
-   * NO external API keys - server handles OpenAI calls
-   */
-  async generateOrderSuggestion(orderData: any): Promise<OrderSuggestion> {
-    try {
-      console.log("🔒 Client: Requesting AI order suggestion from secure server...");
 
-      const response = await fetch(`${this.baseUrl}/api/order-suggestion`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ orderData }),
-      });
-
-      if (!response.ok) {
-        throw new Error(
-          `Internal API Error: ${response.status} ${response.statusText}`,
-        );
-      }
-
-      const result: APIResponse<OrderSuggestion> = await response.json();
-
-      if (!result.success || !result.data) {
-        throw new Error(result.message || "Failed to generate order suggestion");
-      }
-
-      console.log("✅ Client: Order suggestion received securely from server");
-      return result.data;
-    } catch (error) {
-      console.error("❌ Client: Order suggestion API call failed:", error);
-      throw new Error(
-        `Unable to generate order suggestion: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
-    }
-  }
 
 
 

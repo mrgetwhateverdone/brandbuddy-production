@@ -724,12 +724,129 @@ function detectCostVariances(products: ProductData[], shipments: ShipmentData[])
     .slice(0, 8); // Limit to top 8 most impactful anomalies
 }
 
+// This part of the code handles fast mode for quick data loading without AI insights
+async function handleFastMode(req: VercelRequest, res: VercelResponse) {
+  console.log("⚡ Dashboard Fast Mode: Loading data without AI insights...");
+  
+  const [allProducts, allShipments] = await Promise.all([
+    fetchProducts(),
+    fetchShipments(),
+  ]);
+
+  // This part of the code ensures we only use Callahan-Smith data by filtering client-side as well
+  const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
+  const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+  
+  console.log(`🔍 Fast Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
+
+  // This part of the code calculates new real-data analysis features without AI
+  const marginRisks = calculateMarginRisks(products, shipments);
+  const costVariances = detectCostVariances(products, shipments);
+
+  // This part of the code calculates KPIs using standardized logic matching server implementation
+  const today = new Date().toISOString().split("T")[0];
+  
+  const totalOrdersToday = shipments.filter(
+    (shipment) => shipment.created_date === today,
+  ).length;
+
+  const atRiskOrders = shipments.filter(
+    (shipment) =>
+      shipment.expected_quantity !== shipment.received_quantity ||
+      shipment.status === "cancelled",
+  ).length;
+
+  const openPOs = new Set(
+    shipments
+      .filter(
+        (shipment) =>
+          shipment.purchase_order_number &&
+          shipment.status !== "completed" &&
+          shipment.status !== "cancelled",
+      )
+      .map((shipment) => shipment.purchase_order_number),
+  ).size;
+
+  const unfulfillableSKUs = products.filter(
+    (product) => !product.active,
+  ).length;
+
+  const dashboardData = {
+    products: products.slice(0, 20),
+    shipments: shipments.slice(0, 50),
+    kpis: {
+      totalOrdersToday: totalOrdersToday > 0 ? totalOrdersToday : null,
+      atRiskOrders: atRiskOrders > 0 ? atRiskOrders : null,
+      openPOs: openPOs > 0 ? openPOs : null,
+      unfulfillableSKUs,
+    },
+    insights: [], // Empty for fast mode
+    anomalies: [], // Empty for fast mode 
+    marginRisks,
+    costVariances,
+    dailyBrief: "", // Empty for fast mode
+    lastUpdated: new Date().toISOString(),
+  };
+
+  console.log("✅ Dashboard Fast Mode: Data compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: dashboardData,
+    message: "Dashboard fast data retrieved successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// This part of the code handles insights mode for AI-generated insights only
+async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
+  console.log("🤖 Dashboard Insights Mode: Loading AI insights only...");
+  
+  const [allProducts, allShipments] = await Promise.all([
+    fetchProducts(),
+    fetchShipments(),
+  ]);
+
+  // This part of the code ensures we only use Callahan-Smith data by filtering client-side as well
+  const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
+  const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+  
+  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
+
+  const insights = await generateInsights(products, shipments);
+  
+  // This part of the code calculates financial impacts for daily brief
+  const financialImpacts = calculateFinancialImpacts(products, shipments);
+  const dailyBrief = await generateDailyBrief(products, shipments, financialImpacts);
+
+  console.log("✅ Dashboard Insights Mode: AI insights compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: {
+      insights,
+      dailyBrief,
+      lastUpdated: new Date().toISOString(),
+    },
+    message: "Dashboard insights retrieved successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    const { mode } = req.query;
+    
+    // This part of the code handles different loading modes for performance
+    if (mode === 'fast') {
+      return handleFastMode(req, res);
+    } else if (mode === 'insights') {
+      return handleInsightsMode(req, res);
+    }
+    
+    // Default: full data with insights (backward compatibility)
     console.log(
       "📊 Vercel API: Fetching dashboard data with split environment variables...",
     );

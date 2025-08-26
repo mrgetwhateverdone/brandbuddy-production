@@ -283,7 +283,7 @@ function calculatePerformanceTrends(shipments: ShipmentData[]) {
   }
 
   // This part of the code calculates daily performance over last 30 days
-  const dailyPerformance = [];
+  const dailyPerformance: any[] = [];
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -491,7 +491,7 @@ function calculateFinancialImpact(products: ProductData[], shipments: ShipmentDa
   const potentialSavings = totalSLABreachCost * (improvementNeeded / 100);
 
   // This part of the code calculates monthly trends (simplified - last 6 months)
-  const monthlyTrend = [];
+  const monthlyTrend: any[] = [];
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   
   for (let i = 5; i >= 0; i--) {
@@ -578,7 +578,7 @@ function generateOptimizationRecommendations(
   supplierScorecard: any[],
   financialImpact: any
 ) {
-  const recommendations = [];
+  const recommendations: any[] = [];
 
   // This part of the code identifies underperforming suppliers
   const poorPerformers = supplierScorecard.filter(s => s.performanceScore < 80);
@@ -807,7 +807,7 @@ Focus on immediate SLA improvement priorities, customer retention strategies, an
  * Provides comprehensive insights following the standard AIInsight format (fallback)
  */
 function generateSLAInsights(products: ProductData[], shipments: ShipmentData[], slaData: any) {
-  const insights = [];
+  const insights: any[] = [];
   
   // This part of the code generates performance insights
   if (slaData.kpis.overallSLACompliance && slaData.kpis.overallSLACompliance < 85) {

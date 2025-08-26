@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import type { ProductData, ShipmentData, DashboardData, InventoryData, OrdersData, CostData, AnalyticsData } from "../client/types/api";
+import type { ProductData, ShipmentData } from "../client/types/api";
+// This part of the code imports only the necessary types to fix compilation warnings
 
 /**
  * This part of the code defines the quick actions available for AI assistant

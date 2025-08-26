@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import type { ProductData, ShipmentData } from "@/types/api";
+import { logger } from "../shared/services/logger";
+import type { ProductData, ShipmentData, TinyBirdResponse } from "../shared/types/api";
 
 interface ReplenishmentKPIs {
   criticalSKUs: number;
@@ -25,7 +26,7 @@ async function fetchProducts(): Promise<ProductData[]> {
   const TINYBIRD_TOKEN = process.env.TINYBIRD_TOKEN;
 
   if (!TINYBIRD_BASE_URL || !TINYBIRD_TOKEN) {
-    console.log("⚠️ TinyBird credentials not available");
+    logger.createLogger({ component: "api/replenishment-data", function: "fetchProducts" }).warn("TinyBird credentials not available");
     return [];
   }
 

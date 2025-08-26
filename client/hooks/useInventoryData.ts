@@ -1,7 +1,14 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { internalApi } from "@/services/internalApi";
-import type { InventoryData } from "@/types/api";
 import { useSettingsIntegration } from "./useSettingsIntegration";
+import { logger } from "@/shared/services/logger";
+import type { 
+  InventoryData, 
+  ProductData, 
+  InventoryItem, 
+  BrandPerformance, 
+  SupplierPerformance 
+} from "@/types/data";
 
 /**
  * Main inventory data hook with settings-aware caching
@@ -11,39 +18,41 @@ import { useSettingsIntegration } from "./useSettingsIntegration";
 export const useInventoryData = () => {
   const { getQueryConfig } = useSettingsIntegration();
   const queryConfig = getQueryConfig();
+  const hookLogger = logger.createLogger({ component: "useInventoryData", hook: "inventory" });
 
-  return useQuery({
+  return useQuery<InventoryData>({
     queryKey: ["inventory-data"],
     queryFn: async (): Promise<InventoryData> => {
-      console.log(
-        "🔒 Client: Fetching BrandBuddy inventory data (Callahan-Smith focused)...",
-      );
+      hookLogger.info("Fetching BrandBuddy inventory data", {
+        brandFilter: "Callahan-Smith"
+      });
 
       // This part of the code calls the server to fetch inventory data securely
       // Server transforms product data into inventory structure with proper mappings
       const rawInventoryData = await internalApi.getInventoryData();
 
-      // This part of the code ensures client-side filtering for Callahan-Smith brand only
-      const filteredInventory = rawInventoryData.inventory?.filter(item => 
+      // This part of the code ensures type-safe client-side filtering for Callahan-Smith brand only
+      const filteredInventory: InventoryItem[] = (rawInventoryData.inventory || []).filter((item: InventoryItem) => 
         item.brand_name === 'Callahan-Smith'
-      ) || [];
+      );
 
       // This part of the code filters supplier analysis for Callahan-Smith suppliers only
-      const filteredSupplierAnalysis = rawInventoryData.supplierAnalysis?.filter(supplier => {
+      const filteredSupplierAnalysis: SupplierPerformance[] = (rawInventoryData.supplierAnalysis || []).filter((supplier: SupplierPerformance) => {
         // Check if this supplier has any Callahan-Smith inventory
-        const hasCallahanSmithInventory = filteredInventory.some(item => 
-          item.supplier === supplier.supplier_name
+        const hasCallahanSmithInventory = filteredInventory.some((item: InventoryItem) => 
+          item.supplier === supplier.supplier
         );
         return hasCallahanSmithInventory;
-      }) || [];
+      });
 
-      const inventoryData = {
+      const inventoryData: InventoryData = {
         ...rawInventoryData,
         inventory: filteredInventory,
         supplierAnalysis: filteredSupplierAnalysis
       };
 
-      console.log("✅ Client: BrandBuddy inventory data filtered for Callahan-Smith:", {
+      hookLogger.info("BrandBuddy inventory data filtered for Callahan-Smith", {
+        brandFilter: "Callahan-Smith",
         totalInventory: rawInventoryData.inventory?.length || 0,
         callahanSmithInventory: filteredInventory.length,
         totalSuppliers: rawInventoryData.supplierAnalysis?.length || 0,
@@ -65,7 +74,9 @@ export const useInventoryData = () => {
  * Inventory table hook for pagination and view management
  * 🔒 SECURE: Client-side data management for table display
  */
-export const useInventoryTable = (inventory: any[] = [], pageSize: number = 15) => {
+export const useInventoryTable = (inventory: InventoryItem[] = [], pageSize: number = 15) => {
+  const tableLogger = logger.createLogger({ component: "useInventoryTable", hook: "inventory-table" });
+
   return useQuery({
     queryKey: ["inventory-table", inventory.length, pageSize],
     queryFn: () => {
@@ -73,9 +84,11 @@ export const useInventoryTable = (inventory: any[] = [], pageSize: number = 15) 
       const displayInventory = inventory.slice(0, pageSize);
       const hasMore = inventory.length > pageSize;
 
-      console.log(
-        `🔒 Client: Callahan-Smith inventory table prepared - showing ${displayInventory.length} of ${inventory.length} SKUs`,
-      );
+      tableLogger.info("Callahan-Smith inventory table prepared", {
+        displayed: displayInventory.length,
+        total: inventory.length,
+        pageSize
+      });
 
       return {
         displayInventory,
@@ -111,15 +124,16 @@ export const useInventoryConnectionStatus = () => {
  */
 export const useInventoryRefresh = () => {
   const queryClient = useQueryClient();
+  const refreshLogger = logger.createLogger({ component: "useInventoryRefresh", hook: "inventory-refresh" });
 
   return {
     refreshInventory: () => {
-      console.log("🔒 Client: Forcing BrandBuddy inventory data refresh...");
+      refreshLogger.info("Forcing BrandBuddy inventory data refresh");
       queryClient.invalidateQueries({ queryKey: ["inventory-data"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-table"] });
     },
     clearInventoryCache: () => {
-      console.log("🔒 Client: Clearing BrandBuddy inventory cache...");
+      refreshLogger.info("Clearing BrandBuddy inventory cache");
       queryClient.removeQueries({ queryKey: ["inventory-data"] });
       queryClient.removeQueries({ queryKey: ["inventory-table"] });
     },

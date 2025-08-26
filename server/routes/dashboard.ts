@@ -1,4 +1,6 @@
 import { RequestHandler } from "express";
+import { logger } from "../../shared/services/logger";
+import { dataFetchingService, type ProductData, type ShipmentData } from "../services/DataFetchingService";
 
 /**
  * Server-side proxy for TinyBird and OpenAI APIs
@@ -6,67 +8,44 @@ import { RequestHandler } from "express";
  * URLs kept completely intact as they work
  */
 
-interface ProductData {
-  product_id: string;
-  company_url: string;
-  brand_id: string | null;
-  brand_name: string;
-  brand_domain: string | null;
-  created_date: string;
-  product_name: string;
-  product_sku: string | null;
-  gtin: string | null;
-  is_kit: boolean;
-  active: boolean;
-  product_supplier: string | null;
-  country_of_origin: string | null;
-  harmonized_code: string | null;
-  product_external_url: string | null;
-  inventory_item_id: string;
-  unit_quantity: number;
-  supplier_name: string;
-  unit_cost: number | null;
-  supplier_external_id: string | null;
-  updated_date: string | null;
+// Note: ProductData and ShipmentData interfaces now imported from DataFetchingService
+// This eliminates interface duplication and ensures type consistency
+
+// This part of the code defines dashboard-specific types to eliminate any usage
+interface DashboardData {
+  products: ProductData[];
+  shipments: ShipmentData[];
+  kpis?: DashboardKPIs;
+  insights?: DashboardInsight[];
 }
 
-interface ShipmentData {
-  company_url: string;
-  shipment_id: string;
-  brand_id: string | null;
-  brand_name: string;
-  brand_domain: string | null;
-  created_date: string;
-  purchase_order_number: string | null;
-  status: string;
-  supplier: string | null;
-  expected_arrival_date: string | null;
-  warehouse_id: string | null;
-  ship_from_city: string | null;
-  ship_from_state: string | null;
-  ship_from_postal_code: string | null;
-  ship_from_country: string | null;
-  external_system_url: string | null;
-  inventory_item_id: string;
-  sku: string | null;
-  expected_quantity: number;
-  received_quantity: number;
-  unit_cost: number | null;
-  external_id: string | null;
-  receipt_id: string;
-  arrival_date: string;
-  receipt_inventory_item_id: string;
-  receipt_quantity: number;
-  tracking_number: string[];
-  notes: string;
+interface DashboardKPIs {
+  totalProducts: number;
+  totalShipments: number;
+  totalValue: number;
+  efficiency: number;
 }
 
-interface TinyBirdResponse<T> {
-  meta: Array<{
-    name: string;
-    type: string;
-  }>;
-  data: T[];
+interface DashboardInsight {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'critical' | 'warning' | 'info';
+  category: 'financial' | 'operational' | 'performance';
+  impact?: string;
+  recommendation?: string;
+}
+
+// This part of the code defines the raw AI response structure (unknown JSON shape)
+interface RawAIInsight {
+  id?: string;
+  title?: string;
+  description?: string;
+  content?: string;
+  severity?: 'critical' | 'warning' | 'info';
+  category?: string;
+  impact?: string;
+  recommendation?: string;
 }
 
 /**
@@ -74,33 +53,19 @@ interface TinyBirdResponse<T> {
  * Environment keys not exposed to client
  */
 export const getProductsData: RequestHandler = async (req, res) => {
+  const routeLogger = logger.createLogger({ endpoint: "products", component: "getProductsData" });
+  
   try {
-    console.log("🔒 Server: Fetching TinyBird products data securely...");
+    routeLogger.info("Fetching TinyBird products data securely");
 
-    const tinybirdBaseUrl = process.env.TINYBIRD_BASE_URL;
-    const tinybirdToken = process.env.TINYBIRD_TOKEN;
-    if (!tinybirdBaseUrl || !tinybirdToken) {
-      throw new Error(
-        "TINYBIRD_BASE_URL and TINYBIRD_TOKEN environment variables not configured",
-      );
-    }
+    const result = await dataFetchingService.fetchProducts({
+      endpoint: "products",
+      brandFilter: "Callahan-Smith"
+    });
 
-    const tinybirdUrl = `${tinybirdBaseUrl}?token=${tinybirdToken}`;
-    const response = await fetch(tinybirdUrl);
-
-    if (!response.ok) {
-      throw new Error(
-        `TinyBird Products API Error: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    const result: TinyBirdResponse<ProductData> = await response.json();
-
-    console.log(
-      "✅ Server: Products data fetched successfully:",
-      result.data.length,
-      "records",
-    );
+    routeLogger.info("Products data fetched successfully", {
+      count: result.data.length
+    });
 
     res.json({
       success: true,
@@ -109,7 +74,9 @@ export const getProductsData: RequestHandler = async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("❌ Server: TinyBird products fetch failed:", error);
+    routeLogger.error("TinyBird products fetch failed", {
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
     res.status(500).json({
       success: false,
       error: "Failed to fetch products data",
@@ -123,33 +90,19 @@ export const getProductsData: RequestHandler = async (req, res) => {
  * Environment keys not exposed to client
  */
 export const getShipmentsData: RequestHandler = async (req, res) => {
+  const routeLogger = logger.createLogger({ endpoint: "shipments", component: "getShipmentsData" });
+  
   try {
-    console.log("🔒 Server: Fetching TinyBird shipments data securely...");
+    routeLogger.info("Fetching TinyBird shipments data securely");
 
-    const warehouseBaseUrl = process.env.WAREHOUSE_BASE_URL;
-    const warehouseToken = process.env.WAREHOUSE_TOKEN;
-    if (!warehouseBaseUrl || !warehouseToken) {
-      throw new Error(
-        "WAREHOUSE_BASE_URL and WAREHOUSE_TOKEN environment variables not configured",
-      );
-    }
+    const result = await dataFetchingService.fetchShipments({
+      endpoint: "shipments",
+      brandFilter: "Callahan-Smith"
+    });
 
-    const warehouseUrl = `${warehouseBaseUrl}?token=${warehouseToken}`;
-    const response = await fetch(warehouseUrl);
-
-    if (!response.ok) {
-      throw new Error(
-        `TinyBird Shipments API Error: ${response.status} ${response.statusText}`,
-      );
-    }
-
-    const result: TinyBirdResponse<ShipmentData> = await response.json();
-
-    console.log(
-      "✅ Server: Shipments data fetched successfully:",
-      result.data.length,
-      "records",
-    );
+    routeLogger.info("Shipments data fetched successfully", {
+      count: result.data.length
+    });
 
     res.json({
       success: true,
@@ -158,7 +111,9 @@ export const getShipmentsData: RequestHandler = async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("❌ Server: TinyBird shipments fetch failed:", error);
+    routeLogger.error("TinyBird shipments fetch failed", {
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
     res.status(500).json({
       success: false,
       error: "Failed to fetch shipments data",
@@ -239,17 +194,16 @@ export const generateInsights: RequestHandler = async (req, res) => {
  * Fetches all data server-side and returns processed result
  */
 export const getDashboardData: RequestHandler = async (req, res) => {
+  const routeLogger = logger.createLogger({ endpoint: "dashboard", component: "getDashboardData" });
+  
   try {
-    console.log("🔒 Server: Fetching complete dashboard data securely...");
+    routeLogger.info("Fetching complete dashboard data securely");
 
-    // Fetch both datasets server-side
-    const [productsResponse, shipmentsResponse] = await Promise.all([
-      fetchProductsInternal(),
-      fetchShipmentsInternal(),
-    ]);
-
-    const products = productsResponse.data;
-    const shipments = shipmentsResponse.data;
+    // This part of the code uses shared data service to fetch both datasets
+    const { products, shipments } = await dataFetchingService.fetchProductsAndShipments(
+      "dashboard",
+      { productLimit: 100, shipmentLimit: 150, brandFilter: "Callahan-Smith" }
+    );
 
     // Calculate all metrics server-side
     const kpis = calculateKPIs(products, shipments);
@@ -267,10 +221,9 @@ export const getDashboardData: RequestHandler = async (req, res) => {
         shipments,
       });
     } catch (error) {
-      console.warn(
-        "⚠️ Server: AI insights generation failed, continuing without insights:",
-        error,
-      );
+      routeLogger.warn("AI insights generation failed, continuing without insights", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
 
     const dashboardData = {
@@ -284,7 +237,12 @@ export const getDashboardData: RequestHandler = async (req, res) => {
       lastUpdated: new Date().toISOString(),
     };
 
-    console.log("✅ Server: Complete dashboard data processed successfully");
+    routeLogger.info("Complete dashboard data processed successfully", {
+      productCount: products.length,
+      shipmentCount: shipments.length,
+      insightCount: insights.length,
+      anomalyCount: anomalies.length
+    });
 
     res.json({
       success: true,
@@ -292,7 +250,9 @@ export const getDashboardData: RequestHandler = async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("❌ Server: Dashboard data processing failed:", error);
+    routeLogger.error("Dashboard data processing failed", {
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
     res.status(500).json({
       success: false,
       error: "Failed to fetch dashboard data",
@@ -302,33 +262,8 @@ export const getDashboardData: RequestHandler = async (req, res) => {
 };
 
 // Internal helper functions (not exposed)
-async function fetchProductsInternal() {
-  const baseUrl = process.env.TINYBIRD_BASE_URL!;
-  const token = process.env.TINYBIRD_TOKEN!;
-  // Add filters for specific company and brand + limit for performance
-  const url = `${baseUrl}?token=${token}&limit=100&brand_name=Callahan-Smith`;
-  console.log("📦 Local: Fetching products with limit=100 for faster response");
-
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("TinyBird Products API Error");
-  const result: TinyBirdResponse<ProductData> = await response.json();
-  return { data: result.data };
-}
-
-async function fetchShipmentsInternal() {
-  const baseUrl = process.env.WAREHOUSE_BASE_URL!;
-  const token = process.env.WAREHOUSE_TOKEN!;
-  // This part of the code fetches from inbound_shipments_details_mv API with Callahan-Smith brand filter
-  const url = `${baseUrl}?token=${token}&limit=150&brand_name=Callahan-Smith`;
-  console.log(
-    "🚛 Local: Fetching shipments from inbound_shipments_details_mv API with Callahan-Smith brand filter",
-  );
-
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("TinyBird Shipments API Error");
-  const result: TinyBirdResponse<ShipmentData> = await response.json();
-  return { data: result.data };
-}
+// Note: fetchProductsInternal and fetchShipmentsInternal functions removed
+// Now using shared dataFetchingService for consistent data fetching
 
 /**
  * This part of the code calculates real financial impact from operational data
@@ -374,7 +309,7 @@ function calculateFinancialImpacts(products: ProductData[], shipments: ShipmentD
   };
 }
 
-async function generateInsightsInternal(data: any) {
+async function generateInsightsInternal(data: DashboardData): Promise<DashboardInsight[]> {
   const prompt = buildAnalysisPrompt(data);
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -397,7 +332,7 @@ async function generateInsightsInternal(data: any) {
   return parseInsightsResponse(result.choices[0].message.content);
 }
 
-function buildAnalysisPrompt(data: any): string {
+function buildAnalysisPrompt(data: DashboardData): string {
   const { warehouseInventory, kpis, products, shipments } = data;
   
   const financialImpacts = calculateFinancialImpacts(products, shipments);
@@ -446,7 +381,7 @@ function parseInsightsResponse(content: string) {
     const insights = JSON.parse(jsonMatch[0]);
     const timestamp = new Date().toISOString();
 
-    return insights.map((insight: any, index: number) => ({
+    return insights.map((insight: RawAIInsight, index: number): DashboardInsight => ({
       id: `ai-insight-${Date.now()}-${index}`,
       title: insight.title || "AI Generated Insight",
       description: insight.description || "Analysis from operational data",
@@ -628,17 +563,16 @@ function detectAnomalies(products: ProductData[], shipments: ShipmentData[]) {
  * Fetches and processes data for the analytics dashboard
  */
 export const getAnalyticsData: RequestHandler = async (req, res) => {
+  const routeLogger = logger.createLogger({ endpoint: "analytics", component: "getAnalyticsData" });
+  
   try {
-    console.log("🔒 Server: Fetching complete analytics data securely...");
+    routeLogger.info("Fetching complete analytics data securely");
 
-    // This part of the code fetches data using the same internal functions as dashboard
-    const [productsResponse, shipmentsResponse] = await Promise.all([
-      fetchProductsInternal(),
-      fetchShipmentsInternal(),
-    ]);
-
-    const products = productsResponse.data;
-    const shipments = shipmentsResponse.data;
+    // This part of the code uses shared data service to fetch both datasets
+    const { products, shipments } = await dataFetchingService.fetchProductsAndShipments(
+      "analytics",
+      { productLimit: 100, shipmentLimit: 150, brandFilter: "Callahan-Smith" }
+    );
 
     // This part of the code calculates analytics-specific metrics
     const kpis = calculateAnalyticsKPIs(products, shipments);
@@ -658,10 +592,9 @@ export const getAnalyticsData: RequestHandler = async (req, res) => {
         shipments,
       });
     } catch (error) {
-      console.warn(
-        "⚠️ Server: Analytics AI insights generation failed, continuing without insights:",
-        error,
-      );
+      routeLogger.warn("Analytics AI insights generation failed, continuing without insights", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
 
     const analyticsData = {
@@ -674,7 +607,11 @@ export const getAnalyticsData: RequestHandler = async (req, res) => {
       lastUpdated: new Date().toISOString(),
     };
 
-    console.log("✅ Server: Complete analytics data processed successfully");
+    routeLogger.info("Complete analytics data processed successfully", {
+      productCount: products.length,
+      shipmentCount: shipments.length,
+      insightCount: insights.length
+    });
 
     res.json({
       success: true,
@@ -682,7 +619,9 @@ export const getAnalyticsData: RequestHandler = async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error("❌ Server: Analytics data processing failed:", error);
+    routeLogger.error("Analytics data processing failed", {
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
     res.status(500).json({
       success: false,
       error: "Failed to fetch analytics data",
@@ -882,7 +821,7 @@ function calculateBrandPerformance(products: ProductData[], shipments: ShipmentD
   };
 }
 
-async function generateAnalyticsInsightsInternal(data: any) {
+async function generateAnalyticsInsightsInternal(data: DashboardData): Promise<DashboardInsight[]> {
   const prompt = buildAnalyticsPrompt(data);
 
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -905,7 +844,7 @@ async function generateAnalyticsInsightsInternal(data: any) {
   return parseAnalyticsInsightsResponse(result.choices[0].message.content);
 }
 
-function buildAnalyticsPrompt(data: any): string {
+function buildAnalyticsPrompt(data: DashboardData): string {
   const { kpis, performanceMetrics, brandPerformance, products, shipments } = data;
   
   return `
@@ -950,7 +889,7 @@ function parseAnalyticsInsightsResponse(content: string) {
     const insights = JSON.parse(jsonMatch[0]);
     const timestamp = new Date().toISOString();
 
-    return insights.map((insight: any, index: number) => ({
+    return insights.map((insight: RawAIInsight, index: number): DashboardInsight => ({
       id: `analytics-insight-${Date.now()}-${index}`,
       title: insight.title || "Analytics Insight",
       description: insight.description || "Analytics trend analysis",

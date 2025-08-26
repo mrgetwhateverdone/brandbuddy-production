@@ -1,10 +1,73 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import type { ProductData, ShipmentData } from '@/types/data';
 
-// This part of the code extends jsPDF with autoTable functionality
+// This part of the code defines proper types for PDF generation instead of using any
+interface AutoTableOptions {
+  head?: string[][];
+  body?: (string | number)[][];
+  startY?: number;
+  theme?: 'striped' | 'grid' | 'plain';
+  headStyles?: Record<string, any>;
+  bodyStyles?: Record<string, any>;
+  columnStyles?: Record<number, Record<string, any>>;
+  margin?: { top?: number; right?: number; bottom?: number; left?: number };
+  pageBreak?: 'auto' | 'avoid' | 'always';
+  tableWidth?: 'auto' | 'wrap' | number;
+  showHead?: 'everyPage' | 'firstPage' | 'never';
+}
+
+interface ReportFilters {
+  template?: string;
+  startDate?: string;
+  endDate?: string;
+  brands?: string[];
+  warehouses?: string[];
+}
+
+interface ReportData {
+  products: ProductData[];
+  shipments: ShipmentData[];
+  filters?: ReportFilters;
+  kpis?: ReportKPIs;
+  insights?: InsightData[];
+  metadata?: {
+    generatedAt: string;
+    template: string;
+    reportPeriod: string;
+  };
+}
+
+interface ReportKPIs {
+  totalProducts?: number;
+  totalShipments?: number;
+  totalValue?: number;
+  avgOrderValue?: number;
+  completionRate?: number;
+  onTimeDelivery?: number;
+}
+
+interface InsightData {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'critical' | 'warning' | 'info';
+  category?: string;
+  dollarImpact?: number;
+  suggestedActions?: string[];
+}
+
+interface KPIDisplayData {
+  label: string;
+  value: string | number;
+  color?: string;
+  icon?: string;
+}
+
+// This part of the code extends jsPDF with autoTable functionality using proper types
 declare module 'jspdf' {
   interface jsPDF {
-    autoTable: (options: any) => jsPDF;
+    autoTable: (options: AutoTableOptions) => jsPDF;
     lastAutoTable: {
       finalY: number;
     };
@@ -57,7 +120,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code generates enhanced multi-page PDF reports with AI insights
    */
-  public async generateReport(reportData: any): Promise<void> {
+  public async generateReport(reportData: ReportData): Promise<void> {
     try {
       this.doc = new jsPDF();
       this.setupAutoTable();
@@ -132,7 +195,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code adds an enhanced report title with comprehensive metadata
    */
-  private addReportTitle(reportData: any): void {
+  private addReportTitle(reportData: ReportData): void {
     // Main report title
     this.doc.setFontSize(22);
     this.doc.setTextColor('#1f2937');
@@ -175,7 +238,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code checks if there are active filters applied
    */
-  private hasActiveFilters(filters: any): boolean {
+  private hasActiveFilters(filters: ReportFilters): boolean {
     return (filters.brands && filters.brands.length > 0) ||
            (filters.warehouses && filters.warehouses.length > 0) ||
            (filters.metrics && filters.metrics.length > 0);
@@ -184,7 +247,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code adds a styled filter information box
    */
-  private addFilterInfoBox(filters: any): void {
+  private addFilterInfoBox(filters: ReportFilters): void {
     const boxHeight = 25;
     
     // Light blue background for filter box
@@ -223,7 +286,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code adds a comprehensive executive summary with KPI boxes
    */
-  private addExecutiveSummary(reportData: any): void {
+  private addExecutiveSummary(reportData: ReportData): void {
     this.checkPageBreak(80);
     
     // Section header
@@ -264,7 +327,7 @@ export class EnhancedPDFServiceV2 {
     
     // Add operational metrics if available
     if (data.shipments && data.shipments.length > 0) {
-      const completedShipments = data.shipments.filter((s: any) => s.status === 'completed').length;
+      const completedShipments = data.shipments.filter((s: ShipmentData) => s.status === 'completed').length;
       const successRate = ((completedShipments / data.shipments.length) * 100).toFixed(1);
       
       kpis.push({
@@ -294,7 +357,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code adds individual KPI boxes with professional styling
    */
-  private addKPIBox(x: number, y: number, width: number, kpi: any): void {
+  private addKPIBox(x: number, y: number, width: number, kpi: KPIDisplayData): void {
     const height = 40;
     
     // Box background and border
@@ -329,7 +392,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code adds an enhanced products section with better table formatting
    */
-  private addProductsSection(products: any[]): void {
+  private addProductsSection(products: ProductData[]): void {
     this.checkPageBreak(60);
     
     // Section header
@@ -391,7 +454,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code adds an enhanced shipments section with better table formatting
    */
-  private addShipmentsSection(shipments: any[]): void {
+  private addShipmentsSection(shipments: ShipmentData[]): void {
     this.checkPageBreak(60);
     
     // Section header
@@ -455,7 +518,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code adds AI insights section at the top with professional formatting
    */
-  private async addAIInsightsSection(insights: any[], template?: any): Promise<void> {
+  private async addAIInsightsSection(insights: InsightData[], template?: string): Promise<void> {
     this.checkPageBreak(80);
     
     // Section header with enhanced styling
@@ -525,7 +588,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code generates real AI insights based on the report template and data
    */
-  private async generateAndAddAIInsights(reportData: any): Promise<void> {
+  private async generateAndAddAIInsights(reportData: ReportData): Promise<void> {
     try {
       // Generate template-specific insights
       const insights = this.generateTemplateSpecificInsights(reportData);
@@ -541,7 +604,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code generates world-class insights based on the selected template
    */
-  private generateTemplateSpecificInsights(reportData: any): any[] {
+  private generateTemplateSpecificInsights(reportData: ReportData): InsightData[] {
     const template = reportData.template;
     const data = reportData.data;
     
@@ -566,10 +629,10 @@ export class EnhancedPDFServiceV2 {
   /**
    * Weekly Performance specific insights
    */
-  private generateWeeklyPerformanceInsights(data: any): any[] {
+  private generateWeeklyPerformanceInsights(data: ReportData): InsightData[] {
     const products = data.products || [];
     const shipments = data.shipments || [];
-    const completedShipments = shipments.filter((s: any) => s.status === 'completed');
+    const completedShipments = shipments.filter((s: ShipmentData) => s.status === 'completed');
     const successRate = shipments.length > 0 ? (completedShipments.length / shipments.length) * 100 : 0;
     
     return [
@@ -591,10 +654,10 @@ export class EnhancedPDFServiceV2 {
   /**
    * Inventory Health specific insights
    */
-  private generateInventoryHealthInsights(data: any): any[] {
+  private generateInventoryHealthInsights(data: ReportData): InsightData[] {
     const products = data.products || [];
-    const activeProducts = products.filter((p: any) => p.active);
-    const inactiveProducts = products.filter((p: any) => !p.active);
+    const activeProducts = products.filter((p: ProductData) => p.active);
+    const inactiveProducts = products.filter((p: ProductData) => !p.active);
     const healthRatio = products.length > 0 ? (activeProducts.length / products.length) * 100 : 0;
     
     return [
@@ -616,10 +679,10 @@ export class EnhancedPDFServiceV2 {
   /**
    * SLA Compliance specific insights
    */
-  private generateSLAComplianceInsights(data: any): any[] {
+  private generateSLAComplianceInsights(data: ReportData): InsightData[] {
     const shipments = data.shipments || [];
-    const completedShipments = shipments.filter((s: any) => s.status === 'completed');
-    const cancelledShipments = shipments.filter((s: any) => s.status === 'cancelled');
+    const completedShipments = shipments.filter((s: ShipmentData) => s.status === 'completed');
+    const cancelledShipments = shipments.filter((s: ShipmentData) => s.status === 'cancelled');
     const complianceRate = shipments.length > 0 ? (completedShipments.length / shipments.length) * 100 : 0;
     const cancellationRate = shipments.length > 0 ? (cancelledShipments.length / shipments.length) * 100 : 0;
     
@@ -642,7 +705,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * Labor Forecast specific insights
    */
-  private generateLaborForecastInsights(data: any): any[] {
+  private generateLaborForecastInsights(data: ReportData): InsightData[] {
     const shipments = data.shipments || [];
     const products = data.products || [];
     const estimatedHours = this.calculateEstimatedHours(shipments, products);
@@ -667,7 +730,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * General report insights
    */
-  private generateGeneralReportInsights(data: any): any[] {
+  private generateGeneralReportInsights(data: ReportData): InsightData[] {
     const products = data.products || [];
     const shipments = data.shipments || [];
     const insights = data.insights || [];
@@ -691,7 +754,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * Fallback insights for error cases
    */
-  private generateFallbackInsights(reportData: any): any[] {
+  private generateFallbackInsights(reportData: ReportData): InsightData[] {
     return [
       {
         title: 'Data Analysis Complete',
@@ -711,7 +774,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * Helper method to calculate estimated hours
    */
-  private calculateEstimatedHours(shipments: any[], products: any[]): number {
+  private calculateEstimatedHours(shipments: ShipmentData[], products: ProductData[]): number {
     const baseHoursPerShipment = 0.5;
     const complexityMultiplier = Math.min(products.length / 1000, 2);
     return Math.round(shipments.length * baseHoursPerShipment * (1 + complexityMultiplier));
@@ -818,7 +881,7 @@ export class EnhancedPDFServiceV2 {
   /**
    * This part of the code provides fallback methods for simple text rendering
    */
-  private addSimpleProductsList(products: any[]): void {
+  private addSimpleProductsList(products: ProductData[]): void {
     this.doc.setFontSize(10);
     this.doc.setTextColor('#000000');
     
@@ -832,7 +895,7 @@ export class EnhancedPDFServiceV2 {
     this.currentY += 15;
   }
 
-  private addSimpleShipmentsList(shipments: any[]): void {
+  private addSimpleShipmentsList(shipments: ShipmentData[]): void {
     this.doc.setFontSize(10);
     this.doc.setTextColor('#000000');
     

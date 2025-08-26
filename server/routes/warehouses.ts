@@ -1,71 +1,57 @@
 import { RequestHandler } from "express";
+import { logger } from "../../shared/services/logger";
+import { dataFetchingService, type ProductData, type ShipmentData } from "../services/DataFetchingService";
 
 /**
  * This part of the code creates server-side warehouse data routes
  * Following the same patterns as dashboard.ts for consistency and security
  */
 
-interface ProductData {
-  product_id: string;
-  company_url: string;
-  brand_id: string | null;
-  brand_name: string;
-  brand_domain: string | null;
-  created_date: string;
-  product_name: string;
-  product_sku: string | null;
-  gtin: string | null;
-  is_kit: boolean;
-  active: boolean;
-  product_supplier: string | null;
-  country_of_origin: string | null;
-  harmonized_code: string | null;
-  product_external_url: string | null;
-  inventory_item_id: string;
-  unit_quantity: number;
-  supplier_name: string;
-  unit_cost: number | null;
-  supplier_external_id: string | null;
-  updated_date: string | null;
+// Note: ProductData, ShipmentData, and TinyBirdResponse interfaces now imported from DataFetchingService
+// This eliminates interface duplication and ensures type consistency across all routes
+
+// This part of the code defines warehouse-specific types to eliminate any usage
+interface WarehouseData {
+  warehouse_id: string;
+  name: string;
+  performance_score: number;
+  total_shipments: number;
+  efficiency_rating: number;
+  cost_per_unit: number;
+  total_volume: number;
+  utilization_rate: number;
+  supplier_name?: string;
 }
 
-interface ShipmentData {
-  company_url: string;
-  shipment_id: string;
-  brand_id: string | null;
-  brand_name: string;
-  brand_domain: string | null;
-  created_date: string;
-  purchase_order_number: string | null;
-  status: string;
-  supplier: string | null;
-  expected_arrival_date: string | null;
-  warehouse_id: string | null;
-  ship_from_city: string | null;
-  ship_from_state: string | null;
-  ship_from_postal_code: string | null;
-  ship_from_country: string | null;
-  external_system_url: string | null;
-  inventory_item_id: string;
-  sku: string | null;
-  expected_quantity: number;
-  received_quantity: number;
-  unit_cost: number | null;
-  external_id: string | null;
-  receipt_id: string;
-  arrival_date: string;
-  receipt_inventory_item_id: string;
-  receipt_quantity: number;
-  tracking_number: string[];
-  notes: string;
+interface WarehouseKPIs {
+  total_warehouses: number;
+  avg_performance: number;
+  total_shipments: number;
+  efficiency_rating: number;
+  cost_savings: number;
+  utilization_rate: number;
 }
 
-interface TinyBirdResponse<T> {
-  meta: Array<{
-    name: string;
-    type: string;
-  }>;
-  data: T[];
+interface WarehouseInsight {
+  id: string;
+  title: string;
+  description: string;
+  severity: 'critical' | 'warning' | 'info';
+  impact: string;
+  category: 'performance' | 'cost' | 'efficiency' | 'utilization';
+  recommendation?: string;
+}
+
+// This part of the code defines the raw AI response structure (unknown JSON shape)
+interface RawAIInsight {
+  id?: string;
+  title?: string;
+  description?: string;
+  content?: string;
+  severity?: 'critical' | 'warning' | 'info';
+  impact?: string;
+  category?: string;
+  recommendation?: string;
 }
 
 /**
@@ -209,7 +195,7 @@ function calculateWarehouseData(products: ProductData[], shipments: ShipmentData
 /**
  * This part of the code calculates warehouse KPIs following existing dashboard patterns
  */
-function calculateWarehouseKPIs(warehouses: any[]) {
+function calculateWarehouseKPIs(warehouses: WarehouseData[]): WarehouseKPIs {
   if (warehouses.length === 0) {
     return {
       avgSLAPercentage: null,
@@ -235,7 +221,7 @@ function calculateWarehouseKPIs(warehouses: any[]) {
 /**
  * This part of the code generates AI-powered warehouse insights using Director of Warehouse Operations expertise
  */
-async function generateAIWarehouseInsights(warehouses: any[], kpis: any): Promise<any[]> {
+async function generateAIWarehouseInsights(warehouses: WarehouseData[], kpis: WarehouseKPIs): Promise<WarehouseInsight[]> {
   const apiKey = process.env.OPENAI_API_KEY;
   console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
@@ -323,7 +309,7 @@ Focus on immediate operational improvements, automation opportunities, and proce
       console.log('✅ Warehouse insights parsed successfully:', insights.length);
       
       // This part of the code ensures proper structure for client consumption
-      return insights.map((insight: any, index: number) => ({
+      return insights.map((insight: RawAIInsight, index: number): WarehouseInsight => ({
         id: insight.id || `warehouse-insight-${index}`,
         title: insight.title || `Warehouse Alert ${index + 1}`,
         description: insight.description || insight.content || 'Analysis pending',
@@ -352,7 +338,7 @@ Focus on immediate operational improvements, automation opportunities, and proce
 /**
  * This part of the code generates AI-powered warehouse insights (fallback)
  */
-function generateWarehouseInsights(warehouses: any[], kpis: any) {
+function generateWarehouseInsights(warehouses: WarehouseData[], kpis: WarehouseKPIs): WarehouseInsight[] {
   const insights = [];
   
   // This part of the code creates performance-based insights
@@ -402,7 +388,7 @@ function generateWarehouseInsights(warehouses: any[], kpis: any) {
 /**
  * This part of the code calculates performance rankings for warehouse comparison
  */
-function calculatePerformanceRankings(warehouses: any[]) {
+function calculatePerformanceRankings(warehouses: WarehouseData[]): WarehouseInsight[] {
   return warehouses
     .sort((a, b) => b.performanceScore - a.performanceScore)
     .map((warehouse, index) => ({
@@ -419,7 +405,7 @@ function calculatePerformanceRankings(warehouses: any[]) {
 /**
  * This part of the code generates smart budget allocation recommendations
  */
-function generateBudgetAllocations(warehouses: any[]) {
+function generateBudgetAllocations(warehouses: WarehouseData[]): WarehouseInsight[] {
   const baseBudgetPerUnit = 100;
   
   return warehouses.map(warehouse => {
@@ -465,7 +451,7 @@ function generateBudgetAllocations(warehouses: any[]) {
 /**
  * This part of the code generates simulated user behavior analysis
  */
-function generateUserBehaviorAnalysis(warehouses: any[]) {
+function generateUserBehaviorAnalysis(warehouses: WarehouseData[]): WarehouseInsight[] {
   return warehouses.slice(0, 4).map(warehouse => {
     const baseEngagement = warehouse.performanceScore;
     const viewFrequency = Math.round(baseEngagement / 10) + Math.floor(Math.random() * 5);
@@ -506,7 +492,7 @@ function generateUserBehaviorAnalysis(warehouses: any[]) {
 /**
  * This part of the code generates performance optimization recommendations
  */
-function generateOptimizationRecommendations(warehouses: any[]) {
+function generateOptimizationRecommendations(warehouses: WarehouseData[]): WarehouseInsight[] {
   return warehouses.map(warehouse => {
     const opportunities = [];
     
@@ -570,49 +556,29 @@ function generateOptimizationRecommendations(warehouses: any[]) {
   });
 }
 
-async function fetchProductsInternal() {
-  const baseUrl = process.env.TINYBIRD_BASE_URL!;
-  const token = process.env.TINYBIRD_TOKEN!;
-  const url = `${baseUrl}?token=${token}&limit=100&brand_name=Callahan-Smith`;
-  
-  console.log("🏭 Server: Fetching products from product_details_mv API with Callahan-Smith brand filter");
-  
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("TinyBird Products API Error");
-  const result: TinyBirdResponse<ProductData> = await response.json();
-  return { data: result.data };
-}
-
-async function fetchShipmentsInternal() {
-  const baseUrl = process.env.WAREHOUSE_BASE_URL!;
-  const token = process.env.WAREHOUSE_TOKEN!;
-  const url = `${baseUrl}?token=${token}&limit=150&brand_name=Callahan-Smith`;
-  
-  console.log("🏭 Server: Fetching shipments from inbound_shipments_details_mv API with Callahan-Smith brand filter");
-  
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("TinyBird Shipments API Error");
-  const result: TinyBirdResponse<ShipmentData> = await response.json();
-  return { data: result.data };
-}
+// Note: fetchProductsInternal and fetchShipmentsInternal functions removed
+// Now using shared dataFetchingService for consistent data fetching
 
 /**
  * Main warehouse data endpoint
  * This part of the code orchestrates all warehouse analytics and returns comprehensive data
  */
 export const getWarehousesData: RequestHandler = async (req, res) => {
+  const routeLogger = logger.createLogger({ endpoint: "warehouses", component: "getWarehousesData" });
+  
   try {
-    console.log("🏭 Server: Starting comprehensive warehouse data fetch...");
+    routeLogger.info("Starting comprehensive warehouse data fetch");
 
-    const [productsResult, shipmentsResult] = await Promise.all([
-      fetchProductsInternal(),
-      fetchShipmentsInternal(),
-    ]);
+    // This part of the code uses shared data service to fetch both datasets
+    const { products, shipments } = await dataFetchingService.fetchProductsAndShipments(
+      "warehouses",
+      { productLimit: 100, shipmentLimit: 150, brandFilter: "Callahan-Smith" }
+    );
 
-    const products = productsResult.data;
-    const shipments = shipmentsResult.data;
-
-    console.log(`🏭 Server: Fetched ${products.length} products and ${shipments.length} shipments`);
+    routeLogger.info("Fetched data for warehouse analytics", {
+      productCount: products.length,
+      shipmentCount: shipments.length
+    });
 
     // This part of the code calculates all warehouse analytics
     const warehouses = calculateWarehouseData(products, shipments);
@@ -634,7 +600,11 @@ export const getWarehousesData: RequestHandler = async (req, res) => {
       lastUpdated: new Date().toISOString(),
     };
 
-    console.log(`✅ Server: Generated data for ${warehouses.length} warehouses with ${insights.length} insights`);
+    routeLogger.info("Generated comprehensive warehouse data", {
+      warehouseCount: warehouses.length,
+      insightCount: insights.length,
+      optimizationCount: optimizations.length
+    });
 
     res.json({
       success: true,
@@ -644,7 +614,9 @@ export const getWarehousesData: RequestHandler = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ Server: Warehouse data fetch failed:", error);
+    routeLogger.error("Warehouse data fetch failed", {
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
     res.status(500).json({
       success: false,
       error: "Failed to fetch warehouse data",

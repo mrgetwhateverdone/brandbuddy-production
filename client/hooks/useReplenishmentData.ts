@@ -1,24 +1,54 @@
 import { useQuery } from "@tanstack/react-query";
 import { internalApi } from "@/services/internalApi";
 import { useSettingsIntegration } from "./useSettingsIntegration";
-import type { ProductData, ShipmentData } from "@/types/api";
+import { logger } from "@/shared/services/logger";
+import type { 
+  ReplenishmentData, 
+  ReplenishmentKPIs, 
+  InsightData, 
+  SupplierPerformance,
+  ProductData,
+  ShipmentData 
+} from "@/types/data";
 
-interface ReplenishmentKPIs {
-  criticalSKUs: number;
-  replenishmentValue: number;
-  supplierAlerts: number;
+// This part of the code extends the base interface for additional replenishment-specific KPIs
+interface ExtendedReplenishmentKPIs extends ReplenishmentKPIs {
   reorderRecommendations: number;
 }
 
-interface ReplenishmentData {
-  kpis: ReplenishmentKPIs;
-  insights: any[];
+// This part of the code defines replenishment-specific item structure
+interface CriticalItem {
+  productId: string;
+  productName: string;
+  sku: string | null;
+  currentStock: number;
+  minimumThreshold: number;
+  recommendedQuantity: number;
+  urgencyLevel: 'low' | 'medium' | 'high' | 'critical';
+  supplier: string;
+  estimatedLeadTime: number;
+}
+
+// This part of the code defines reorder suggestion structure
+interface ReorderSuggestion {
+  productId: string;
+  productName: string;
+  sku: string | null;
+  suggestedQuantity: number;
+  estimatedCost: number;
+  supplier: string;
+  urgency: 'low' | 'medium' | 'high';
+  reasoning: string;
+}
+
+// This part of the code defines type-safe replenishment data structure
+interface TypedReplenishmentData extends Omit<ReplenishmentData, 'kpis'> {
+  kpis: ExtendedReplenishmentKPIs;
   products: ProductData[];
   shipments: ShipmentData[];
-  criticalItems: any[];
-  supplierPerformance: any[];
-  reorderSuggestions: any[];
-  lastUpdated: string;
+  criticalItems: CriticalItem[];
+  supplierPerformance: SupplierPerformance[];
+  reorderSuggestions: ReorderSuggestion[];
 }
 
 /**
@@ -29,36 +59,39 @@ interface ReplenishmentData {
 export const useReplenishmentData = () => {
   const { getQueryConfig } = useSettingsIntegration();
   const queryConfig = getQueryConfig();
+  const hookLogger = logger.createLogger({ component: "useReplenishmentData", hook: "replenishment" });
 
-  return useQuery({
+  return useQuery<TypedReplenishmentData>({
     queryKey: ["replenishment-data"],
-    queryFn: async (): Promise<ReplenishmentData> => {
-      console.log(
-        "🚨 Client: Fetching BrandBuddy replenishment intelligence (Callahan-Smith focused)...",
-      );
+    queryFn: async (): Promise<TypedReplenishmentData> => {
+      hookLogger.info("Fetching BrandBuddy replenishment intelligence", {
+        brandFilter: "Callahan-Smith"
+      });
 
       // This part of the code calls the server to fetch replenishment data securely
       // Server analyzes inventory levels, supplier performance, and generates AI insights
       const rawReplenishmentData = await internalApi.getReplenishmentData();
 
-      // This part of the code ensures client-side filtering for Callahan-Smith brand only
+      // This part of the code ensures type-safe filtering for Callahan-Smith brand only
       // Additional safety layer on top of server-side filtering
-      const filteredInsights = rawReplenishmentData.insights?.filter(insight => 
-        !insight.description || insight.description.toLowerCase().includes('callahan-smith') || 
+      const filteredInsights: InsightData[] = (rawReplenishmentData.insights || []).filter((insight: InsightData) => 
+        !insight.description || 
+        insight.description.toLowerCase().includes('callahan-smith') || 
         insight.source === 'replenishment_agent'
-      ) || [];
+      );
 
-      const replenishmentData = {
+      const replenishmentData: TypedReplenishmentData = {
         ...rawReplenishmentData,
         insights: filteredInsights
       };
 
-      console.log("✅ Client: BrandBuddy replenishment intelligence loaded (Callahan-Smith focused):", {
+      hookLogger.info("BrandBuddy replenishment intelligence loaded", {
+        brandFilter: "Callahan-Smith",
         criticalSKUs: replenishmentData.kpis?.criticalSKUs || 0,
         replenishmentValue: replenishmentData.kpis?.replenishmentValue || 0,
         supplierAlerts: replenishmentData.kpis?.supplierAlerts || 0,
-        rawInsights: rawReplenishmentData.insights?.length || 0,
-        filteredInsights: filteredInsights.length,
+        rawInsightCount: rawReplenishmentData.insights?.length || 0,
+        filteredInsightCount: filteredInsights.length,
       });
 
       return replenishmentData;

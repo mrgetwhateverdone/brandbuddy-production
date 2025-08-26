@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
+import type { ProductData, ShipmentData, FilteredData } from "@/types/data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -245,23 +246,24 @@ export default function Reports() {
     }
   };
 
-  const applyFilters = (products: any[], shipments: any[]) => {
-    let filteredProducts = [...products];
-    let filteredShipments = [...shipments];
+  // This part of the code applies type-safe filtering to products and shipments
+  const applyFilters = (products: ProductData[], shipments: ShipmentData[]): FilteredData => {
+    let filteredProducts: ProductData[] = [...products];
+    let filteredShipments: ShipmentData[] = [...shipments];
     
     // This part of the code applies brand filtering
     if (selectedBrands.length > 0) {
-      filteredProducts = filteredProducts.filter(p => 
+      filteredProducts = filteredProducts.filter((p: ProductData) => 
         p.brand_name && selectedBrands.includes(p.brand_name)
       );
-      filteredShipments = filteredShipments.filter(s => 
+      filteredShipments = filteredShipments.filter((s: ShipmentData) => 
         s.brand_name && selectedBrands.includes(s.brand_name)
       );
     }
     
     // This part of the code applies warehouse filtering
     if (selectedWarehouses.length > 0) {
-      filteredShipments = filteredShipments.filter(s => 
+      filteredShipments = filteredShipments.filter((s: ShipmentData) => 
         s.warehouse_id && selectedWarehouses.includes(s.warehouse_id)
       );
     }

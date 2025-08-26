@@ -21,7 +21,10 @@
     "strict": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,  // Enable: Catch implicit any usage
+    "noImplicitReturns": true,  // Enable: Function must return value
+    "noImplicitThis": true,  // Enable: this must be typed
+    "strictFunctionTypes": true,  // Enable: Strict function type checking
     "noFallthroughCasesInSwitch": true,
     "strictNullChecks": true,
 

@@ -1,66 +1,18 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { logger } from "../shared/services/logger";
+import type { 
+  ProductData, 
+  ShipmentData, 
+  TinyBirdResponse
+} from "../shared/types/api";
 
 /**
  * This part of the code provides reports data endpoint for Vercel serverless deployment
- * Uses proven patterns from working pages and avoids past implementation issues
+ * Uses shared infrastructure to eliminate code duplication and provide consistent logging
  */
 
-// TinyBird Product Details API Response - standardized interface matching working pages
-interface ProductData {
-  product_id: string;
-  company_url: string;
-  brand_id: string | null;
-  brand_name: string;
-  brand_domain: string | null;
-  created_date: string;
-  product_name: string;
-  product_sku: string | null;
-  gtin: string | null;
-  is_kit: boolean;
-  active: boolean;
-  product_supplier: string | null;
-  country_of_origin: string | null;
-  harmonized_code: string | null;
-  product_external_url: string | null;
-  inventory_item_id: string;
-  unit_quantity: number;
-  supplier_name: string;
-  unit_cost: number | null;
-  supplier_external_id: string | null;
-  updated_date: string | null;
-}
-
-// TinyBird Shipments API Response - standardized interface matching working pages
-interface ShipmentData {
-  company_url: string;
-  shipment_id: string;
-  brand_id: string | null;
-  brand_name: string;
-  brand_domain: string | null;
-  created_date: string;
-  purchase_order_number: string | null;
-  status: string;
-  supplier: string | null;
-  expected_arrival_date: string | null;
-  warehouse_id: string | null;
-  ship_from_city: string | null;
-  ship_from_state: string | null;
-  ship_from_postal_code: string | null;
-  ship_from_country: string | null;
-  external_system_url: string | null;
-  inventory_item_id: string;
-  sku: string | null;
-  expected_quantity: number;
-  received_quantity: number;
-  unit_cost: number | null;
-  external_id: string | null;
-  receipt_id: string;
-  arrival_date: string;
-  receipt_inventory_item_id: string;
-  receipt_quantity: number;
-  tracking_number: string[];
-  notes: string;
-}
+// Note: ProductData and ShipmentData interfaces now imported from shared/types/api
+// This eliminates interface duplication across the entire codebase
 
 // Report template interfaces
 interface ReportTemplate {
@@ -118,19 +70,30 @@ interface ReportData {
 }
 
 /**
- * This part of the code fetches products data using the proven working pattern from inventory-data.ts
+ * This part of the code fetches products data using shared infrastructure and structured logging
  */
 async function fetchProducts(): Promise<ProductData[]> {
+  const reportsLogger = logger.createLogger({ 
+    component: "api/reports-data", 
+    function: "fetchProducts" 
+  });
+
   const baseUrl = process.env.TINYBIRD_BASE_URL;
   const token = process.env.TINYBIRD_TOKEN;
 
   if (!baseUrl || !token) {
-    console.error("❌ Vercel API: TINYBIRD_BASE_URL and TINYBIRD_TOKEN environment variables are required");
+    reportsLogger.error("Missing required environment variables", {
+      hasBaseUrl: !!baseUrl,
+      hasToken: !!token
+    });
     return [];
   }
 
   try {
-    console.log("🔒 Vercel API: Fetching products data from TinyBird...");
+    reportsLogger.info("Fetching products data from TinyBird", {
+      brandFilter: "Callahan-Smith",
+      limit: 1000
+    });
     
     const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
     
@@ -139,31 +102,45 @@ async function fetchProducts(): Promise<ProductData[]> {
       throw new Error(`TinyBird API Error: ${response.status} ${response.statusText}`);
     }
     
-    const result = await response.json();
+    const result: TinyBirdResponse<ProductData> = await response.json();
     const products = result.data || [];
     
-    console.log(`✅ Vercel API: Fetched ${products.length} products from TinyBird`);
+    reportsLogger.info("Products fetched successfully", {
+      count: products.length,
+      source: "TinyBird"
+    });
     return products;
   } catch (error) {
-    console.error("❌ Vercel API: Failed to fetch products data:", error);
+    reportsLogger.error("Failed to fetch products data", { error: error instanceof Error ? error.message : error });
     return [];
   }
 }
 
 /**
- * This part of the code fetches shipments data using the proven working pattern from orders-data.ts
+ * This part of the code fetches shipments data using shared infrastructure and structured logging
  */
 async function fetchShipments(): Promise<ShipmentData[]> {
+  const reportsLogger = logger.createLogger({ 
+    component: "api/reports-data", 
+    function: "fetchShipments" 
+  });
+
   const baseUrl = process.env.WAREHOUSE_BASE_URL;
   const token = process.env.WAREHOUSE_TOKEN;
 
   if (!baseUrl || !token) {
-    console.error("❌ Vercel API: WAREHOUSE_BASE_URL and WAREHOUSE_TOKEN environment variables are required");
+    reportsLogger.error("Missing required environment variables", {
+      hasBaseUrl: !!baseUrl,
+      hasToken: !!token
+    });
     return [];
   }
 
   try {
-    console.log("🔒 Vercel API: Fetching shipments data from TinyBird...");
+    reportsLogger.info("Fetching shipments data from TinyBird", {
+      brandFilter: "Callahan-Smith",
+      limit: 1000
+    });
     
     const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
     
@@ -172,13 +149,16 @@ async function fetchShipments(): Promise<ShipmentData[]> {
       throw new Error(`TinyBird API Error: ${response.status} ${response.statusText}`);
     }
     
-    const result = await response.json();
+    const result: TinyBirdResponse<ShipmentData> = await response.json();
     const shipments = result.data || [];
     
-    console.log(`✅ Vercel API: Fetched ${shipments.length} shipments from TinyBird`);
+    reportsLogger.info("Shipments fetched successfully", {
+      count: shipments.length,
+      source: "TinyBird"
+    });
     return shipments;
   } catch (error) {
-    console.error("❌ Vercel API: Failed to fetch shipments data:", error);
+    reportsLogger.error("Failed to fetch shipments data", { error: error instanceof Error ? error.message : error });
     return [];
   }
 }
@@ -204,12 +184,12 @@ function filterDataByDateRange<T extends { created_date: string }>(
         const itemDate = new Date(item.created_date);
         return itemDate >= start && itemDate <= end;
       } catch (error) {
-        console.warn("⚠️ Vercel API: Invalid date in data item, skipping:", item.created_date);
+        logger.createLogger({ component: "api/reports-data", function: "filterDataByDateRange" }).warn("Invalid date in data item, skipping", { date: item.created_date });
         return false;
       }
     });
   } catch (error) {
-    console.error("❌ Vercel API: Invalid date range provided:", { startDate, endDate });
+    logger.createLogger({ component: "api/reports-data", function: "filterDataByDateRange" }).error("Invalid date range provided", { startDate, endDate });
     return data;
   }
 }
@@ -403,12 +383,12 @@ async function generateReportInsights(
         timestamp: new Date().toISOString(),
       }));
     } catch (parseError) {
-      console.error("❌ Failed to parse AI insights response:", parseError);
+      logger.createLogger({ component: "api/reports-data", function: "generateAIInsights" }).error("Failed to parse AI insights response", { error: parseError instanceof Error ? parseError.message : parseError });
       return [];
     }
 
   } catch (error) {
-    console.error("❌ Vercel API: Failed to generate report insights:", error);
+    logger.createLogger({ component: "api/reports-data", function: "generateAIInsights" }).error("Failed to generate report insights", { error: error instanceof Error ? error.message : error });
     return [];
   }
 }
@@ -417,7 +397,7 @@ async function generateReportInsights(
  * This part of the code calculates brand performance using proven logic from inventory-data.ts
  */
 function calculateAvailableBrands(products: ProductData[]) {
-  console.log("🔧 Brand calc: Starting with", products.length, "products");
+  logger.createLogger({ component: "api/reports-data", function: "calculateAvailableBrands" }).info("Starting brand calculation", { productsCount: products.length });
   const brandMap = new Map<string, {skuCount: number, totalValue: number, totalQuantity: number}>();
   
   products.forEach(p => {
@@ -452,7 +432,7 @@ function calculateAvailableBrands(products: ProductData[]) {
     }))
     .sort((a, b) => b.total_value - a.total_value);
   
-  console.log("🔧 Brand calc: Finished with", result.length, "brands");
+  logger.createLogger({ component: "api/reports-data", function: "calculateAvailableBrands" }).info("Brand calculation completed", { brandsCount: result.length });
   return result;
 }
 
@@ -590,6 +570,11 @@ function getReportTemplates(): ReportTemplate[] {
  * Main API handler using proven patterns from working pages
  */
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const apiLogger = logger.createLogger({ 
+    component: "api/reports-data", 
+    function: "handler" 
+  });
+
   // This part of the code handles CORS and method validation like working pages
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -608,16 +593,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    console.log("🔒 Vercel API: Reports endpoint called");
+    apiLogger.info("Reports endpoint called", { method: req.method });
 
     // This part of the code extracts query parameters with validation
     const { template, startDate, endDate, brands, warehouses } = req.query;
 
     // If no template specified, return available templates with filter options
     if (!template) {
-      console.log("🎯 REPORTS API: Fetching templates and filter options...");
+      apiLogger.info("Fetching templates and filter options");
       const templates = getReportTemplates();
-      console.log("🎯 REPORTS API: Templates ready, fetching data...");
+      apiLogger.info("Templates ready, fetching data");
       
       // This part of the code fetches data to get available brands and warehouses
       const [products, shipments] = await Promise.all([
@@ -625,18 +610,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         fetchShipments(),
       ]);
       
-      console.log("🔍 REPORTS API DEBUG: Fetched products count:", products.length);
-      console.log("🔍 REPORTS API DEBUG: Fetched shipments count:", shipments.length);
-      console.log("🔍 REPORTS API DEBUG: Sample product brands:", products.slice(0, 3).map(p => p.brand_name));
-      console.log("🔍 REPORTS API DEBUG: Sample shipment warehouses:", shipments.slice(0, 3).map(s => s.warehouse_id));
+      apiLogger.debug("Data fetched", {
+        productsCount: products.length,
+        shipmentsCount: shipments.length,
+        sampleBrands: products.slice(0, 3).map(p => p.brand_name),
+        sampleWarehouses: shipments.slice(0, 3).map(s => s.warehouse_id)
+      });
       
-      console.log("🎯 REPORTS API: Starting brand calculation...");
+      apiLogger.info("Starting brand calculation");
       const availableBrands = calculateAvailableBrands(products);
-      console.log("🎯 REPORTS API: Starting warehouse calculation...");
+      apiLogger.info("Starting warehouse calculation");
       const availableWarehouses = calculateAvailableWarehouses(shipments);
       
-      console.log("🔍 REPORTS API FINAL: Calculated brands:", availableBrands.length, availableBrands.slice(0, 3).map(b => `${b.brand_name} ($${b.total_value})`));
-      console.log("🔍 REPORTS API FINAL: Calculated warehouses:", availableWarehouses.length, availableWarehouses.slice(0, 3).map(w => `${w.warehouse_id} ($${w.total_cost})`));
+      apiLogger.info("Calculations completed", {
+        brandsCount: availableBrands.length,
+        warehousesCount: availableWarehouses.length,
+        sampleBrands: availableBrands.slice(0, 3).map(b => `${b.brand_name} ($${b.total_value})`),
+        sampleWarehouses: availableWarehouses.slice(0, 3).map(w => `${w.warehouse_id} ($${w.total_cost})`)
+      });
       
       return res.status(200).json({
         success: true,
@@ -713,7 +704,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       reportPeriod,
     };
 
-    console.log("✅ Vercel API: Report data generated successfully");
+    apiLogger.info("Report data generated successfully");
 
     return res.status(200).json({
       success: true,
@@ -722,7 +713,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
   } catch (error) {
-    console.error("❌ Vercel API: Reports endpoint error:", error);
+    apiLogger.error("Reports endpoint error", { error: error instanceof Error ? error.message : error });
     
     return res.status(500).json({
       success: false,

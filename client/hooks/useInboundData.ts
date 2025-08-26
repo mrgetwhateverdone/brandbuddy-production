@@ -1,25 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
 import { internalApi } from "@/services/internalApi";
 import { useSettingsIntegration } from "./useSettingsIntegration";
-import type { ShipmentData } from "@/types/api";
+import { logger } from "@/shared/services/logger";
+import type { 
+  InboundData, 
+  InboundKPIs, 
+  InsightData, 
+  ReceivingMetrics, 
+  SupplierPerformance,
+  ShipmentData 
+} from "@/types/data";
 
-interface InboundKPIs {
-  todayArrivals: number;
-  thisWeekExpected: number;
-  averageLeadTime: number;
+// This part of the code extends the base interface for additional inbound-specific KPIs
+interface ExtendedInboundKPIs extends InboundKPIs {
   delayedShipments: number;
   receivingAccuracy: number;
   onTimeDeliveryRate: number;
 }
 
-interface InboundData {
-  kpis: InboundKPIs;
-  insights: any[];
+// This part of the code defines type-safe inbound data structure
+interface TypedInboundData extends Omit<InboundData, 'kpis'> {
+  kpis: ExtendedInboundKPIs;
   shipments: ShipmentData[];
   todayArrivals: ShipmentData[];
-  receivingMetrics: any[];
-  supplierPerformance: any[];
-  lastUpdated: string;
 }
 
 /**
@@ -30,36 +33,39 @@ interface InboundData {
 export const useInboundData = () => {
   const { getQueryConfig } = useSettingsIntegration();
   const queryConfig = getQueryConfig();
+  const hookLogger = logger.createLogger({ component: "useInboundData", hook: "inbound" });
 
-  return useQuery({
+  return useQuery<TypedInboundData>({
     queryKey: ["inbound-data"],
-    queryFn: async (): Promise<InboundData> => {
-      console.log(
-        "🚚 Client: Fetching BrandBuddy inbound operations intelligence (Callahan-Smith focused)...",
-      );
+    queryFn: async (): Promise<TypedInboundData> => {
+      hookLogger.info("Fetching BrandBuddy inbound operations intelligence", {
+        brandFilter: "Callahan-Smith"
+      });
 
       // This part of the code calls the server to fetch inbound operations data securely
       // Server analyzes shipment arrivals, receiving efficiency, and generates AI insights
       const rawInboundData = await internalApi.getInboundData();
 
-      // This part of the code ensures client-side filtering for Callahan-Smith brand only
+      // This part of the code ensures type-safe filtering for Callahan-Smith brand only
       // Additional safety layer on top of server-side filtering
-      const filteredInsights = rawInboundData.insights?.filter(insight => 
-        !insight.description || insight.description.toLowerCase().includes('callahan-smith') || 
+      const filteredInsights: InsightData[] = (rawInboundData.insights || []).filter((insight: InsightData) => 
+        !insight.description || 
+        insight.description.toLowerCase().includes('callahan-smith') || 
         insight.source === 'inbound_operations_agent'
-      ) || [];
+      );
 
-      const inboundData = {
+      const inboundData: TypedInboundData = {
         ...rawInboundData,
         insights: filteredInsights
       };
 
-      console.log("✅ Client: BrandBuddy inbound operations intelligence loaded (Callahan-Smith focused):", {
+      hookLogger.info("BrandBuddy inbound operations intelligence loaded", {
+        brandFilter: "Callahan-Smith",
         todayArrivals: inboundData.kpis?.todayArrivals || 0,
         thisWeekExpected: inboundData.kpis?.thisWeekExpected || 0,
         averageLeadTime: inboundData.kpis?.averageLeadTime || 0,
-        rawInsights: rawInboundData.insights?.length || 0,
-        filteredInsights: filteredInsights.length,
+        rawInsightCount: rawInboundData.insights?.length || 0,
+        filteredInsightCount: filteredInsights.length,
       });
 
       return inboundData;

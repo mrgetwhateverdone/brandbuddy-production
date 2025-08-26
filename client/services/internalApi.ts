@@ -6,6 +6,7 @@
  * Server handles all external API communication securely
  */
 
+import { logger } from "@/shared/services/logger";
 import type {
   DashboardData,
   ProductData,
@@ -32,6 +33,7 @@ interface APIResponse<T> {
 
 class InternalApiService {
   private readonly baseUrl = ""; // Relative URLs to same domain
+  private readonly apiLogger = logger.createLogger({ component: "InternalApiService" });
 
   /**
    * Fetch complete dashboard data from secure server endpoint
@@ -39,7 +41,7 @@ class InternalApiService {
    */
   async getDashboardData(): Promise<DashboardData> {
     try {
-      console.log("🔒 Client: Fetching dashboard data from secure server...");
+      this.apiLogger.info("Fetching dashboard data from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/dashboard-data`);
 
@@ -55,10 +57,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch dashboard data");
       }
 
-      console.log("✅ Client: Dashboard data received securely from server");
+      this.apiLogger.info("Dashboard data received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Internal API call failed:", error);
+      this.apiLogger.error("Dashboard API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load dashboard data: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -71,7 +73,7 @@ class InternalApiService {
    */
   async getDashboardDataFast(): Promise<DashboardData> {
     try {
-      console.log("⚡ Client: Fetching FAST dashboard data (no AI insights)...");
+      this.apiLogger.info("Fetching FAST dashboard data (no AI insights)");
 
       const response = await fetch(`${this.baseUrl}/api/dashboard-data?mode=fast`);
 
@@ -87,10 +89,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch fast dashboard data");
       }
 
-      console.log("✅ Client: Fast dashboard data received securely from server");
+      this.apiLogger.info("Fast dashboard data received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Fast dashboard API call failed:", error);
+      this.apiLogger.error("Fast dashboard API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load fast dashboard data: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -103,7 +105,7 @@ class InternalApiService {
    */
   async getDashboardInsights(): Promise<{ insights: AIInsight[]; dailyBrief: string | null }> {
     try {
-      console.log("🤖 Client: Fetching dashboard AI insights...");
+      this.apiLogger.info("Fetching dashboard AI insights");
 
       const response = await fetch(`${this.baseUrl}/api/dashboard-data?mode=insights`);
 
@@ -119,10 +121,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch dashboard insights");
       }
 
-      console.log("✅ Client: Dashboard insights received securely from server");
+      this.apiLogger.info("Dashboard insights received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Dashboard insights API call failed:", error);
+      this.apiLogger.error("Dashboard insights API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load dashboard insights: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -134,7 +136,7 @@ class InternalApiService {
    */
   async getProductsData(): Promise<ProductData[]> {
     try {
-      console.log("🔒 Client: Fetching products data from secure server...");
+      this.apiLogger.info("Fetching products data from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/products`);
 
@@ -150,14 +152,12 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch products data");
       }
 
-      console.log(
-        "✅ Client: Products data received securely:",
-        result.data.length,
-        "records",
-      );
+      this.apiLogger.info("Products data received securely", {
+        productsCount: result.data.length
+      });
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Products API call failed:", error);
+      this.apiLogger.error("Products API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load products data: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -169,7 +169,7 @@ class InternalApiService {
    */
   async getShipmentsData(): Promise<ShipmentData[]> {
     try {
-      console.log("🔒 Client: Fetching shipments data from secure server...");
+      this.apiLogger.info("Fetching shipments data from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/shipments`);
 
@@ -185,14 +185,12 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch shipments data");
       }
 
-      console.log(
-        "✅ Client: Shipments data received securely:",
-        result.data.length,
-        "records",
-      );
+      this.apiLogger.info("Shipments data received securely", {
+        shipmentsCount: result.data.length
+      });
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Shipments API call failed:", error);
+      this.apiLogger.error("Shipments API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load shipments data: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -204,7 +202,7 @@ class InternalApiService {
    */
   async generateInsights(analysisData: any): Promise<AIInsight[]> {
     try {
-      console.log("🔒 Client: Requesting AI insights from secure server...");
+      this.apiLogger.info("Requesting AI insights from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/insights`, {
         method: "POST",
@@ -226,14 +224,12 @@ class InternalApiService {
         throw new Error(result.message || "Failed to generate AI insights");
       }
 
-      console.log(
-        "✅ Client: AI insights received securely:",
-        result.data?.length || 0,
-        "insights",
-      );
+      this.apiLogger.info("AI insights received securely", {
+        insightsCount: result.data?.length || 0
+      });
       return result.data || [];
     } catch (error) {
-      console.error("❌ Client: AI insights API call failed:", error);
+      this.apiLogger.error("AI insights API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to generate AI insights: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -254,7 +250,7 @@ class InternalApiService {
       const result = await response.json();
       return result;
     } catch (error) {
-      console.error("❌ Client: Server status check failed:", error);
+      this.apiLogger.error("Server status check failed", { error: error instanceof Error ? error.message : error });
       throw error;
     }
   }
@@ -268,7 +264,7 @@ class InternalApiService {
    */
   async getOrdersData(): Promise<OrdersData> {
     try {
-      console.log("🔒 Client: Fetching orders data from secure server...");
+      this.apiLogger.info("Fetching orders data from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/orders-data`);
 
@@ -284,10 +280,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch orders data");
       }
 
-      console.log("✅ Client: Orders data received securely from server");
+      this.apiLogger.info("Orders data received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Orders API call failed:", error);
+      this.apiLogger.error("Orders API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load orders data: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -300,7 +296,7 @@ class InternalApiService {
    */
   async getOrdersDataFast(): Promise<OrdersData> {
     try {
-      console.log("⚡ Client: Fetching FAST orders data (no AI insights)...");
+      this.apiLogger.info("Fetching FAST orders data (no AI insights)");
 
       const response = await fetch(`${this.baseUrl}/api/orders-data?mode=fast`);
 
@@ -316,10 +312,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch fast orders data");
       }
 
-      console.log("✅ Client: Fast orders data received securely from server");
+      this.apiLogger.info("Fast orders data received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Fast orders API call failed:", error);
+      this.apiLogger.error("Fast orders API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load fast orders data: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -332,7 +328,7 @@ class InternalApiService {
    */
   async getOrdersInsights(): Promise<{ insights: AIInsight[] }> {
     try {
-      console.log("🤖 Client: Fetching orders AI insights...");
+      this.apiLogger.info("Fetching orders AI insights");
 
       const response = await fetch(`${this.baseUrl}/api/orders-data?mode=insights`);
 
@@ -348,10 +344,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch orders insights");
       }
 
-      console.log("✅ Client: Orders insights received securely from server");
+      this.apiLogger.info("Orders insights received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Orders insights API call failed:", error);
+      this.apiLogger.error("Orders insights API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load orders insights: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -364,7 +360,7 @@ class InternalApiService {
    */
   async getInventoryData(): Promise<InventoryData> {
     try {
-      console.log("🔒 Client: Fetching inventory data from secure server...");
+      this.apiLogger.info("Fetching inventory data from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/inventory-data`);
 
@@ -380,10 +376,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch inventory data");
       }
 
-      console.log("✅ Client: Inventory data received securely from server");
+      this.apiLogger.info("Inventory data received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Inventory API call failed:", error);
+      this.apiLogger.error("Inventory API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load inventory data: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -401,7 +397,7 @@ class InternalApiService {
    */
   async getReportTemplates(): Promise<ReportTemplatesResponse> {
     try {
-      console.log("🔒 Client: Fetching report templates from secure server...");
+      this.apiLogger.info("Fetching report templates from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/reports-data`);
 
@@ -417,11 +413,11 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch report templates");
       }
 
-      console.log("✅ Client: Report templates received securely from server");
-      console.log("🔍 Debug: Templates data structure:", result.data);
+      this.apiLogger.info("Report templates received securely from server");
+      this.apiLogger.debug("Templates data structure", { data: result.data });
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Report templates API call failed:", error);
+      this.apiLogger.error("Report templates API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load report templates: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -433,7 +429,7 @@ class InternalApiService {
    */
   async generateReport(filters: ReportFilters): Promise<ReportData> {
     try {
-      console.log("🔒 Client: Generating report from secure server...");
+      this.apiLogger.info("Generating report from secure server");
 
       const queryParams = new URLSearchParams({
         template: filters.template,
@@ -457,10 +453,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to generate report");
       }
 
-      console.log("✅ Client: Report generated securely from server");
+      this.apiLogger.info("Report generated securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Report generation API call failed:", error);
+      this.apiLogger.error("Report generation API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to generate report: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -476,7 +472,7 @@ class InternalApiService {
     contextLevel: string;
   }): Promise<ChatResponse> {
     try {
-      console.log("🔒 Client: Sending chat message to secure server...");
+      this.apiLogger.info("Sending chat message to secure server");
 
       // This part of the code prepares headers with optional AI settings
       const headers: Record<string, string> = {
@@ -488,7 +484,10 @@ class InternalApiService {
         headers["x-ai-model"] = aiSettings.model;
         headers["x-max-tokens"] = aiSettings.maxTokens.toString();
         headers["x-context-level"] = aiSettings.contextLevel;
-        console.log(`🎯 Client: Sending AI settings - Model: ${aiSettings.model}, Tokens: ${aiSettings.maxTokens}`);
+        this.apiLogger.info("Sending AI settings", {
+          model: aiSettings.model,
+          maxTokens: aiSettings.maxTokens
+        });
       }
 
       const response = await fetch(`${this.baseUrl}/api/ai-chat`, {
@@ -509,10 +508,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to send chat message");
       }
 
-      console.log("✅ Client: Chat response received securely from server");
+      this.apiLogger.info("Chat response received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Chat API call failed:", error);
+      this.apiLogger.error("Chat API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to send chat message: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -524,7 +523,7 @@ class InternalApiService {
    */
   async getQuickActions(): Promise<QuickAction[]> {
     try {
-      console.log("🔒 Client: Fetching quick actions from secure server...");
+      this.apiLogger.info("Fetching quick actions from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/ai-chat?quick-actions=true`);
 
@@ -540,10 +539,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch quick actions");
       }
 
-      console.log("✅ Client: Quick actions received securely from server");
+      this.apiLogger.info("Quick actions received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Quick actions API call failed:", error);
+      this.apiLogger.error("Quick actions API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to fetch quick actions: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -558,7 +557,7 @@ class InternalApiService {
    */
   async getReplenishmentData(): Promise<any> {
     try {
-      console.log("🔒 Client: Fetching replenishment data from secure server...");
+      this.apiLogger.info("Fetching replenishment data from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/replenishment-data`);
 
@@ -574,10 +573,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch replenishment data");
       }
 
-      console.log("✅ Client: Replenishment data received securely from server");
+      this.apiLogger.info("Replenishment data received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Replenishment API call failed:", error);
+      this.apiLogger.error("Replenishment API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load replenishment data: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -590,7 +589,7 @@ class InternalApiService {
    */
   async getInboundData(): Promise<any> {
     try {
-      console.log("🔒 Client: Fetching inbound operations data from secure server...");
+      this.apiLogger.info("Fetching inbound operations data from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/inbound-data`);
 
@@ -606,10 +605,10 @@ class InternalApiService {
         throw new Error(result.message || "Failed to fetch inbound operations data");
       }
 
-      console.log("✅ Client: Inbound operations data received securely from server");
+      this.apiLogger.info("Inbound operations data received securely from server");
       return result.data;
     } catch (error) {
-      console.error("❌ Client: Inbound operations API call failed:", error);
+      this.apiLogger.error("Inbound operations API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load inbound operations data: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
@@ -622,7 +621,7 @@ class InternalApiService {
    */
   async getSLAData(): Promise<any> {
     try {
-      console.log("🔒 Client: Fetching SLA performance data from secure server...");
+      this.apiLogger.info("Fetching SLA performance data from secure server");
 
       const response = await fetch(`${this.baseUrl}/api/sla-data`);
 
@@ -634,10 +633,10 @@ class InternalApiService {
 
       const result = await response.json();
 
-      console.log("✅ Client: SLA performance data received securely from server");
+      this.apiLogger.info("SLA performance data received securely from server");
       return result;
     } catch (error) {
-      console.error("❌ Client: SLA performance API call failed:", error);
+      this.apiLogger.error("SLA performance API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load SLA performance data: ${error instanceof Error ? error.message : "Unknown error"}`,
       );

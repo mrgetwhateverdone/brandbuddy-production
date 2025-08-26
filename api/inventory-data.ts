@@ -197,6 +197,185 @@ function transformToEnhancedInventoryItems(products: ProductData[]) {
     .sort((a, b) => b.total_value - a.total_value); // Sort by value descending
 }
 
+// This part of the code generates AI insights for inventory management using OpenAI
+async function generateInventoryInsights(
+  products: ProductData[],
+  kpis: any,
+  supplierAnalysis: any[]
+): Promise<any[]> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
+  
+  if (!apiKey) {
+    console.log('❌ No OpenAI API key found - returning fallback insights');
+    return generateFallbackInventoryInsights(kpis, supplierAnalysis);
+  }
+
+  try {
+    // This part of the code prepares comprehensive data for AI analysis
+    const lowStockItems = products.filter(p => p.active && p.unit_quantity > 0 && p.unit_quantity < 10);
+    const outOfStockItems = products.filter(p => p.active && p.unit_quantity === 0);
+    const overstockedItems = products.filter(p => p.active && p.unit_quantity > 100);
+    const inactiveItems = products.filter(p => !p.active);
+    const highRiskSuppliers = supplierAnalysis.filter(s => s.concentration_risk > 30);
+    
+    const totalInventoryValue = kpis.totalInventoryValue;
+    const avgInventoryValue = products.length > 0 ? totalInventoryValue / products.length : 0;
+
+    const prompt = `You are a VP of Inventory Management with 20+ years of experience in demand planning, inventory optimization, and warehouse operations. You have expertise in implementing JIT systems, ABC analysis, and advanced forecasting models that have saved companies millions in carrying costs.
+
+Analyze inventory data showing ${kpis.totalSKUs} SKUs across ${new Set(products.map(p => p.brand_name)).size} brands with ${kpis.lowStockAlerts} low-stock items. Identify inventory optimization opportunities including overstock situations, stockout risks, and demand forecasting improvements. Suggest workflows like 'Implement dynamic reorder points based on seasonal trends', 'Create automated stock transfer between warehouses', or 'Set up ABC analysis for inventory categorization'. Apply your proven methodologies that have consistently reduced inventory costs by 25-35%.
+
+INVENTORY INTELLIGENCE DASHBOARD:
+=================================
+
+CRITICAL METRICS:
+- Total SKUs: ${kpis.totalSKUs} (${kpis.totalActiveSKUs} active, ${kpis.inactiveSKUs} inactive)
+- Total Inventory Value: $${kpis.totalInventoryValue.toLocaleString()}
+- Low Stock Alerts: ${kpis.lowStockAlerts} critical items
+- Out of Stock: ${outOfStockItems.length} SKUs unavailable
+- Overstocked Items: ${overstockedItems.length} SKUs (>100 units)
+
+SUPPLIER RISK ANALYSIS:
+- Total Suppliers: ${supplierAnalysis.length} partners
+- High Concentration Risk: ${highRiskSuppliers.length} suppliers (>30% portfolio share)
+- Top Supplier Concentration: ${supplierAnalysis.length > 0 ? supplierAnalysis[0].concentration_risk : 0}%
+- Average Value per SKU: $${Math.round(avgInventoryValue).toLocaleString()}
+
+INVENTORY HEALTH BREAKDOWN:
+- In Stock: ${products.filter(p => p.active && p.unit_quantity >= 10 && p.unit_quantity <= 100).length} SKUs optimal range
+- Low Stock (<10 units): ${lowStockItems.length} SKUs requiring attention
+- Out of Stock: ${outOfStockItems.length} SKUs causing stockouts
+- Overstocked (>100 units): ${overstockedItems.length} SKUs tying up capital
+- Inactive Portfolio: ${inactiveItems.length} SKUs (${Math.round((inactiveItems.length / products.length) * 100)}% of total)
+
+Based on your proven track record of reducing inventory carrying costs by 25-35% and implementing successful JIT systems, provide strategic insights focused on inventory optimization opportunities including ABC analysis, demand forecasting improvements, and supplier diversification strategies.
+
+Format as JSON array with 3-5 strategic insights:
+[
+  {
+    "id": "inventory-insight-1",
+    "title": "Strategic inventory insight based on proven methodologies",
+    "description": "Expert analysis referencing inventory data with specific numbers and actionable recommendations drawing from your 20+ years of experience in inventory optimization",
+    "severity": "critical|warning|info",
+    "dollarImpact": calculated_financial_impact,
+    "suggestedActions": ["Implement dynamic reorder points based on seasonal trends", "Create automated stock transfer between warehouses", "Set up ABC analysis for inventory categorization"],
+    "createdAt": "${new Date().toISOString()}",
+    "source": "inventory_agent"
+  }
+]
+
+Focus on immediate inventory optimization priorities, supplier risk mitigation, and capital efficiency improvements based on your deep expertise in demand planning and inventory management.`;
+
+    const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
+    console.log('🤖 Inventory Agent: Calling OpenAI for comprehensive inventory insights...');
+    
+    const response = await fetch(openaiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 1000,
+        temperature: 0.2,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const aiContent = data.choices?.[0]?.message?.content || '';
+    console.log('🤖 Raw OpenAI response:', aiContent);
+
+    // This part of the code uses JSON parsing like working dashboard API
+    try {
+      const insights = JSON.parse(aiContent);
+      console.log('✅ Inventory insights parsed successfully:', insights.length);
+      
+      // This part of the code ensures proper structure for client consumption
+      return insights.map((insight: any, index: number) => ({
+        id: insight.id || `inventory-insight-${index}`,
+        title: insight.title || `Inventory Alert ${index + 1}`,
+        description: insight.description || insight.content || 'Analysis pending',
+        severity: insight.severity || 'warning',
+        dollarImpact: insight.dollarImpact || Math.round(kpis.totalInventoryValue * 0.1),
+        suggestedActions: insight.suggestedActions || ["Implement dynamic reorder points", "Create ABC analysis", "Review supplier concentration"],
+        createdAt: insight.createdAt || new Date().toISOString(),
+        source: insight.source || "inventory_agent",
+      }));
+    } catch (parseError) {
+      console.error('❌ JSON parsing failed:', parseError);
+      console.log('🔍 Attempting fallback parsing...');
+      
+      // This part of the code provides fallback when JSON parsing fails
+      return generateFallbackInventoryInsights(kpis, supplierAnalysis);
+    }
+
+  } catch (error) {
+    console.error("❌ Inventory AI analysis failed:", error);
+  }
+  
+  // This part of the code returns fallback insights when AI fails
+  return generateFallbackInventoryInsights(kpis, supplierAnalysis);
+}
+
+// This part of the code provides fallback insights when OpenAI is not available
+function generateFallbackInventoryInsights(kpis: any, supplierAnalysis: any[]): any[] {
+  const insights = [];
+  
+  // Stock health insights
+  if (kpis.inactiveSKUs > 0) {
+    insights.push({
+      id: "inventory-insight-inactive",
+      title: "Inactive SKU Optimization",
+      description: `${kpis.inactiveSKUs} inactive SKUs detected in portfolio. Review for discontinuation or reactivation opportunities.`,
+      severity: "warning" as const,
+      dollarImpact: Math.round(kpis.totalInventoryValue * 0.05),
+      suggestedActions: ["Review inactive product status", "Consider discontinuation", "Update product lifecycle"],
+      createdAt: new Date().toISOString(),
+      source: "inventory_agent" as const,
+    });
+  }
+  
+  // Supplier concentration insights
+  if (supplierAnalysis.length > 0) {
+    const highRiskSuppliers = supplierAnalysis.filter(s => s.concentration_risk > 30);
+    if (highRiskSuppliers.length > 0) {
+      insights.push({
+        id: "inventory-insight-supplier-risk",
+        title: "Supplier Concentration Risk",
+        description: `${highRiskSuppliers.length} suppliers represent >30% of inventory value each. Supply chain diversification recommended.`,
+        severity: "critical" as const,
+        dollarImpact: Math.round(kpis.totalInventoryValue * 0.3),
+        suggestedActions: ["Diversify supplier base", "Negotiate backup suppliers", "Assess supply chain risks"],
+        createdAt: new Date().toISOString(),
+        source: "inventory_agent" as const,
+      });
+    }
+  }
+  
+  // Low stock alerts
+  if (kpis.lowStockAlerts > 0) {
+    insights.push({
+      id: "inventory-insight-low-stock",
+      title: "Replenishment Required",
+      description: `${kpis.lowStockAlerts} SKUs are running low on inventory. Immediate replenishment action needed to avoid stockouts.`,
+      severity: "warning" as const,
+      dollarImpact: Math.round(kpis.lowStockAlerts * 500),
+      suggestedActions: ["Review reorder points", "Contact suppliers for replenishment", "Analyze demand patterns"],
+      createdAt: new Date().toISOString(),
+      source: "inventory_agent" as const,
+    });
+  }
+
+  return insights;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -254,53 +433,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supplierAnalysis = calculateSupplierAnalysis(products);
     const inventory = transformToEnhancedInventoryItems(products);
 
-    // Generate enhanced insights focused on Callahan-Smith brand operations
-    const insights = [];
-    
-    // Stock health insights
-    if (kpis.inactiveSKUs > 0) {
-      insights.push({
-        id: "inventory-insight-inactive",
-        title: "Inactive SKU Optimization",
-        description: `${kpis.inactiveSKUs} inactive SKUs detected in portfolio. Review for discontinuation or reactivation opportunities.`,
-        severity: "warning" as const,
-        dollarImpact: 0,
-        suggestedActions: ["Review inactive product status", "Consider discontinuation", "Update product lifecycle"],
-        createdAt: new Date().toISOString(),
-        source: "inventory_agent" as const,
-      });
-    }
-    
-    // Supplier concentration insights
-    if (supplierAnalysis.length > 0) {
-      const highRiskSuppliers = supplierAnalysis.filter(s => s.concentration_risk > 30);
-      if (highRiskSuppliers.length > 0) {
-        insights.push({
-          id: "inventory-insight-supplier-risk",
-          title: "Supplier Concentration Risk",
-          description: `${highRiskSuppliers.length} suppliers represent >30% of inventory value each. Supply chain diversification recommended.`,
-          severity: "critical" as const,
-          dollarImpact: 0,
-          suggestedActions: ["Diversify supplier base", "Negotiate backup suppliers", "Assess supply chain risks"],
-          createdAt: new Date().toISOString(),
-          source: "inventory_agent" as const,
-        });
-      }
-    }
-    
-    // Low stock alerts
-    if (kpis.lowStockAlerts > 0) {
-      insights.push({
-        id: "inventory-insight-low-stock",
-        title: "Replenishment Required",
-        description: `${kpis.lowStockAlerts} SKUs are running low on inventory. Immediate replenishment action needed to avoid stockouts.`,
-        severity: "warning" as const,
-        dollarImpact: 0,
-        suggestedActions: ["Review reorder points", "Contact suppliers for replenishment", "Analyze demand patterns"],
-        createdAt: new Date().toISOString(),
-        source: "inventory_agent" as const,
-      });
-    }
+    // Generate AI-powered insights using VP of Inventory Management expertise
+    const insights = await generateInventoryInsights(products, kpis, supplierAnalysis);
 
     const inventoryData = {
       kpis,

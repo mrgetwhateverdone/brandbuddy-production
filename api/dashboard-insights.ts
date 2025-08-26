@@ -1,9 +1,10 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { insightCache } from "./cache/insight-cache";
 
 /**
  * This part of the code provides AI insights ONLY for dashboard
  * Loads after fast data for progressive enhancement
- * Optimized for speed with reduced token limits
+ * Optimized for speed with reduced token limits + intelligent caching
  */
 
 // TinyBird Product Details API Response - standardized interface (minimal for insights)
@@ -144,6 +145,15 @@ async function generateInsights(
   products: ProductData[],
   shipments: ShipmentData[],
 ): Promise<InsightData[]> {
+  // This part of the code checks cache first to avoid expensive OpenAI calls
+  const cacheData = { products, shipments, kpis: { atRiskOrders: 0, unfulfillableSKUs: 0 } };
+  const cachedInsights = insightCache.get('dashboard-insights', cacheData);
+  
+  if (cachedInsights) {
+    console.log('⚡ Using cached dashboard insights - No OpenAI call needed');
+    return cachedInsights;
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   console.log('🔑 Dashboard Insights API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
   if (!apiKey) {
@@ -293,6 +303,11 @@ Draw from your extensive experience in operational excellence and provide insigh
         try {
           const parsed = JSON.parse(content);
           console.log('✅ Dashboard Insights Parsed:', parsed.length, 'insights with actions:', parsed.map(p => p.suggestedActions?.length || 0));
+          
+          // This part of the code caches the AI insights to avoid regenerating
+          insightCache.set('dashboard-insights', cacheData, parsed);
+          console.log('💾 Dashboard insights cached successfully');
+          
           return parsed;
         } catch (parseError) {
           console.error('❌ Dashboard Insights JSON Parse Error:', parseError);
@@ -364,6 +379,15 @@ async function generateDailyBrief(
   shipments: ShipmentData[],
   financialImpacts: any
 ): Promise<string | null> {
+  // This part of the code checks cache first for daily brief
+  const cacheData = { products, shipments, financialImpacts };
+  const cachedBrief = insightCache.get('daily-brief', cacheData);
+  
+  if (cachedBrief) {
+    console.log('⚡ Using cached daily brief - No OpenAI call needed');
+    return cachedBrief;
+  }
+
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return null; // No fallback - require real OpenAI connection
@@ -426,7 +450,13 @@ Do NOT include greetings, pleasantries, or source attributions. Start directly w
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (content) {
-        return content.trim().replace(/"/g, ''); // Clean up quotes and whitespace
+        const cleanedContent = content.trim().replace(/"/g, ''); // Clean up quotes and whitespace
+        
+        // This part of the code caches the daily brief to avoid regenerating
+        insightCache.set('daily-brief', cacheData, cleanedContent, 30 * 60 * 1000); // 30 min TTL
+        console.log('💾 Daily brief cached successfully');
+        
+        return cleanedContent;
       }
     }
   } catch (error) {

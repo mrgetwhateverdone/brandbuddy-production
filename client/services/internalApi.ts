@@ -295,6 +295,70 @@ class InternalApiService {
   }
 
   /**
+   * Fetch FAST orders data without AI insights for immediate page load
+   * NO external API keys - server handles TinyBird calls only
+   */
+  async getOrdersDataFast(): Promise<OrdersData> {
+    try {
+      console.log("⚡ Client: Fetching FAST orders data (no AI insights)...");
+
+      const response = await fetch(`${this.baseUrl}/api/orders-data-fast`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<OrdersData> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch fast orders data");
+      }
+
+      console.log("✅ Client: Fast orders data received securely from server");
+      return result.data;
+    } catch (error) {
+      console.error("❌ Client: Fast orders API call failed:", error);
+      throw new Error(
+        `Unable to load fast orders data: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
+   * Fetch orders AI insights separately for progressive loading
+   * NO external API keys - server handles OpenAI calls
+   */
+  async getOrdersInsights(): Promise<{ insights: AIInsight[] }> {
+    try {
+      console.log("🤖 Client: Fetching orders AI insights...");
+
+      const response = await fetch(`${this.baseUrl}/api/orders-insights`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<{ insights: AIInsight[] }> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch orders insights");
+      }
+
+      console.log("✅ Client: Orders insights received securely from server");
+      return result.data;
+    } catch (error) {
+      console.error("❌ Client: Orders insights API call failed:", error);
+      throw new Error(
+        `Unable to load orders insights: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
    * Fetch complete inventory data from secure server endpoint
    * NO external API keys - server handles TinyBird + OpenAI calls
    */

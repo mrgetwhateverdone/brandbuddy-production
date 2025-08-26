@@ -233,7 +233,124 @@ function calculateWarehouseKPIs(warehouses: any[]) {
 }
 
 /**
- * This part of the code generates AI-powered warehouse insights
+ * This part of the code generates AI-powered warehouse insights using Director of Warehouse Operations expertise
+ */
+async function generateAIWarehouseInsights(warehouses: any[], kpis: any): Promise<any[]> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
+  
+  if (!apiKey) {
+    console.log('❌ No OpenAI API key found - returning fallback insights');
+    return generateWarehouseInsights(warehouses, kpis);
+  }
+
+  try {
+    const poorPerformers = warehouses.filter(w => w.status === "Needs Attention");
+    const excellentPerformers = warehouses.filter(w => w.status === "Excellent");
+    const totalActiveOrders = warehouses.reduce((sum, w) => sum + w.activeOrders, 0);
+    const totalThroughput = warehouses.reduce((sum, w) => sum + w.throughput, 0);
+    const avgPerformanceScore = warehouses.length > 0 ? warehouses.reduce((sum, w) => sum + w.performanceScore, 0) / warehouses.length : 0;
+
+    const prompt = `You are a Director of Warehouse Operations with 16+ years of experience in distribution center management, automation implementation, and lean operations. You have led warehouse transformations that improved productivity by 50% and reduced operational costs significantly.
+
+Review warehouse performance data including capacity utilization, picking efficiency, and throughput rates across ${warehouses.length} locations. Identify operational bottlenecks and efficiency improvements. Recommend workflows such as 'Optimize picking routes using zone-based strategies', 'Implement cross-docking for fast-moving items', or 'Create workforce scheduling based on demand patterns'. Leverage your expertise in warehouse design, automation, and process optimization to provide actionable solutions.
+
+WAREHOUSE OPERATIONS DASHBOARD:
+===============================
+
+CRITICAL METRICS:
+- Total Warehouses: ${warehouses.length} facilities
+- Average SLA Performance: ${(kpis.avgSLAPercentage || 0).toFixed(1)}% (Target: 95%)
+- Total Active Orders: ${totalActiveOrders} currently processing
+- Average Fulfillment Time: ${(kpis.avgFulfillmentTime || 0).toFixed(1)} hours
+- Total Throughput: ${totalThroughput} units processed
+
+PERFORMANCE BREAKDOWN:
+- Excellent Performers: ${excellentPerformers.length} warehouses (≥95% SLA)
+- Poor Performers: ${poorPerformers.length} warehouses (<85% SLA)
+- Average Performance Score: ${avgPerformanceScore.toFixed(1)}/100
+- Operational Efficiency: ${warehouses.length > 0 ? Math.round((excellentPerformers.length / warehouses.length) * 100) : 0}%
+
+WAREHOUSE LOCATIONS:
+${warehouses.slice(0, 5).map(w => `- ${w.warehouseName}: ${w.slaPerformance}% SLA, ${w.throughput} units throughput, ${w.avgFulfillmentTime}h avg time`).join('\n')}
+
+Based on your proven track record of improving warehouse productivity by 50% and implementing successful automation systems, provide strategic insights focused on operational bottlenecks, capacity optimization, and process improvements. Apply your expertise in lean operations and warehouse design to identify opportunities for significant operational gains.
+
+Format as JSON array with 3-5 strategic insights:
+[
+  {
+    "id": "warehouse-insight-1",
+    "title": "Strategic warehouse operations insight based on proven methodologies",
+    "description": "Expert analysis referencing warehouse data with specific numbers and actionable recommendations drawing from your 16+ years of experience in distribution center optimization",
+    "severity": "critical|warning|info",
+    "dollarImpact": calculated_financial_impact,
+    "suggestedActions": ["Optimize picking routes using zone-based strategies", "Implement cross-docking for fast-moving items", "Create workforce scheduling based on demand patterns"],
+    "createdAt": "${new Date().toISOString()}",
+    "source": "warehouse_agent"
+  }
+]
+
+Focus on immediate operational improvements, automation opportunities, and process optimization based on your expertise in warehouse transformations.`;
+
+    const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
+    console.log('🤖 Warehouse Agent: Calling OpenAI for comprehensive warehouse insights...');
+    
+    const response = await fetch(openaiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 1000,
+        temperature: 0.2,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const aiContent = data.choices?.[0]?.message?.content || '';
+    console.log('🤖 Raw OpenAI response:', aiContent);
+
+    // This part of the code uses JSON parsing like working dashboard API
+    try {
+      const insights = JSON.parse(aiContent);
+      console.log('✅ Warehouse insights parsed successfully:', insights.length);
+      
+      // This part of the code ensures proper structure for client consumption
+      return insights.map((insight: any, index: number) => ({
+        id: insight.id || `warehouse-insight-${index}`,
+        title: insight.title || `Warehouse Alert ${index + 1}`,
+        description: insight.description || insight.content || 'Analysis pending',
+        severity: insight.severity || 'warning',
+        dollarImpact: insight.dollarImpact || Math.round(totalThroughput * 25),
+        suggestedActions: insight.suggestedActions || ["Optimize picking routes", "Implement cross-docking", "Create workforce scheduling"],
+        createdAt: insight.createdAt || new Date().toISOString(),
+        source: insight.source || "warehouse_agent",
+      }));
+    } catch (parseError) {
+      console.error('❌ JSON parsing failed:', parseError);
+      console.log('🔍 Attempting fallback parsing...');
+      
+      // This part of the code provides fallback when JSON parsing fails
+      return generateWarehouseInsights(warehouses, kpis);
+    }
+
+  } catch (error) {
+    console.error("❌ Warehouse AI analysis failed:", error);
+  }
+  
+  // This part of the code returns fallback insights when AI fails
+  return generateWarehouseInsights(warehouses, kpis);
+}
+
+/**
+ * This part of the code generates AI-powered warehouse insights (fallback)
  */
 function generateWarehouseInsights(warehouses: any[], kpis: any) {
   const insights = [];
@@ -500,7 +617,7 @@ export const getWarehousesData: RequestHandler = async (req, res) => {
     // This part of the code calculates all warehouse analytics
     const warehouses = calculateWarehouseData(products, shipments);
     const kpis = calculateWarehouseKPIs(warehouses);
-    const insights = generateWarehouseInsights(warehouses, kpis);
+    const insights = await generateAIWarehouseInsights(warehouses, kpis);
     const performanceRankings = calculatePerformanceRankings(warehouses);
     const budgetAllocations = generateBudgetAllocations(warehouses);
     const userBehavior = generateUserBehaviorAnalysis(warehouses);

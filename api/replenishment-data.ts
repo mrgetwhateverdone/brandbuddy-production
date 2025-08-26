@@ -1,6 +1,60 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { logger } from "../shared/services/logger";
-import type { ProductData, ShipmentData, TinyBirdResponse } from "../shared/types/api";
+
+// Vercel-compatible types (inline to avoid shared import issues)
+interface TinyBirdResponse<T> {
+  meta: { name: string; type: string };
+  data: T[];
+}
+
+interface ProductData {
+  product_id: string;
+  company_url: string;
+  brand_id: string | null;
+  brand_name: string;
+  brand_domain: string | null;
+  created_date: string;
+  product_name: string;
+  product_sku: string | null;
+  gtin: string | null;
+  is_kit: boolean;
+  active: boolean;
+  product_supplier: string | null;
+  country_of_origin: string | null;
+  harmonized_code: string | null;
+  product_external_url: string | null;
+  inventory_item_id: string;
+  unit_quantity: number;
+  supplier_name: string;
+  unit_cost: number | null;
+  supplier_external_id: string | null;
+  updated_date: string | null;
+}
+
+interface ShipmentData {
+  company_url: string;
+  shipment_id: string;
+  brand_id: string | null;
+  brand_name: string;
+  brand_domain: string | null;
+  created_date: string;
+  purchase_order_number: string | null;
+  status: string;
+  supplier: string | null;
+  expected_arrival_date: string | null;
+  warehouse_id: string | null;
+  ship_from_city: string | null;
+  ship_from_state: string | null;
+  ship_from_postal_code: string | null;
+  ship_from_country: string | null;
+  external_system_url: string | null;
+  inventory_item_id: string;
+  expected_quantity: number;
+  received_quantity: number;
+  product_sku: string | null;
+  tracking_number: string[];
+  notes: string;
+  unit_cost?: number | null;
+}
 
 interface ReplenishmentKPIs {
   criticalSKUs: number;
@@ -26,7 +80,7 @@ async function fetchProducts(): Promise<ProductData[]> {
   const TINYBIRD_TOKEN = process.env.TINYBIRD_TOKEN;
 
   if (!TINYBIRD_BASE_URL || !TINYBIRD_TOKEN) {
-    logger.createLogger({ component: "api/replenishment-data", function: "fetchProducts" }).warn("TinyBird credentials not available");
+    console.warn("⚠️ Vercel API: TinyBird credentials not available");
     return [];
   }
 

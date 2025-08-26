@@ -286,7 +286,9 @@ async function generateOrdersInsights(
   const sixMonthsAgo = new Date(Date.now() - (6 * 30 * 24 * 60 * 60 * 1000));
   const oldOrders = orders.filter(o => new Date(o.created_date) < sixMonthsAgo).length;
   const apiKey = process.env.OPENAI_API_KEY;
+  console.log('🔑 Orders Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
   if (!apiKey) {
+    console.log('❌ OPENAI_API_KEY not found in environment variables for Orders Agent');
     // This part of the code returns empty insights when no API key is available - no fallback data
     return [];
   }
@@ -347,7 +349,7 @@ FINANCIAL RISK ASSESSMENT:
 
 You are a Chief Fulfillment Officer with 18+ years of experience in order management, customer service, and logistics optimization. You have successfully reduced order fulfillment times by 40% and improved customer satisfaction scores across multiple Fortune 500 companies.
 
-Based on ${orders.length} orders with ${atRiskOrders} at-risk and ${cancelledOrders} cancellations, identify critical order management improvements. Analyze patterns in order delays, cancellations, and SLA breaches. Recommend specific workflows such as 'Set up automated alerts for orders approaching SLA deadlines', 'Create supplier performance scorecards', or 'Implement order prioritization based on customer tier'. Draw from your proven track record of improving order accuracy and reducing fulfillment costs.
+Based on ${orders.length} orders with ${kpis.atRiskOrders} at-risk and ${cancelledOrders} cancellations, identify critical order management improvements. Analyze patterns in order delays, cancellations, and SLA breaches. Recommend specific workflows such as 'Set up automated alerts for orders approaching SLA deadlines', 'Create supplier performance scorecards', or 'Implement order prioritization based on customer tier'. Draw from your proven track record of improving order accuracy and reducing fulfillment costs.
 
 AS ORDER FULFILLMENT EXPERT, PROVIDE STRATEGIC OPERATIONAL INSIGHTS (3-5 insights):
 Focus on comprehensive order analytics covering value optimization, supplier performance, time efficiency, and status intelligence with measurable business impact based on your extensive experience in reducing fulfillment costs by 25-35%.
@@ -388,11 +390,22 @@ CRITICAL REQUIREMENTS for Chief Fulfillment Officer:
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (content) {
-        return JSON.parse(content);
+        console.log('🤖 Orders Agent Raw OpenAI Response:', content.substring(0, 500) + '...');
+        try {
+          const parsed = JSON.parse(content);
+          console.log('✅ Orders Agent Parsed Insights:', parsed.length, 'insights with actions:', parsed.map(p => p.suggestedActions?.length || 0));
+          return parsed;
+        } catch (parseError) {
+          console.error('❌ Orders Agent JSON Parse Error:', parseError);
+          console.error('❌ Raw content that failed:', content?.substring(0, 500));
+          throw parseError;
+        }
       }
+    } else {
+      console.error('❌ Orders Agent OpenAI API Error:', response.status, response.statusText);
     }
   } catch (error) {
-    console.error("Orders AI analysis failed:", error);
+    console.error('❌ Orders Agent OpenAI analysis failed:', error);
   }
 
   // This part of the code returns empty insights when AI fails - no fallback data

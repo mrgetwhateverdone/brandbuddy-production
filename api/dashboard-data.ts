@@ -727,6 +727,11 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
   const rawInsights = await generateInsights(products, shipments);
   
   // This part of the code maps insights to proper AIInsight format with all required properties
+  console.log('🔍 Dashboard Insights Mode - Raw insights from AI:', rawInsights.length, 'insights');
+  if (rawInsights.length > 0) {
+    console.log('🔍 Sample insight:', JSON.stringify(rawInsights[0], null, 2));
+  }
+  
   const insights = rawInsights.map((insight, index) => ({
     id: `dashboard-insight-${index + 1}`,
     title: insight.title,
@@ -741,6 +746,11 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
     createdAt: new Date().toISOString(),
     source: "dashboard_agent" as const,
   }));
+  
+  console.log('🔍 Dashboard Insights Mode - Mapped insights:', insights.length, 'insights');
+  if (insights.length > 0) {
+    console.log('🔍 Sample mapped insight:', JSON.stringify(insights[0], null, 2));
+  }
   
   // This part of the code calculates financial impacts for daily brief
   const financialImpacts = calculateFinancialImpacts(products, shipments);

@@ -1,5 +1,5 @@
 import { Layout } from "@/components/layout/Layout";
-import { useReplenishmentData } from "@/hooks/useReplenishmentData";
+import { useReplenishmentDataFast, useReplenishmentInsights } from "@/hooks/useReplenishmentData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
@@ -11,8 +11,37 @@ import { SupplierReliabilitySection } from "@/components/replenishment/SupplierR
 import { ReorderPointSection } from "@/components/replenishment/ReorderPointSection";
 import { FinancialImpactSection } from "@/components/replenishment/FinancialImpactSection";
 
+// This part of the code provides world-class insight loading experience for Replenishment
+const ReplenishmentInsightLoadingMessage = () => (
+  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+    <div className="flex items-start">
+      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-600 mt-0.5 mr-3"></div>
+      <div>
+        <h4 className="text-sm font-medium text-purple-800">🤖 AI Analyzing Replenishment</h4>
+        <p className="text-sm text-purple-700 mt-1">
+          Supply Chain Planning Director AI is analyzing {" "}
+          <span className="font-medium">inventory levels, demand patterns, and supplier lead times</span>
+          {" "} to provide strategic insights...
+        </p>
+        <div className="mt-2 text-xs text-purple-600">
+          • Analyzing reorder point optimization<br/>
+          • Calculating inventory carrying costs<br/>
+          • Generating supplier performance insights
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function Replenishment() {
-  const { data, isLoading, error, refetch } = useReplenishmentData();
+  // This part of the code uses progressive loading for better performance
+  // Load fast data first, then AI insights separately in background
+  const { data, isLoading, error, refetch } = useReplenishmentDataFast();
+  const { 
+    data: insightsData, 
+    isLoading: insightsLoading, 
+    error: insightsError 
+  } = useReplenishmentInsights();
   const { isPageAIEnabled } = useSettingsIntegration();
 
   if (isLoading) {
@@ -54,15 +83,37 @@ export default function Replenishment() {
         {/* This part of the code displays the replenishment KPI cards */}
         <ReplenishmentKPISection kpis={data.kpis} isLoading={isLoading} />
 
-        {/* This part of the code displays AI insights for replenishment management */}
+        {/* This part of the code displays AI insights for replenishment management with Progressive Loading */}
         {isPageAIEnabled('replenishment') && (
-          <InsightsSection
-            insights={data.insights}
-            isLoading={isLoading}
-            title="Insights"
-            subtitle={`${data.insights.length} insights from Replenishment Intelligence Agent`}
-            loadingMessage="Replenishment Intelligence Agent is analyzing inventory levels, supplier performance, and generating purchase recommendations..."
-          />
+          <>
+            {insightsLoading && !insightsData ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
+                  <span className="text-sm text-gray-500">(Loading...)</span>
+                </div>
+                <ReplenishmentInsightLoadingMessage />
+              </div>
+            ) : insightsError ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
+                  <span className="text-sm text-red-500">(Failed to load)</span>
+                </div>
+                <ErrorDisplay
+                  message="Unable to load AI insights - Using replenishment data without AI recommendations"
+                  onRetry={() => window.location.reload()}
+                />
+              </div>
+            ) : (
+              <InsightsSection
+                insights={insightsData?.insights || []}
+                isLoading={false}
+                title="Insights"
+                subtitle={`${insightsData?.insights?.length || 0} insights from Replenishment Intelligence Agent`}
+              />
+            )}
+          </>
         )}
 
         {/* This part of the code displays the Supplier Reliability Scorecard */}

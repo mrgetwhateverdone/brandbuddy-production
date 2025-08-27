@@ -386,6 +386,70 @@ class InternalApiService {
     }
   }
 
+  /**
+   * Fetch FAST inventory data without AI insights for immediate page load
+   * NO external API keys - server handles TinyBird calls only
+   */
+  async getInventoryDataFast(): Promise<InventoryData> {
+    try {
+      this.apiLogger.info("Fetching FAST inventory data (no AI insights)");
+
+      const response = await fetch(`${this.baseUrl}/api/inventory-data?mode=fast`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<InventoryData> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch fast inventory data");
+      }
+
+      this.apiLogger.info("Fast inventory data received securely from server");
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("Fast inventory API call failed", { error: error instanceof Error ? error.message : error });
+      throw new Error(
+        `Unable to load fast inventory data: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
+   * Fetch inventory AI insights separately for progressive loading
+   * NO external API keys - server handles OpenAI calls
+   */
+  async getInventoryInsights(): Promise<{ insights: AIInsight[] }> {
+    try {
+      this.apiLogger.info("Fetching inventory AI insights");
+
+      const response = await fetch(`${this.baseUrl}/api/inventory-data?mode=insights`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<{ insights: AIInsight[] }> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch inventory insights");
+      }
+
+      this.apiLogger.info("Inventory insights received securely from server");
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("Inventory insights API call failed", { error: error instanceof Error ? error.message : error });
+      throw new Error(
+        `Unable to load inventory insights: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
 
 
 
@@ -584,6 +648,68 @@ class InternalApiService {
   }
 
   /**
+   * Fetch FAST replenishment data without AI insights for immediate page load
+   */
+  async getReplenishmentDataFast(): Promise<any> {
+    try {
+      this.apiLogger.info("Fetching FAST replenishment data (no AI insights)");
+
+      const response = await fetch(`${this.baseUrl}/api/replenishment-data?mode=fast`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<any> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch fast replenishment data");
+      }
+
+      this.apiLogger.info("Fast replenishment data received securely from server");
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("Fast replenishment API call failed", { error: error instanceof Error ? error.message : error });
+      throw new Error(
+        `Unable to load fast replenishment data: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
+   * Fetch replenishment AI insights separately for progressive loading
+   */
+  async getReplenishmentInsights(): Promise<{ insights: AIInsight[] }> {
+    try {
+      this.apiLogger.info("Fetching replenishment AI insights");
+
+      const response = await fetch(`${this.baseUrl}/api/replenishment-data?mode=insights`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<{ insights: AIInsight[] }> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch replenishment insights");
+      }
+
+      this.apiLogger.info("Replenishment insights received securely from server");
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("Replenishment insights API call failed", { error: error instanceof Error ? error.message : error });
+      throw new Error(
+        `Unable to load replenishment insights: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
    * Fetch complete inbound operations data from secure server endpoint
    * NO external API keys - server handles TinyBird + OpenAI calls
    */
@@ -616,6 +742,68 @@ class InternalApiService {
   }
 
   /**
+   * Fetch FAST inbound operations data without AI insights for immediate page load
+   */
+  async getInboundDataFast(): Promise<any> {
+    try {
+      this.apiLogger.info("Fetching FAST inbound operations data (no AI insights)");
+
+      const response = await fetch(`${this.baseUrl}/api/inbound-data?mode=fast`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<any> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch fast inbound operations data");
+      }
+
+      this.apiLogger.info("Fast inbound operations data received securely from server");
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("Fast inbound operations API call failed", { error: error instanceof Error ? error.message : error });
+      throw new Error(
+        `Unable to load fast inbound operations data: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
+   * Fetch inbound operations AI insights separately for progressive loading
+   */
+  async getInboundInsights(): Promise<{ insights: AIInsight[] }> {
+    try {
+      this.apiLogger.info("Fetching inbound operations AI insights");
+
+      const response = await fetch(`${this.baseUrl}/api/inbound-data?mode=insights`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<{ insights: AIInsight[] }> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch inbound operations insights");
+      }
+
+      this.apiLogger.info("Inbound operations insights received securely from server");
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("Inbound operations insights API call failed", { error: error instanceof Error ? error.message : error });
+      throw new Error(
+        `Unable to load inbound operations insights: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
    * Fetch complete SLA performance data from secure server endpoint
    * NO external API keys - server handles TinyBird + OpenAI calls
    */
@@ -639,6 +827,64 @@ class InternalApiService {
       this.apiLogger.error("SLA performance API call failed", { error: error instanceof Error ? error.message : error });
       throw new Error(
         `Unable to load SLA performance data: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
+   * Fetch FAST SLA performance data without AI insights for immediate page load
+   */
+  async getSLADataFast(): Promise<any> {
+    try {
+      this.apiLogger.info("Fetching FAST SLA performance data (no AI insights)");
+
+      const response = await fetch(`${this.baseUrl}/api/sla-data?mode=fast`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result = await response.json();
+
+      this.apiLogger.info("Fast SLA performance data received securely from server");
+      return result;
+    } catch (error) {
+      this.apiLogger.error("Fast SLA performance API call failed", { error: error instanceof Error ? error.message : error });
+      throw new Error(
+        `Unable to load fast SLA performance data: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
+   * Fetch SLA performance AI insights separately for progressive loading
+   */
+  async getSLAInsights(): Promise<{ insights: AIInsight[] }> {
+    try {
+      this.apiLogger.info("Fetching SLA performance AI insights");
+
+      const response = await fetch(`${this.baseUrl}/api/sla-data?mode=insights`);
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<{ insights: AIInsight[] }> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to fetch SLA performance insights");
+      }
+
+      this.apiLogger.info("SLA performance insights received securely from server");
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("SLA performance insights API call failed", { error: error instanceof Error ? error.message : error });
+      throw new Error(
+        `Unable to load SLA performance insights: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }

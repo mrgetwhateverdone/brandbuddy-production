@@ -181,4 +181,30 @@
     background-color: #f9fafb !important;
     border-color: #e5e7eb !important;
   }
+
+  /* This part of the code ensures Google OAuth button text is visible */
+  .cl-socialButtonsBlockButton,
+  .cl-socialButtonsBlockButtonText,
+  .cl-internal-1q7m7r8,
+  .cl-internal-1c7u47n {
+    color: #374151 !important; /* gray-700 */
+  }
+
+  /* Ensure OAuth provider buttons have proper styling */
+  .cl-socialButtonsBlockButton {
+    background-color: #ffffff !important;
+    border: 1px solid #d1d5db !important; /* gray-300 */
+    color: #374151 !important; /* gray-700 */
+  }
+
+  .cl-socialButtonsBlockButton:hover {
+    background-color: #f9fafb !important; /* gray-50 */
+  }
+
+  /* Ensure OAuth button text is never hidden */
+  .cl-socialButtonsBlockButton span,
+  .cl-socialButtonsBlockButton div {
+    color: #374151 !important; /* gray-700 */
+    opacity: 1 !important;
+  }
 }

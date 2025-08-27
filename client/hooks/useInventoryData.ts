@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { internalApi } from "@/services/internalApi";
 import { useSettingsIntegration } from "./useSettingsIntegration";
-import { logger } from "@/shared/services/logger";
+import { logger } from "@/lib/logger";
 import type { 
   InventoryData, 
   ProductData, 

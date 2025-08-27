@@ -17,6 +17,15 @@ interface DashboardData {
   shipments: ShipmentData[];
   kpis?: DashboardKPIs;
   insights?: DashboardInsight[];
+  // Additional properties used in the routes
+  warehouseInventory?: any[];
+  quickOverview?: any;
+  anomalies?: any[];
+  performanceMetrics?: any;
+  brandPerformance?: any;
+  dataInsights?: any;
+  operationalBreakdown?: any;
+  lastUpdated?: string;
 }
 
 interface DashboardKPIs {
@@ -24,6 +33,16 @@ interface DashboardKPIs {
   totalShipments: number;
   totalValue: number;
   efficiency: number;
+  // Legacy properties for backward compatibility
+  totalOrdersToday?: number | null;
+  atRiskOrders?: number | null;
+  openPOs?: number | null;
+  unfulfillableSKUs?: number;
+  // Analytics properties
+  orderVolumeGrowth?: number;
+  returnRate?: number;
+  fulfillmentEfficiency?: number;
+  inventoryHealthScore?: number;
 }
 
 interface DashboardInsight {
@@ -31,9 +50,13 @@ interface DashboardInsight {
   title: string;
   description: string;
   severity: 'critical' | 'warning' | 'info';
-  category: 'financial' | 'operational' | 'performance';
+  category?: 'financial' | 'operational' | 'performance';
   impact?: string;
   recommendation?: string;
+  dollarImpact?: number;
+  suggestedActions?: string[];
+  createdAt?: string;
+  source?: string;
 }
 
 // This part of the code defines the raw AI response structure (unknown JSON shape)
@@ -46,13 +69,15 @@ interface RawAIInsight {
   category?: string;
   impact?: string;
   recommendation?: string;
+  dollarImpact?: number;
+  suggestedActions?: string[];
 }
 
 /**
  * Secure TinyBird Products API proxy
  * Environment keys not exposed to client
  */
-export const getProductsData: RequestHandler = async (req, res) => {
+export const getProductsData: RequestHandler = async (_req, res) => {
   const routeLogger = logger.createLogger({ endpoint: "products", component: "getProductsData" });
   
   try {
@@ -89,7 +114,7 @@ export const getProductsData: RequestHandler = async (req, res) => {
  * Secure TinyBird Shipments API proxy
  * Environment keys not exposed to client
  */
-export const getShipmentsData: RequestHandler = async (req, res) => {
+export const getShipmentsData: RequestHandler = async (_req, res) => {
   const routeLogger = logger.createLogger({ endpoint: "shipments", component: "getShipmentsData" });
   
   try {
@@ -174,14 +199,14 @@ export const generateInsights: RequestHandler = async (req, res) => {
       "insights",
     );
 
-    res.json({
+    return res.json({
       success: true,
       insights,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error("❌ Server: AI insight generation failed:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: "Failed to generate AI insights",
       message: error instanceof Error ? error.message : "Unknown error",
@@ -193,7 +218,7 @@ export const generateInsights: RequestHandler = async (req, res) => {
  * Combined dashboard data endpoint
  * Fetches all data server-side and returns processed result
  */
-export const getDashboardData: RequestHandler = async (req, res) => {
+export const getDashboardData: RequestHandler = async (_req, res) => {
   const routeLogger = logger.createLogger({ endpoint: "dashboard", component: "getDashboardData" });
   
   try {
@@ -211,15 +236,15 @@ export const getDashboardData: RequestHandler = async (req, res) => {
     const warehouseInventory = getInventoryByWarehouse(products, shipments);
     const anomalies = detectAnomalies(products, shipments);
 
-    // Try to generate AI insights (optional - don't fail if this fails)
-    let insights = [];
-    try {
-      insights = await generateInsightsInternal({
-        warehouseInventory,
-        kpis,
-        products,
-        shipments,
-      });
+      // Try to generate AI insights (optional - don't fail if this fails)
+  let insights: DashboardInsight[] = [];
+  try {
+    insights = await generateInsightsInternal({
+      products,
+      shipments,
+      warehouseInventory,
+      kpis,
+    });
     } catch (error) {
       routeLogger.warn("AI insights generation failed, continuing without insights", {
         error: error instanceof Error ? error.message : "Unknown error"
@@ -333,12 +358,11 @@ async function generateInsightsInternal(data: DashboardData): Promise<DashboardI
 }
 
 function buildAnalysisPrompt(data: DashboardData): string {
-  const { warehouseInventory, kpis, products, shipments } = data;
+  const { products, shipments } = data;
   
   const financialImpacts = calculateFinancialImpacts(products, shipments);
   const totalProducts = products.length;
   const totalShipments = shipments.length;
-  const activeProducts = products.filter((p: ProductData) => p.active).length;
   const inactiveProducts = products.filter((p: ProductData) => !p.active).length;
   const atRiskShipments = shipments.filter((s: ShipmentData) => s.expected_quantity !== s.received_quantity).length;
   const cancelledShipments = shipments.filter((s: ShipmentData) => s.status === "cancelled").length;
@@ -430,6 +454,10 @@ function calculateKPIs(products: ProductData[], shipments: ShipmentData[]) {
   ).length;
 
   return {
+    totalProducts: products.length,
+    totalShipments: shipments.length,
+    totalValue: shipments.reduce((sum, s) => sum + (s.received_quantity * (s.unit_cost || 0)), 0),
+    efficiency: shipments.length > 0 ? (shipments.filter(s => s.expected_quantity === s.received_quantity).length / shipments.length) * 100 : 0,
     totalOrdersToday: totalOrdersToday > 0 ? totalOrdersToday : null,
     atRiskOrders: atRiskOrders > 0 ? atRiskOrders : null,
     openPOs: openPOs > 0 ? openPOs : null,
@@ -438,7 +466,7 @@ function calculateKPIs(products: ProductData[], shipments: ShipmentData[]) {
 }
 
 function calculateQuickOverview(
-  products: ProductData[],
+  _products: ProductData[],
   shipments: ShipmentData[],
 ) {
   const atRiskCount = shipments.filter(
@@ -562,7 +590,7 @@ function detectAnomalies(products: ProductData[], shipments: ShipmentData[]) {
  * Analytics data endpoint
  * Fetches and processes data for the analytics dashboard
  */
-export const getAnalyticsData: RequestHandler = async (req, res) => {
+export const getAnalyticsData: RequestHandler = async (_req, res) => {
   const routeLogger = logger.createLogger({ endpoint: "analytics", component: "getAnalyticsData" });
   
   try {
@@ -582,14 +610,14 @@ export const getAnalyticsData: RequestHandler = async (req, res) => {
     const brandPerformance = calculateBrandPerformance(products, shipments);
 
     // This part of the code tries to generate analytics-specific AI insights
-    let insights = [];
+    let insights: DashboardInsight[] = [];
     try {
       insights = await generateAnalyticsInsightsInternal({
+        products,
+        shipments,
         kpis,
         performanceMetrics,
         brandPerformance,
-        products,
-        shipments,
       });
     } catch (error) {
       routeLogger.warn("Analytics AI insights generation failed, continuing without insights", {
@@ -665,6 +693,10 @@ function calculateAnalyticsKPIs(products: ProductData[], shipments: ShipmentData
   const inventoryHealthScore = products.length > 0 ? (activeProducts / products.length) * 100 : 0;
 
   return {
+    totalProducts: products.length,
+    totalShipments: shipments.length,
+    totalValue: shipments.reduce((sum, s) => sum + (s.received_quantity * (s.unit_cost || 0)), 0),
+    efficiency: fulfillmentEfficiency,
     orderVolumeGrowth: Math.round(orderVolumeGrowth * 10) / 10,
     returnRate: Math.round(returnRate * 10) / 10,
     fulfillmentEfficiency: Math.round(fulfillmentEfficiency * 10) / 10,
@@ -672,7 +704,7 @@ function calculateAnalyticsKPIs(products: ProductData[], shipments: ShipmentData
   };
 }
 
-function calculatePerformanceMetrics(products: ProductData[], shipments: ShipmentData[]) {
+function calculatePerformanceMetrics(_products: ProductData[], shipments: ShipmentData[]) {
   // This part of the code calculates order volume trend metrics
   const recentShipments = shipments.filter(s => {
     const shipmentDate = new Date(s.created_date);
@@ -769,7 +801,7 @@ function calculateOperationalBreakdown(products: ProductData[], shipments: Shipm
   };
 }
 
-function calculateBrandPerformance(products: ProductData[], shipments: ShipmentData[]) {
+function calculateBrandPerformance(products: ProductData[], _shipments: ShipmentData[]) {
   // This part of the code groups products by brand and calculates performance metrics
   const brandGroups = new Map<string, { skuCount: number; totalQuantity: number }>();
   
@@ -845,26 +877,28 @@ async function generateAnalyticsInsightsInternal(data: DashboardData): Promise<D
 }
 
 function buildAnalyticsPrompt(data: DashboardData): string {
-  const { kpis, performanceMetrics, brandPerformance, products, shipments } = data;
+  const { kpis } = data;
+  const performanceMetrics = data.performanceMetrics || {};
+  const brandPerformance = data.brandPerformance || {};
   
   return `
 You are a 3PL analytics specialist. Analyze this analytics data and generate 2-3 actionable insights focused on performance trends and optimization opportunities.
 
 ANALYTICS KPIS:
-- Order Volume Growth: ${kpis.orderVolumeGrowth}%
-- Return Rate: ${kpis.returnRate}%
-- Fulfillment Efficiency: ${kpis.fulfillmentEfficiency}%
-- Inventory Health Score: ${kpis.inventoryHealthScore}%
+- Order Volume Growth: ${kpis?.orderVolumeGrowth || 0}%
+- Return Rate: ${kpis?.returnRate || 0}%
+- Fulfillment Efficiency: ${kpis?.fulfillmentEfficiency || 0}%
+- Inventory Health Score: ${kpis?.inventoryHealthScore || 0}%
 
 PERFORMANCE METRICS:
-- Order Volume Growth Rate: ${performanceMetrics.orderVolumeTrend.growthRate}%
-- Fulfillment Efficiency Rate: ${performanceMetrics.fulfillmentPerformance.efficiencyRate}%
-- Total Orders Analyzed: ${performanceMetrics.orderVolumeTrend.totalOrdersAnalyzed}
+- Order Volume Growth Rate: ${performanceMetrics?.orderVolumeTrend?.growthRate || 0}%
+- Fulfillment Efficiency Rate: ${performanceMetrics?.fulfillmentPerformance?.efficiencyRate || 0}%
+- Total Orders Analyzed: ${performanceMetrics?.orderVolumeTrend?.totalOrdersAnalyzed || 0}
 
 BRAND PERFORMANCE:
-- Total Brands: ${brandPerformance.totalBrands}
-- Top Brand: ${brandPerformance.topBrand.name} (${brandPerformance.topBrand.skuCount} SKUs)
-- Brand Distribution: ${brandPerformance.brandRankings.length} ranked brands
+- Total Brands: ${brandPerformance?.totalBrands || 0}
+- Top Brand: ${brandPerformance?.topBrand?.name || 'N/A'} (${brandPerformance?.topBrand?.skuCount || 0} SKUs)
+- Brand Distribution: ${brandPerformance?.brandRankings?.length || 0} ranked brands
 
 Generate insights focusing on analytics trends, efficiency improvements, and brand performance optimization.
 

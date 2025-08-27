@@ -6,7 +6,7 @@
  * Server handles all external API communication securely
  */
 
-import { logger } from "@/shared/services/logger";
+import { logger } from "@/lib/logger";
 import type {
   DashboardData,
   ProductData,

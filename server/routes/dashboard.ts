@@ -298,7 +298,7 @@ export const getDashboardData: RequestHandler = async (req, res) => {
 };
 
 // Handle insights-only mode for progressive loading
-async function handleInsightsMode(req: any, res: any) {
+async function handleInsightsMode(_req: any, res: any) {
   const routeLogger = logger.createLogger({ endpoint: "dashboard-insights", component: "handleInsightsMode" });
   
   try {
@@ -349,7 +349,7 @@ async function handleInsightsMode(req: any, res: any) {
 }
 
 // Handle fast mode (without insights)
-async function handleFastMode(req: any, res: any) {
+async function handleFastMode(_req: any, res: any) {
   const routeLogger = logger.createLogger({ endpoint: "dashboard-fast", component: "handleFastMode" });
   
   try {

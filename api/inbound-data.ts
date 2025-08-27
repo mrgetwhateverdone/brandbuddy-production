@@ -278,19 +278,7 @@ Focus on immediate receiving priorities, delivery optimization, and operational 
       }));
     } catch (parseError) {
       console.error('❌ JSON parsing failed:', parseError);
-      console.log('🔍 Attempting fallback parsing...');
-      
-      // This part of the code provides fallback when JSON parsing fails
-      return [{
-        id: "inbound-insight-1",
-        title: "Inbound Operations Analysis Complete",
-        description: `Analysis of ${kpis.todayArrivals} today's arrivals and ${kpis.thisWeekExpected} expected this week shows receiving operations require optimization for improved efficiency.`,
-        severity: "warning" as const,
-        dollarImpact: Math.round(kpis.thisWeekExpected * 1000),
-        suggestedActions: ["Review today's receiving schedule", "Optimize warehouse capacity", "Contact suppliers for delivery coordination"],
-        createdAt: new Date().toISOString(),
-        source: "inbound_operations_agent" as const,
-      }];
+      return [];
     }
 
   } catch (error) {
@@ -330,16 +318,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             receivingAccuracy: 0,
             onTimeDeliveryRate: 0
           },
-          insights: [{
-            id: "inbound-insight-1",
-            title: "Information Not Available",
-            description: "Inbound operations data is not available. Data source connection required.",
-            severity: "info" as const,
-            dollarImpact: 0,
-            suggestedActions: ["Check data source connection"],
-            createdAt: new Date().toISOString(),
-            source: "inbound_operations_agent" as const,
-          }],
+          insights: [],
           shipments: [],
           todayArrivals: [],
           receivingMetrics: [],

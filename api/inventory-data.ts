@@ -352,16 +352,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             overstockedCount: 0,
             avgDaysOnHand: null
           },
-          insights: [{
-            id: "inventory-insight-1",
-            title: "Information Not Available",
-            description: "Inventory data is not available. Data source connection required.",
-            severity: "info" as const,
-            dollarImpact: 0,
-            suggestedActions: ["Check data source connection"],
-            createdAt: new Date().toISOString(),
-            source: "inventory_agent" as const,
-          }],
+          insights: [],
           inventory: [],
           brandPerformance: [],
           supplierAnalysis: [],

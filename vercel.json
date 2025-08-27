@@ -4,6 +4,10 @@
   "framework": "vite",
   "rewrites": [
     {
+      "source": "/api/dashboard-data",
+      "destination": "/api/dashboard-data"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

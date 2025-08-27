@@ -812,7 +812,23 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
   
   console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
 
-  const insights = await generateInsights(products, shipments);
+  const rawInsights = await generateInsights(products, shipments);
+  
+  // This part of the code maps insights to proper AIInsight format with all required properties
+  const insights = rawInsights.map((insight, index) => ({
+    id: `dashboard-insight-${index + 1}`,
+    title: insight.title,
+    description: insight.description,
+    severity: insight.severity as "critical" | "warning" | "info",
+    dollarImpact: insight.dollarImpact || 0,
+    suggestedActions: insight.suggestedActions || [
+      "Review shipment performance metrics",
+      "Implement quality control checkpoints",
+      "Establish supplier performance monitoring"
+    ],
+    createdAt: new Date().toISOString(),
+    source: "dashboard_agent" as const,
+  }));
   
   // This part of the code calculates financial impacts for daily brief
   const financialImpacts = calculateFinancialImpacts(products, shipments);
@@ -977,17 +993,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
       }),
       insights: insights.map((insight, index) => ({
-        id: `insight-${index}`,
+        id: `dashboard-insight-${index + 1}`,
         title: insight.title,
         description: insight.description,
-        severity:
-          insight.severity === "critical"
-            ? ("critical" as const)
-            : insight.severity === "warning"
-              ? ("warning" as const)
-              : ("info" as const),
+        severity: insight.severity as "critical" | "warning" | "info",
         dollarImpact: insight.dollarImpact || 0, // This part of the code uses real financial impact from AI or calculations
-        suggestedActions: insight.suggestedActions || [],
+        suggestedActions: insight.suggestedActions || [
+          "Review shipment performance metrics",
+          "Implement quality control checkpoints", 
+          "Establish supplier performance monitoring"
+        ],
         createdAt: new Date().toISOString(),
         source: "dashboard_agent" as const,
       })),

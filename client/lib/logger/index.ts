@@ -8,6 +8,11 @@ interface LogContext {
   action?: string;
   data?: any;
   timestamp?: string;
+  // Additional properties for compatibility with hooks
+  hook?: string;
+  endpoint?: string;
+  brandFilter?: string;
+  [key: string]: any;
 }
 
 class Logger {
@@ -94,6 +99,17 @@ class Logger {
       component: componentName,
       action: 'unmount'
     });
+  }
+
+  // This part of the code provides context-aware logger creation (compatibility with server-side logger)
+  createLogger(defaultContext: LogContext) {
+    return {
+      debug: (msg: string, ctx?: LogContext) => this.debug(msg, {...defaultContext, ...ctx}),
+      info: (msg: string, ctx?: LogContext) => this.info(msg, {...defaultContext, ...ctx}),
+      success: (msg: string, ctx?: LogContext) => this.success(msg, {...defaultContext, ...ctx}),
+      warning: (msg: string, ctx?: LogContext) => this.warning(msg, {...defaultContext, ...ctx}),
+      error: (msg: string, ctx?: LogContext) => this.error(msg, {...defaultContext, ...ctx}),
+    };
   }
 }
 

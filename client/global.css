@@ -182,47 +182,8 @@
     border-color: #e5e7eb !important;
   }
 
-  /* This part of the code aggressively forces Google OAuth button text to be black and visible */
-  .cl-socialButtonsBlockButton,
-  .cl-socialButtonsBlockButtonText,
-  .cl-internal-1q7m7r8,
-  .cl-internal-1c7u47n {
-    color: #000000 !important; /* Pure black */
-  }
-
-  /* Ensure OAuth provider buttons have proper styling */
-  .cl-socialButtonsBlockButton {
-    background-color: #ffffff !important;
-    border: 1px solid #d1d5db !important; /* gray-300 */
-    color: #000000 !important; /* Pure black */
-  }
-
-  .cl-socialButtonsBlockButton:hover {
-    background-color: #f9fafb !important; /* gray-50 */
-    color: #000000 !important; /* Pure black */
-  }
-
-  /* Aggressively target all possible text elements in OAuth buttons */
-  .cl-socialButtonsBlockButton span,
-  .cl-socialButtonsBlockButton div,
-  .cl-socialButtonsBlockButton p,
-  .cl-socialButtonsBlockButton *,
-  button[data-localization-key*="socialButtonsBlockButton"] *,
-  [class*="cl-socialButtons"] *,
-  [class*="cl-internal"] span,
-  [class*="cl-internal"] div {
-    color: #000000 !important; /* Pure black */
-    opacity: 1 !important;
-    visibility: visible !important;
-    display: inline !important;
-  }
-
-  /* Target Google-specific elements */
-  button[data-localization-key="socialButtonsBlockButtonGoogle"] *,
-  button[aria-label*="Google"] *,
-  button[aria-label*="google"] * {
-    color: #000000 !important; /* Pure black */
-    opacity: 1 !important;
-    visibility: visible !important;
+  /* Simple fix for Google OAuth button text visibility */
+  .cl-socialButtonsBlockButton span {
+    color: #374151 !important; /* gray-700 for good contrast */
   }
 }

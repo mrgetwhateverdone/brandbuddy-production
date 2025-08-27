@@ -691,8 +691,8 @@ async function generateAISLAInsights(
   console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No OpenAI API key found - returning fallback insights');
-    return generateSLAInsights(products, shipments, slaData);
+    console.log('❌ No OpenAI API key found - returning empty insights');
+    return [];
   }
 
   try {
@@ -788,123 +788,15 @@ Focus on immediate SLA improvement priorities, customer retention strategies, an
       }));
     } catch (parseError) {
       console.error('❌ JSON parsing failed:', parseError);
-      console.log('🔍 Attempting fallback parsing...');
-      
-      // This part of the code provides fallback when JSON parsing fails
-      return generateSLAInsights(products, shipments, slaData);
+      return [];
     }
 
   } catch (error) {
     console.error("❌ SLA AI analysis failed:", error);
   }
   
-  // This part of the code returns fallback insights when AI fails
-  return generateSLAInsights(products, shipments, slaData);
-}
-
-/**
- * This part of the code generates enhanced SLA insights with financial context
- * Provides comprehensive insights following the standard AIInsight format (fallback)
- */
-function generateSLAInsights(products: ProductData[], shipments: ShipmentData[], slaData: any) {
-  const insights: any[] = [];
-  
-  // This part of the code generates performance insights
-  if (slaData.kpis.overallSLACompliance && slaData.kpis.overallSLACompliance < 85) {
-    insights.push({
-      id: `sla-compliance-${Date.now()}`,
-      title: 'SLA Compliance Below Target',
-      description: `SLA compliance at ${slaData.kpis.overallSLACompliance}% is below target (95%). Focus on top underperforming suppliers.`,
-      severity: 'critical' as const,
-      dollarImpact: slaData.kpis.costOfSLABreaches || 0,
-      suggestedActions: ['Review supplier performance', 'Renegotiate contracts', 'Diversify supplier base'],
-      createdAt: new Date().toISOString(),
-      source: 'dashboard_agent' as const
-    });
-  }
-
-  if (slaData.kpis.atRiskShipments > 5) {
-    insights.push({
-      id: `at-risk-shipments-${Date.now()}`,
-      title: 'High At-Risk Shipments',
-      description: `${slaData.kpis.atRiskShipments} shipments are currently at risk of missing SLA targets.`,
-      severity: 'warning' as const,
-      dollarImpact: Math.round(slaData.kpis.atRiskShipments * 500), // Estimate $500 impact per at-risk shipment
-      suggestedActions: ['Monitor transit progress', 'Contact carriers', 'Prepare expedited shipping'],
-      createdAt: new Date().toISOString(),
-      source: 'dashboard_agent' as const
-    });
-  }
-
-  if (slaData.kpis.costOfSLABreaches > 10000) {
-    insights.push({
-      id: `sla-breach-costs-${Date.now()}`,
-      title: 'Significant SLA Breach Costs',
-      description: `SLA breaches cost $${slaData.kpis.costOfSLABreaches.toLocaleString()} this period. Consider supplier diversification.`,
-      severity: 'warning' as const,
-      dollarImpact: slaData.kpis.costOfSLABreaches,
-      suggestedActions: ['Analyze breach patterns', 'Implement penalties', 'Source backup suppliers'],
-      createdAt: new Date().toISOString(),
-      source: 'dashboard_agent' as const
-    });
-  }
-
-  // This part of the code generates supplier insights with financial context
-  const poorPerformers = slaData.supplierScorecard.filter((s: any) => s.performanceScore < 80);
-  if (poorPerformers.length > 0) {
-    const totalRiskValue = poorPerformers.reduce((sum: number, s: any) => sum + s.totalValue, 0);
-    insights.push({
-      id: `poor-suppliers-${Date.now()}`,
-      title: 'Underperforming Suppliers Risk',
-      description: `${poorPerformers.length} suppliers below 80% compliance represent $${Math.round(totalRiskValue).toLocaleString()} in risk exposure.`,
-      severity: 'warning' as const,
-      dollarImpact: Math.round(totalRiskValue * 0.1), // 10% of exposure as risk cost
-      suggestedActions: ['Performance reviews', 'Contract renegotiation', 'Alternative sourcing'],
-      createdAt: new Date().toISOString(),
-      source: 'dashboard_agent' as const
-    });
-  }
-
-  // This part of the code generates financial optimization insights
-  if (slaData.financialImpact.potentialSavings > 20000) {
-    insights.push({
-      id: `optimization-potential-${Date.now()}`,
-      title: 'Major Optimization Opportunity',
-      description: `Improving SLA compliance to 95% could save $${slaData.financialImpact.potentialSavings.toLocaleString()} annually.`,
-      severity: 'critical' as const,
-      dollarImpact: slaData.financialImpact.potentialSavings,
-      suggestedActions: ['Implement optimization plan', 'Set supplier KPIs', 'Monitor progress'],
-      createdAt: new Date().toISOString(),
-      source: 'dashboard_agent' as const
-    });
-  }
-
-  if (slaData.optimizationRecommendations.length > 0) {
-    const highPriorityRecs = slaData.optimizationRecommendations.filter((r: any) => r.priority === 'high');
-    insights.push({
-      id: `optimization-recs-${Date.now()}`,
-      title: 'High-Priority Optimization Actions',
-      description: `${highPriorityRecs.length} high-priority optimization opportunities identified with immediate ROI potential.`,
-      severity: 'info' as const,
-      dollarImpact: 0,
-      suggestedActions: highPriorityRecs.slice(0, 3).map((r: any) => r.title), // Use first 3 recommendations
-      createdAt: new Date().toISOString(),
-      source: 'dashboard_agent' as const
-    });
-  }
-
-  insights.push({
-    id: `sla-summary-${Date.now()}`,
-    title: 'SLA Performance Summary',
-    description: `Tracking ${shipments.length} shipments across ${slaData.supplierScorecard.length} suppliers with $${slaData.financialImpact.totalSLABreachCost.toLocaleString()} in breach costs.`,
-    severity: 'info' as const,
-    dollarImpact: slaData.financialImpact.totalSLABreachCost,
-    suggestedActions: ['Monitor trends', 'Review metrics', 'Plan improvements'],
-    createdAt: new Date().toISOString(),
-    source: 'dashboard_agent' as const
-  });
-
-  return insights;
+  // Return empty insights when AI fails - no fallback data generation
+  return [];
 }
 
 /**

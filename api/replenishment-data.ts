@@ -327,19 +327,7 @@ Focus on immediate replenishment priorities, supplier risk mitigation, and finan
       }));
     } catch (parseError) {
       console.error('❌ JSON parsing failed:', parseError);
-      console.log('🔍 Attempting fallback parsing...');
-      
-      // This part of the code provides fallback when JSON parsing fails
-      return [{
-        id: "replenishment-insight-1",
-        title: "Replenishment Analysis Complete",
-        description: `Analysis of ${kpis.criticalSKUs} critical SKUs with $${kpis.replenishmentValue.toLocaleString()} replenishment value shows immediate attention needed for inventory optimization.`,
-        severity: "warning" as const,
-        dollarImpact: kpis.replenishmentValue,
-        suggestedActions: ["Review critical SKUs", "Contact suppliers for expedited delivery", "Implement emergency reorder procedures"],
-        createdAt: new Date().toISOString(),
-        source: "replenishment_agent" as const,
-      }];
+      return [];
     }
 
   } catch (error) {
@@ -381,16 +369,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             supplierAlerts: 0,
             reorderRecommendations: 0
           },
-          insights: [{
-            id: "replenishment-insight-1",
-            title: "Information Not Available",
-            description: "Replenishment data is not available. Data source connection required.",
-            severity: "info" as const,
-            dollarImpact: 0,
-            suggestedActions: ["Check data source connection"],
-            createdAt: new Date().toISOString(),
-            source: "replenishment_agent" as const,
-          }],
+          insights: [],
           products: [],
           shipments: [],
           criticalItems: [],

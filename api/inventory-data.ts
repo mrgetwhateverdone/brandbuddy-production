@@ -207,8 +207,8 @@ async function generateInventoryInsights(
   console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No OpenAI API key found - returning fallback insights');
-    return generateFallbackInventoryInsights(kpis, supplierAnalysis);
+    console.log('❌ No OpenAI API key found - returning empty insights');
+    return [];
   }
 
   try {
@@ -310,70 +310,15 @@ Focus on immediate inventory optimization priorities, supplier risk mitigation, 
       }));
     } catch (parseError) {
       console.error('❌ JSON parsing failed:', parseError);
-      console.log('🔍 Attempting fallback parsing...');
-      
-      // This part of the code provides fallback when JSON parsing fails
-      return generateFallbackInventoryInsights(kpis, supplierAnalysis);
+      return [];
     }
 
   } catch (error) {
     console.error("❌ Inventory AI analysis failed:", error);
   }
   
-  // This part of the code returns fallback insights when AI fails
-  return generateFallbackInventoryInsights(kpis, supplierAnalysis);
-}
-
-// This part of the code provides fallback insights when OpenAI is not available
-function generateFallbackInventoryInsights(kpis: any, supplierAnalysis: any[]): any[] {
-  const insights: any[] = [];
-  
-  // Stock health insights
-  if (kpis.inactiveSKUs > 0) {
-    insights.push({
-      id: "inventory-insight-inactive",
-      title: "Inactive SKU Optimization",
-      description: `${kpis.inactiveSKUs} inactive SKUs detected in portfolio. Review for discontinuation or reactivation opportunities.`,
-      severity: "warning" as const,
-      dollarImpact: Math.round(kpis.totalInventoryValue * 0.05),
-      suggestedActions: ["Review inactive product status", "Consider discontinuation", "Update product lifecycle"],
-      createdAt: new Date().toISOString(),
-      source: "inventory_agent" as const,
-    });
-  }
-  
-  // Supplier concentration insights
-  if (supplierAnalysis.length > 0) {
-    const highRiskSuppliers = supplierAnalysis.filter(s => s.concentration_risk > 30);
-    if (highRiskSuppliers.length > 0) {
-      insights.push({
-        id: "inventory-insight-supplier-risk",
-        title: "Supplier Concentration Risk",
-        description: `${highRiskSuppliers.length} suppliers represent >30% of inventory value each. Supply chain diversification recommended.`,
-        severity: "critical" as const,
-        dollarImpact: Math.round(kpis.totalInventoryValue * 0.3),
-        suggestedActions: ["Diversify supplier base", "Negotiate backup suppliers", "Assess supply chain risks"],
-        createdAt: new Date().toISOString(),
-        source: "inventory_agent" as const,
-      });
-    }
-  }
-  
-  // Low stock alerts
-  if (kpis.lowStockAlerts > 0) {
-    insights.push({
-      id: "inventory-insight-low-stock",
-      title: "Replenishment Required",
-      description: `${kpis.lowStockAlerts} SKUs are running low on inventory. Immediate replenishment action needed to avoid stockouts.`,
-      severity: "warning" as const,
-      dollarImpact: Math.round(kpis.lowStockAlerts * 500),
-      suggestedActions: ["Review reorder points", "Contact suppliers for replenishment", "Analyze demand patterns"],
-      createdAt: new Date().toISOString(),
-      source: "inventory_agent" as const,
-    });
-  }
-
-  return insights;
+  // Return empty insights when AI fails - no fallback data generation
+  return [];
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

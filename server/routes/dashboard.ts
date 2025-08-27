@@ -218,10 +218,21 @@ export const generateInsights: RequestHandler = async (req, res) => {
  * Combined dashboard data endpoint
  * Fetches all data server-side and returns processed result
  */
-export const getDashboardData: RequestHandler = async (_req, res) => {
+export const getDashboardData: RequestHandler = async (req, res) => {
   const routeLogger = logger.createLogger({ endpoint: "dashboard", component: "getDashboardData" });
+  const { mode } = req.query;
   
   try {
+    // Handle insights-only mode for progressive loading
+    if (mode === 'insights') {
+      return handleInsightsMode(req, res);
+    }
+    
+    // Handle fast mode (without insights)
+    if (mode === 'fast') {
+      return handleFastMode(req, res);
+    }
+    
     routeLogger.info("Fetching complete dashboard data securely");
 
     // This part of the code uses shared data service to fetch both datasets
@@ -285,6 +296,109 @@ export const getDashboardData: RequestHandler = async (_req, res) => {
     });
   }
 };
+
+// Handle insights-only mode for progressive loading
+async function handleInsightsMode(req: any, res: any) {
+  const routeLogger = logger.createLogger({ endpoint: "dashboard-insights", component: "handleInsightsMode" });
+  
+  try {
+    routeLogger.info("Fetching dashboard insights only");
+
+    const { products, shipments } = await dataFetchingService.fetchProductsAndShipments(
+      "dashboard-insights",
+      { productLimit: 100, shipmentLimit: 150, brandFilter: "Callahan-Smith" }
+    );
+
+    // Generate AI insights only
+    let insights: DashboardInsight[] = [];
+    try {
+      insights = await generateInsightsInternal({
+        products,
+        shipments,
+        warehouseInventory: getInventoryByWarehouse(products, shipments),
+        kpis: calculateKPIs(products, shipments),
+      });
+    } catch (error) {
+      routeLogger.warn("AI insights generation failed", {
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+
+    routeLogger.info("Dashboard insights generated successfully", {
+      insightCount: insights.length
+    });
+
+    res.json({
+      success: true,
+      data: {
+        insights,
+        dailyBrief: null, // Can be added later
+      },
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    routeLogger.error("Dashboard insights processing failed", {
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch dashboard insights",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
+
+// Handle fast mode (without insights)
+async function handleFastMode(req: any, res: any) {
+  const routeLogger = logger.createLogger({ endpoint: "dashboard-fast", component: "handleFastMode" });
+  
+  try {
+    routeLogger.info("Fetching fast dashboard data (no insights)");
+
+    const { products, shipments } = await dataFetchingService.fetchProductsAndShipments(
+      "dashboard-fast",
+      { productLimit: 100, shipmentLimit: 150, brandFilter: "Callahan-Smith" }
+    );
+
+    // Calculate metrics without AI insights
+    const kpis = calculateKPIs(products, shipments);
+    const quickOverview = calculateQuickOverview(products, shipments);
+    const warehouseInventory = getInventoryByWarehouse(products, shipments);
+    const anomalies = detectAnomalies(products, shipments);
+
+    const dashboardData = {
+      products,
+      shipments,
+      kpis,
+      quickOverview,
+      warehouseInventory,
+      insights: [], // No insights in fast mode
+      anomalies,
+      lastUpdated: new Date().toISOString(),
+    };
+
+    routeLogger.info("Fast dashboard data processed successfully", {
+      productCount: products.length,
+      shipmentCount: shipments.length,
+      anomalyCount: anomalies.length
+    });
+
+    res.json({
+      success: true,
+      data: dashboardData,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    routeLogger.error("Fast dashboard data processing failed", {
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+    res.status(500).json({
+      success: false,
+      error: "Failed to fetch fast dashboard data",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+}
 
 // Internal helper functions (not exposed)
 // Note: fetchProductsInternal and fetchShipmentsInternal functions removed

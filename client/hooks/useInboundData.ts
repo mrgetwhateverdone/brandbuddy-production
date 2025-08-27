@@ -79,6 +79,86 @@ export const useInboundData = () => {
 };
 
 /**
+ * FAST inbound data hook without AI insights for immediate page load  
+ * 🔒 SECURE: Uses internal API - NO external keys exposed
+ */
+export const useInboundDataFast = () => {
+  const { getQueryConfig } = useSettingsIntegration();
+  const queryConfig = getQueryConfig();
+  const hookLogger = logger.createLogger({ component: "useInboundDataFast", hook: "inbound-fast" });
+
+  return useQuery<TypedInboundData>({
+    queryKey: ["inbound-data-fast"],
+    queryFn: async (): Promise<TypedInboundData> => {
+      hookLogger.info("Fetching FAST inbound data (no AI insights)", {
+        brandFilter: "Callahan-Smith"
+      });
+
+      // This part of the code calls fast mode to get immediate data without AI processing
+      const rawData = await internalApi.getInboundDataFast();
+
+      const inboundData: TypedInboundData = {
+        ...rawData,
+        insights: [] // Fast mode has no insights
+      };
+
+      hookLogger.info("FAST inbound data loaded for Callahan-Smith", {
+        todayArrivals: inboundData.kpis?.todayArrivals || 0,
+        thisWeekExpected: inboundData.kpis?.thisWeekExpected || 0,
+        insights: 0 // Fast mode has no insights
+      });
+
+      return inboundData;
+    },
+    ...queryConfig,
+    meta: {
+      errorMessage: "Unable to load fast inbound data - Refresh to retry or check API connection",
+    },
+  });
+};
+
+/**
+ * Inbound AI insights hook for progressive loading  
+ * 🔒 SECURE: Uses internal API for AI insights only
+ */
+export const useInboundInsights = () => {
+  const { getQueryConfig } = useSettingsIntegration();  
+  const queryConfig = getQueryConfig();
+  const hookLogger = logger.createLogger({ component: "useInboundInsights", hook: "inbound-insights" });
+
+  return useQuery({
+    queryKey: ["inbound-insights"],
+    queryFn: async () => {
+      hookLogger.info("Fetching inbound AI insights in background");
+
+      // This part of the code fetches AI insights separately for progressive loading
+      const insightsData = await internalApi.getInboundInsights();
+
+      // This part of the code ensures type-safe filtering for Callahan-Smith brand only
+      const filteredInsights: InsightData[] = (insightsData.insights || []).filter((insight: any) => 
+        !insight.description || 
+        insight.description.toLowerCase().includes('callahan-smith') || 
+        insight.source === 'inbound_operations_agent'
+      );
+
+      hookLogger.info("Inbound AI insights loaded", {
+        rawInsightCount: insightsData.insights?.length || 0,
+        filteredInsightCount: filteredInsights.length
+      });
+
+      return {
+        insights: filteredInsights,
+        lastUpdated: insightsData.lastUpdated
+      };
+    },
+    ...queryConfig,
+    meta: {
+      errorMessage: "Unable to load inbound insights - Operating with data only",
+    },
+  });
+};
+
+/**
  * Get real-time inbound operations connection status
  * 🔒 SECURE: Monitors internal API connection status
  */

@@ -105,6 +105,86 @@ export const useReplenishmentData = () => {
 };
 
 /**
+ * FAST replenishment data hook without AI insights for immediate page load  
+ * 🔒 SECURE: Uses internal API - NO external keys exposed
+ */
+export const useReplenishmentDataFast = () => {
+  const { getQueryConfig } = useSettingsIntegration();
+  const queryConfig = getQueryConfig();
+  const hookLogger = logger.createLogger({ component: "useReplenishmentDataFast", hook: "replenishment-fast" });
+
+  return useQuery<TypedReplenishmentData>({
+    queryKey: ["replenishment-data-fast"],
+    queryFn: async (): Promise<TypedReplenishmentData> => {
+      hookLogger.info("Fetching FAST replenishment data (no AI insights)", {
+        brandFilter: "Callahan-Smith"
+      });
+
+      // This part of the code calls fast mode to get immediate data without AI processing
+      const rawData = await internalApi.getReplenishmentDataFast();
+
+      const replenishmentData: TypedReplenishmentData = {
+        ...rawData,
+        insights: [] // Fast mode has no insights
+      };
+
+      hookLogger.info("FAST replenishment data loaded for Callahan-Smith", {
+        criticalSKUs: replenishmentData.kpis?.criticalSKUs || 0,
+        replenishmentValue: replenishmentData.kpis?.replenishmentValue || 0,
+        insights: 0 // Fast mode has no insights
+      });
+
+      return replenishmentData;
+    },
+    ...queryConfig,
+    meta: {
+      errorMessage: "Unable to load fast replenishment data - Refresh to retry or check API connection",
+    },
+  });
+};
+
+/**
+ * Replenishment AI insights hook for progressive loading  
+ * 🔒 SECURE: Uses internal API for AI insights only
+ */
+export const useReplenishmentInsights = () => {
+  const { getQueryConfig } = useSettingsIntegration();  
+  const queryConfig = getQueryConfig();
+  const hookLogger = logger.createLogger({ component: "useReplenishmentInsights", hook: "replenishment-insights" });
+
+  return useQuery({
+    queryKey: ["replenishment-insights"],
+    queryFn: async () => {
+      hookLogger.info("Fetching replenishment AI insights in background");
+
+      // This part of the code fetches AI insights separately for progressive loading
+      const insightsData = await internalApi.getReplenishmentInsights();
+
+      // This part of the code ensures type-safe filtering for Callahan-Smith brand only
+      const filteredInsights: InsightData[] = (insightsData.insights || []).filter((insight: any) => 
+        !insight.description || 
+        insight.description.toLowerCase().includes('callahan-smith') || 
+        insight.source === 'replenishment_agent'
+      );
+
+      hookLogger.info("Replenishment AI insights loaded", {
+        rawInsightCount: insightsData.insights?.length || 0,
+        filteredInsightCount: filteredInsights.length
+      });
+
+      return {
+        insights: filteredInsights,
+        lastUpdated: insightsData.lastUpdated
+      };
+    },
+    ...queryConfig,
+    meta: {
+      errorMessage: "Unable to load replenishment insights - Operating with data only",
+    },
+  });
+};
+
+/**
  * Get real-time replenishment connection status
  * 🔒 SECURE: Monitors internal API connection status
  */

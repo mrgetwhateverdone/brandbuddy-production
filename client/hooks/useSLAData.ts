@@ -103,6 +103,42 @@ export function useSLAData() {
 }
 
 /**
+ * FAST SLA data hook without AI insights for immediate page load
+ * 🔒 SECURE: Uses internal API - NO external keys exposed
+ */
+export function useSLADataFast() {
+  const { getSLASettings } = useSettingsIntegration();
+  
+  return useQuery({
+    queryKey: ['sla-data-fast'],
+    queryFn: () => internalApi.getSLADataFast(),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 5 * 60 * 1000, // 5 minutes auto-refresh
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: 1000,
+  });
+}
+
+/**
+ * SLA AI insights hook for progressive loading
+ * 🔒 SECURE: Uses internal API for AI insights only
+ */
+export function useSLAInsights() {
+  const { getSLASettings } = useSettingsIntegration();
+  
+  return useQuery({
+    queryKey: ['sla-insights'],
+    queryFn: () => internalApi.getSLAInsights(),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 5 * 60 * 1000, // 5 minutes auto-refresh
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: 1000,
+  });
+}
+
+/**
  * This part of the code provides a hook for refreshing SLA data
  * Useful for manual refresh functionality
  */

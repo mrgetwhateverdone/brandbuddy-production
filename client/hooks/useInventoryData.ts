@@ -71,6 +71,89 @@ export const useInventoryData = () => {
 };
 
 /**
+ * FAST inventory data hook without AI insights for immediate page load  
+ * 🔒 SECURE: Uses internal API - NO external keys exposed
+ */
+export const useInventoryDataFast = () => {
+  const { getQueryConfig } = useSettingsIntegration();
+  const queryConfig = getQueryConfig();
+  const hookLogger = logger.createLogger({ component: "useInventoryDataFast", hook: "inventory-fast" });
+
+  return useQuery<InventoryData>({
+    queryKey: ["inventory-data-fast"],
+    queryFn: async (): Promise<InventoryData> => {
+      hookLogger.info("Fetching FAST inventory data (no AI insights)", {
+        brandFilter: "Callahan-Smith"
+      });
+
+      // This part of the code calls fast mode to get immediate data without AI processing
+      const rawInventoryData = await internalApi.getInventoryDataFast();
+
+      // This part of the code ensures type-safe client-side filtering for Callahan-Smith brand only
+      const filteredInventory: InventoryItem[] = (rawInventoryData.inventory || []).filter((item: InventoryItem) => 
+        item.brand_name === 'Callahan-Smith'
+      );
+
+      // This part of the code filters supplier analysis for Callahan-Smith suppliers only
+      const filteredSupplierAnalysis: SupplierPerformance[] = (rawInventoryData.supplierAnalysis || []).filter((supplier: SupplierPerformance) => {
+        const hasCallahanSmithInventory = filteredInventory.some((item: InventoryItem) => 
+          item.supplier === supplier.supplier
+        );
+        return hasCallahanSmithInventory;
+      });
+
+      const inventoryData: InventoryData = {
+        ...rawInventoryData,
+        inventory: filteredInventory,
+        supplierAnalysis: filteredSupplierAnalysis
+      };
+
+      hookLogger.info("FAST inventory data loaded for Callahan-Smith", {
+        callahanSmithInventory: filteredInventory.length,
+        callahanSmithSuppliers: filteredSupplierAnalysis.length,
+        insights: 0 // Fast mode has no insights
+      });
+
+      return inventoryData;
+    },
+    ...queryConfig,
+    meta: {
+      errorMessage: "Unable to load fast inventory data - Refresh to retry or check API connection",
+    },
+  });
+};
+
+/**
+ * Inventory AI insights hook for progressive loading  
+ * 🔒 SECURE: Uses internal API for AI insights only
+ */
+export const useInventoryInsights = () => {
+  const { getQueryConfig } = useSettingsIntegration();  
+  const queryConfig = getQueryConfig();
+  const hookLogger = logger.createLogger({ component: "useInventoryInsights", hook: "inventory-insights" });
+
+  return useQuery({
+    queryKey: ["inventory-insights"],
+    queryFn: async () => {
+      hookLogger.info("Fetching inventory AI insights in background");
+
+      // This part of the code fetches AI insights separately for progressive loading
+      const insightsData = await internalApi.getInventoryInsights();
+
+      hookLogger.info("Inventory AI insights loaded", {
+        insights: insightsData.insights?.length || 0
+      });
+
+      return insightsData;
+    },
+    ...queryConfig,
+    meta: {
+      errorMessage: "Unable to load inventory insights - Operating with data only",
+    },
+  });
+};
+
+/**
  * Inventory table hook for pagination and view management
  * 🔒 SECURE: Client-side data management for table display
  */

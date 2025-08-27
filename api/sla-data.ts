@@ -799,6 +799,74 @@ Focus on immediate SLA improvement priorities, customer retention strategies, an
   return [];
 }
 
+// This part of the code handles fast mode for quick SLA data loading without AI insights
+async function handleFastMode(req: VercelRequest, res: VercelResponse) {
+  console.log("⚡ SLA Fast Mode: Loading data without AI insights...");
+  
+  const [allProducts, allShipments] = await Promise.all([
+    fetchProducts(),
+    fetchShipments(),
+  ]);
+
+  const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
+  const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+  console.log(`🔍 Fast Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
+
+  const kpis = calculateSLAKPIs(products, shipments);
+  const performanceTrends = calculatePerformanceTrends(shipments);
+  const supplierScorecard = calculateSupplierScorecard(products, shipments);
+  const financialImpact = calculateFinancialImpact(products, shipments);
+  const optimizationRecommendations = generateOptimizationRecommendations(products, shipments, supplierScorecard, financialImpact);
+
+  const response = {
+    kpis,
+    performanceTrends,
+    supplierScorecard,
+    financialImpact,
+    optimizationRecommendations,
+    insights: [] // Empty for fast mode
+  };
+
+  console.log("✅ SLA Fast Mode: Data compiled successfully");
+  res.status(200).json(response);
+}
+
+// This part of the code handles insights mode for AI-generated SLA insights only
+async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
+  console.log("🤖 SLA Insights Mode: Loading AI insights only...");
+  
+  const [allProducts, allShipments] = await Promise.all([
+    fetchProducts(),
+    fetchShipments(),
+  ]);
+
+  const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
+  const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
+
+  const kpis = calculateSLAKPIs(products, shipments);
+  const performanceTrends = calculatePerformanceTrends(shipments);
+  const supplierScorecard = calculateSupplierScorecard(products, shipments);
+  const financialImpact = calculateFinancialImpact(products, shipments);
+  const optimizationRecommendations = generateOptimizationRecommendations(products, shipments, supplierScorecard, financialImpact);
+
+  const slaData = {
+    kpis,
+    performanceTrends,
+    supplierScorecard,
+    financialImpact,
+    optimizationRecommendations
+  };
+
+  const insights = await generateAISLAInsights(products, shipments, slaData);
+
+  console.log("✅ SLA Insights Mode: AI insights compiled successfully");
+  res.status(200).json({
+    insights,
+    lastUpdated: new Date().toISOString(),
+  });
+}
+
 /**
  * This part of the code handles the main API request
  * Follows the proven pattern from working APIs with comprehensive error handling
@@ -809,6 +877,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const { mode } = req.query;
+    
+    // This part of the code handles different loading modes for performance
+    if (mode === 'fast') {
+      return handleFastMode(req, res);
+    } else if (mode === 'insights') {
+      return handleInsightsMode(req, res);
+    }
+    
+    // Default: full data with insights (backward compatibility)
     console.log("📊 SLA API: Fetching comprehensive SLA performance data...");
 
     const [allProducts, allShipments] = await Promise.all([

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
-import { useOrdersData, useOrdersTable } from "@/hooks/useOrdersData";
+import { useOrdersDataFast, useOrdersInsights, useOrdersTable } from "@/hooks/useOrdersData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import type { OrderData } from "@/types/api";
@@ -19,8 +19,37 @@ import { ViewAllOrdersModal } from "@/components/orders/ViewAllOrdersModal";
 import { ViewAllShipmentsModal } from "@/components/orders/ViewAllShipmentsModal";
 import { OrderAIExplanationModal } from "@/components/orders/OrderAIExplanationModal";
 
+// This part of the code provides world-class insight loading experience for Orders
+const OrdersInsightLoadingMessage = () => (
+  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+    <div className="flex items-start">
+      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mt-0.5 mr-3"></div>
+      <div>
+        <h4 className="text-sm font-medium text-blue-800">🤖 AI Analyzing Orders</h4>
+        <p className="text-sm text-blue-700 mt-1">
+          Chief Fulfillment Officer AI is analyzing {" "}
+          <span className="font-medium">order patterns, fulfillment rates, and supplier performance</span>
+          {" "} to provide strategic insights...
+        </p>
+        <div className="mt-2 text-xs text-blue-600">
+          • Analyzing order processing efficiency<br/>
+          • Calculating fulfillment cost impacts<br/>
+          • Generating supplier performance insights
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function Orders() {
-  const { data, isLoading, error, refetch } = useOrdersData();
+  // This part of the code uses progressive loading for better performance
+  // Load fast data first, then AI insights separately in background
+  const { data, isLoading, error, refetch } = useOrdersDataFast();
+  const { 
+    data: insightsData, 
+    isLoading: insightsLoading, 
+    error: insightsError 
+  } = useOrdersInsights();
   const { getTablePageSize } = useSettingsIntegration();
   const { orders, totalCount, hasMore } = useOrdersTable(10);
   const [showViewAllModal, setShowViewAllModal] = useState(false);
@@ -85,13 +114,34 @@ export default function Orders() {
             {/* KPI Section - Orders Today, At-Risk Orders, Open POs, Unfulfillable SKUs */}
             <OrdersKPISection kpis={data.kpis} isLoading={isLoading} />
 
-            {/* AI Insights Section - Order Analysis Agent Insights */}
-            <InsightsSection 
-              insights={data.insights} 
-              isLoading={isLoading}
-              title="Insights"
-              subtitle={`${data.insights?.length || 0} insights from Order Analysis Agent`}
-            />
+            {/* AI Insights Section - Order Analysis Agent Insights with Progressive Loading */}
+            {insightsLoading && !insightsData ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
+                  <span className="text-sm text-gray-500">(Loading...)</span>
+                </div>
+                <OrdersInsightLoadingMessage />
+              </div>
+            ) : insightsError ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
+                  <span className="text-sm text-red-500">(Failed to load)</span>
+                </div>
+                <ErrorDisplay
+                  message="Unable to load AI insights - Using real data without AI recommendations"
+                  onRetry={() => window.location.reload()}
+                />
+              </div>
+            ) : (
+              <InsightsSection 
+                insights={insightsData?.insights || []} 
+                isLoading={false}
+                title="Insights"
+                subtitle={`${insightsData?.insights?.length || 0} insights from Order Analysis Agent`}
+              />
+            )}
 
             {/* Main Orders Table Section - Shows top 15 orders with AI explanations */}
             <OrdersTableSection

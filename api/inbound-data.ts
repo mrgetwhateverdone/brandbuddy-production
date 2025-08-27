@@ -289,12 +289,104 @@ Focus on immediate receiving priorities, delivery optimization, and operational 
   return [];
 }
 
+// This part of the code handles fast mode for quick inbound data loading without AI insights
+async function handleFastMode(req: VercelRequest, res: VercelResponse) {
+  console.log("⚡ Inbound Fast Mode: Loading data without AI insights...");
+  
+  const allShipments = await fetchShipments();
+  const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+  console.log(`🔍 Fast Mode - Data filtered for Callahan-Smith: ${allShipments.length} total → ${shipments.length} Callahan-Smith shipments`);
+
+  if (shipments.length === 0) {
+    return res.status(200).json({
+      success: true,
+      data: {
+        kpis: {
+          todayArrivals: 0,
+          thisWeekExpected: 0,
+          averageLeadTime: 0,
+          delayedShipments: 0,
+          receivingAccuracy: 0,
+          onTimeDeliveryRate: 0
+        },
+        insights: [], // Empty for fast mode
+        shipments: [],
+        todayArrivals: [],
+        receivingMetrics: [],
+        supplierPerformance: [],
+        lastUpdated: new Date().toISOString(),
+      },
+      message: "No inbound data available",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  const kpis = calculateInboundKPIs(shipments);
+  const today = new Date().toISOString().split('T')[0];
+  const todayArrivals = shipments.filter(s => {
+    const arrivalDate = s.arrival_date?.split('T')[0];
+    const expectedDate = s.expected_arrival_date?.split('T')[0];
+    return arrivalDate === today || expectedDate === today;
+  });
+
+  const inboundData = {
+    kpis,
+    insights: [], // Empty for fast mode
+    shipments,
+    todayArrivals,
+    receivingMetrics: [],
+    supplierPerformance: [],
+    lastUpdated: new Date().toISOString(),
+  };
+
+  console.log("✅ Inbound Fast Mode: Data compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: inboundData,
+    message: "Inbound fast data retrieved successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// This part of the code handles insights mode for AI-generated inbound insights only
+async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
+  console.log("🤖 Inbound Insights Mode: Loading AI insights only...");
+  
+  const allShipments = await fetchShipments();
+  const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${allShipments.length} total → ${shipments.length} Callahan-Smith shipments`);
+
+  const kpis = calculateInboundKPIs(shipments);
+  const insights = await generateInboundInsights(shipments, kpis);
+
+  console.log("✅ Inbound Insights Mode: AI insights compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: {
+      insights,
+      lastUpdated: new Date().toISOString(),
+    },
+    message: "Inbound insights retrieved successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    const { mode } = req.query;
+    
+    // This part of the code handles different loading modes for performance
+    if (mode === 'fast') {
+      return handleFastMode(req, res);
+    } else if (mode === 'insights') {
+      return handleInsightsMode(req, res);
+    }
+    
+    // Default: full data with insights (backward compatibility)
     console.log("🚚 Building world-class inbound operations dashboard for Callahan-Smith...");
 
     // This part of the code fetches real shipment data for inbound analysis

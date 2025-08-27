@@ -321,12 +321,103 @@ Focus on immediate inventory optimization priorities, supplier risk mitigation, 
   return [];
 }
 
+// This part of the code handles fast mode for quick inventory data loading without AI insights
+async function handleFastMode(req: VercelRequest, res: VercelResponse) {
+  console.log("⚡ Inventory Fast Mode: Loading data without AI insights...");
+  
+  const allProducts = await fetchProducts();
+  const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
+  console.log(`🔍 Fast Mode - Data filtered for Callahan-Smith: ${allProducts.length} total → ${products.length} Callahan-Smith products`);
+  
+  if (products.length === 0) {
+    return res.status(200).json({
+      success: true,
+      data: {
+        kpis: {
+          totalActiveSKUs: 0,
+          totalInventoryValue: 0,
+          lowStockAlerts: 0,
+          inactiveSKUs: 0,
+          totalSKUs: 0,
+          inStockCount: 0,
+          unfulfillableCount: 0,
+          overstockedCount: 0,
+          avgDaysOnHand: null
+        },
+        insights: [], // Empty for fast mode
+        inventory: [],
+        brandPerformance: [],
+        supplierAnalysis: [],
+        lastUpdated: new Date().toISOString(),
+      },
+      message: "No inventory data available",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  const kpis = calculateEnhancedKPIs(products);
+  const brandPerformance = calculateBrandPerformance(products);
+  const supplierAnalysis = calculateSupplierAnalysis(products);
+  const inventory = transformToEnhancedInventoryItems(products);
+
+  const inventoryData = {
+    kpis,
+    insights: [], // Empty for fast mode
+    inventory: inventory.slice(0, 500),
+    brandPerformance,
+    supplierAnalysis,
+    lastUpdated: new Date().toISOString(),
+  };
+
+  console.log("✅ Inventory Fast Mode: Data compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: inventoryData,
+    message: "Inventory fast data retrieved successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// This part of the code handles insights mode for AI-generated inventory insights only
+async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
+  console.log("🤖 Inventory Insights Mode: Loading AI insights only...");
+  
+  const allProducts = await fetchProducts();
+  const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
+  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${allProducts.length} total → ${products.length} Callahan-Smith products`);
+  
+  const kpis = calculateEnhancedKPIs(products);
+  const supplierAnalysis = calculateSupplierAnalysis(products);
+  const insights = await generateInventoryInsights(products, kpis, supplierAnalysis);
+
+  console.log("✅ Inventory Insights Mode: AI insights compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: {
+      insights,
+      lastUpdated: new Date().toISOString(),
+    },
+    message: "Inventory insights retrieved successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    const { mode } = req.query;
+    
+    // This part of the code handles different loading modes for performance
+    if (mode === 'fast') {
+      return handleFastMode(req, res);
+    } else if (mode === 'insights') {
+      return handleInsightsMode(req, res);
+    }
+    
+    // Default: full data with insights (backward compatibility)
     console.log("🔒 Phase 2: Building world-class inventory dashboard...");
 
     // Fetch real data and calculate enhanced analytics

@@ -338,12 +338,108 @@ Focus on immediate replenishment priorities, supplier risk mitigation, and finan
   return [];
 }
 
+// This part of the code handles fast mode for quick replenishment data loading without AI insights
+async function handleFastMode(req: VercelRequest, res: VercelResponse) {
+  console.log("⚡ Replenishment Fast Mode: Loading data without AI insights...");
+  
+  const [allProducts, allShipments] = await Promise.all([
+    fetchProducts(),
+    fetchShipments()
+  ]);
+
+  const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
+  const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+  console.log(`🔍 Fast Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
+
+  if (products.length === 0) {
+    return res.status(200).json({
+      success: true,
+      data: {
+        kpis: {
+          criticalSKUs: 0,
+          replenishmentValue: 0,
+          supplierAlerts: 0,
+          reorderRecommendations: 0
+        },
+        insights: [], // Empty for fast mode
+        products: [],
+        shipments: [],
+        criticalItems: [],
+        supplierPerformance: [],
+        reorderSuggestions: [],
+        lastUpdated: new Date().toISOString(),
+      },
+      message: "No replenishment data available",
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  const kpis = calculateReplenishmentKPIs(products, shipments);
+
+  const replenishmentData = {
+    kpis,
+    insights: [], // Empty for fast mode
+    products,
+    shipments,
+    criticalItems: [],
+    supplierPerformance: [],
+    reorderSuggestions: [],
+    lastUpdated: new Date().toISOString(),
+  };
+
+  console.log("✅ Replenishment Fast Mode: Data compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: replenishmentData,
+    message: "Replenishment fast data retrieved successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
+// This part of the code handles insights mode for AI-generated replenishment insights only
+async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
+  console.log("🤖 Replenishment Insights Mode: Loading AI insights only...");
+  
+  const [allProducts, allShipments] = await Promise.all([
+    fetchProducts(),
+    fetchShipments()
+  ]);
+
+  const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
+  const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
+  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
+
+  const kpis = calculateReplenishmentKPIs(products, shipments);
+  const insights = await generateReplenishmentInsights(products, shipments, kpis);
+
+  console.log("✅ Replenishment Insights Mode: AI insights compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: {
+      insights,
+      lastUpdated: new Date().toISOString(),
+    },
+    message: "Replenishment insights retrieved successfully",
+    timestamp: new Date().toISOString(),
+  });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
+    const { mode } = req.query;
+    
+    // This part of the code handles different loading modes for performance
+    if (mode === 'fast') {
+      return handleFastMode(req, res);
+    } else if (mode === 'insights') {
+      return handleInsightsMode(req, res);
+    }
+    
+    // Default: full data with insights (backward compatibility)
     console.log("🚨 Building world-class replenishment intelligence for Callahan-Smith...");
 
     // This part of the code fetches real data for replenishment analysis

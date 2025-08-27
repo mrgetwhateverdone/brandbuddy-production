@@ -108,14 +108,31 @@ class InternalApiService {
       this.apiLogger.info("Fetching dashboard AI insights");
 
       const response = await fetch(`${this.baseUrl}/api/dashboard-data?mode=insights`);
+      
+      // This part of the code adds debug logging to diagnose insights loading issue
+      console.log('🔍 Dashboard Insights Debug:', {
+        url: `${this.baseUrl}/api/dashboard-data?mode=insights`,
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
 
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Dashboard Insights API Error Response:', errorText);
         throw new Error(
           `Internal API Error: ${response.status} ${response.statusText}`,
         );
       }
 
       const result: APIResponse<{ insights: AIInsight[]; dailyBrief: string | null }> = await response.json();
+      
+      console.log('🔍 Dashboard Insights API Response:', {
+        success: result.success,
+        hasData: !!result.data,
+        insightsCount: result.data?.insights?.length || 0,
+        hasDailyBrief: !!result.data?.dailyBrief
+      });
 
       if (!result.success || !result.data) {
         throw new Error(result.message || "Failed to fetch dashboard insights");

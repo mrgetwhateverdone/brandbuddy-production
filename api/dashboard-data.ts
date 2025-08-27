@@ -797,9 +797,9 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
   });
 }
 
-// This part of the code handles insights mode for AI-generated insights only
+// This part of the code handles insights mode for AI-generated insights only 
 async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
-  console.log("🤖 Dashboard Insights Mode: Loading AI insights only...");
+  console.log("🤖 Dashboard Insights Mode: Loading AI insights only... [Debug v2]");
   
   const [allProducts, allShipments] = await Promise.all([
     fetchProducts(),

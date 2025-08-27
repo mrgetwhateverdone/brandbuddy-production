@@ -470,16 +470,18 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
   res.status(200).json({
     success: true,
     data: {
-      insights: insightsData.map((insight, index) => ({
-        id: `orders-insight-${index + 1}`,
-        title: insight.title,
-        description: insight.description,
-        severity: insight.severity as 'low' | 'medium' | 'high' | 'critical' | 'info' | 'warning',
-        dollarImpact: insight.dollarImpact,
-        suggestedActions: insight.suggestedActions || [],
-        createdAt: new Date().toISOString(),
-        source: 'orders_agent'
-      })),
+              insights: insightsData.map((insight, index) => ({
+          id: `orders-insight-${index + 1}`,
+          title: insight.title,
+          description: insight.description,
+          severity: (insight.severity === 'high' || insight.severity === 'critical') ? 'critical' as const :
+                   (insight.severity === 'medium' || insight.severity === 'warning') ? 'warning' as const :
+                   'info' as const,
+          dollarImpact: insight.dollarImpact || 0,
+          suggestedActions: insight.suggestedActions || [],
+          createdAt: new Date().toISOString(),
+          source: 'orders_agent' as const
+        })),
       lastUpdated: new Date().toISOString(),
     },
     message: "Orders insights retrieved successfully",
@@ -527,15 +529,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       orders: orders.slice(0, 500), // Show up to 500 orders for comprehensive view while maintaining performance
       kpis,
       insights: insightsData.map((insight, index) => ({
-        id: `orders-insight-${index}`,
+        id: `orders-insight-${index + 1}`,
         title: insight.title,
         description: insight.description,
-        severity:
-          insight.severity === "critical"
-            ? ("critical" as const)
-            : insight.severity === "warning"
-              ? ("warning" as const)
-              : ("info" as const),
+        severity: (insight.severity === 'high' || insight.severity === 'critical') ? 'critical' as const :
+                 (insight.severity === 'medium' || insight.severity === 'warning') ? 'warning' as const :
+                 'info' as const,
         dollarImpact: insight.dollarImpact || 0,
         suggestedActions: insight.suggestedActions || [],
         createdAt: new Date().toISOString(),

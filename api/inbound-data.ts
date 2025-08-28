@@ -154,6 +154,98 @@ function calculateInboundKPIs(shipments: ShipmentData[]): InboundKPIs {
 }
 
 /**
+ * This part of the code generates data-driven inbound insights when OpenAI is not available
+ * Uses real operational data to provide meaningful insights without AI
+ */
+function generateInboundDataDrivenInsights(
+  shipments: ShipmentData[],
+  kpis: InboundKPIs
+): any[] {
+  const insights: any[] = [];
+  
+  // Today's Arrival Capacity Planning
+  if (kpis.todayArrivals > 0) {
+    const capacityRisk = kpis.todayArrivals > 10 ? "critical" : kpis.todayArrivals > 5 ? "warning" : "info";
+    insights.push({
+      id: "inbound-insight-1",
+      title: "Inbound Receiving Capacity Planning",
+      description: `${kpis.todayArrivals} shipments scheduled for receiving today. Plan receiving dock allocation and staffing to handle arrival volume efficiently.`,
+      severity: capacityRisk,
+      dollarImpact: kpis.todayArrivals * 100, // Processing cost estimate
+      suggestedActions: [
+        "Schedule receiving dock assignments for today's arrivals",
+        "Ensure adequate staffing for processing volume",
+        "Prepare quality control checkpoints",
+        "Coordinate with warehouse team for space allocation"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "inbound_operations_agent"
+    });
+  }
+  
+  // Delivery Performance Issues
+  if (kpis.onTimeDeliveryRate < 85) {
+    const deliveryRisk = kpis.onTimeDeliveryRate < 70 ? "critical" : "warning";
+    insights.push({
+      id: "inbound-insight-2",
+      title: "Supplier Delivery Performance Below Target",
+      description: `On-time delivery rate at ${kpis.onTimeDeliveryRate}% (target: 85%). ${kpis.delayedShipments} shipments currently delayed affecting receiving schedule.`,
+      severity: deliveryRisk,
+      dollarImpact: kpis.delayedShipments * 500, // Delay cost estimate
+      suggestedActions: [
+        "Review supplier performance agreements",
+        "Implement supplier scorecards with delivery metrics",
+        "Negotiate improved delivery commitments",
+        "Establish backup supplier relationships"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "inbound_operations_agent"
+    });
+  }
+  
+  // Receiving Accuracy Issues
+  if (kpis.receivingAccuracy < 95) {
+    const accuracyRisk = kpis.receivingAccuracy < 90 ? "critical" : "warning";
+    const discrepancies = shipments.filter(s => s.expected_quantity !== s.received_quantity).length;
+    insights.push({
+      id: "inbound-insight-3",
+      title: "Receiving Accuracy Below Standard",
+      description: `Receiving accuracy at ${kpis.receivingAccuracy}% (target: 95%). ${discrepancies} shipments with quantity discrepancies requiring review.`,
+      severity: accuracyRisk,
+      dollarImpact: discrepancies * 250, // Error resolution cost
+      suggestedActions: [
+        "Implement automated receiving quality checks",
+        "Review and train receiving staff on procedures",
+        "Set up pre-arrival shipment verification",
+        "Install barcode scanning for accuracy"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "inbound_operations_agent"
+    });
+  }
+  
+  // Weekly Capacity Planning
+  const weeklyCapacityRisk = kpis.thisWeekExpected > 50 ? "warning" : "info";
+  insights.push({
+    id: "inbound-insight-4",
+    title: "Weekly Inbound Capacity Overview",
+    description: `${kpis.thisWeekExpected} shipments expected this week with ${kpis.averageLeadTime}-day average lead time. Optimize receiving schedule for efficient processing.`,
+    severity: weeklyCapacityRisk,
+    dollarImpact: kpis.thisWeekExpected * 75, // Weekly processing value
+    suggestedActions: [
+      "Schedule receiving appointments with suppliers",
+      "Plan warehouse space allocation for arrivals",
+      "Coordinate cross-docking opportunities",
+      "Optimize receiving staff schedules"
+    ],
+    createdAt: new Date().toISOString(),
+    source: "inbound_operations_agent"
+  });
+  
+  return insights.slice(0, 4); // Limit to top 4 insights
+}
+
+/**
  * This part of the code generates AI insights for inbound operations using OpenAI
  * Focuses on receiving efficiency, arrival optimization, and supplier delivery performance
  */
@@ -165,8 +257,8 @@ async function generateInboundInsights(
   console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No OpenAI API key found - returning empty insights');
-    return [];
+    console.log('❌ No OpenAI API key found - using data-driven insights');
+    return generateInboundDataDrivenInsights(shipments, kpis);
   }
 
   try {

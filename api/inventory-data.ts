@@ -197,6 +197,107 @@ function transformToEnhancedInventoryItems(products: ProductData[]) {
     .sort((a, b) => b.total_value - a.total_value); // Sort by value descending
 }
 
+// This part of the code generates data-driven inventory insights when OpenAI is not available
+function generateInventoryDataDrivenInsights(
+  products: ProductData[],
+  kpis: any,
+  supplierAnalysis: any[]
+): any[] {
+  const insights: any[] = [];
+  
+  // Calculate critical metrics
+  const lowStockItems = products.filter(p => p.active && p.unit_quantity > 0 && p.unit_quantity < 10);
+  const outOfStockItems = products.filter(p => p.active && p.unit_quantity === 0);
+  const overstockedItems = products.filter(p => p.active && p.unit_quantity > 100);
+  const inactiveItems = products.filter(p => !p.active);
+  const highRiskSuppliers = supplierAnalysis.filter(s => s.concentration_risk > 30);
+  
+  // Critical Stock Level Issues
+  if (lowStockItems.length > 0) {
+    const totalValue = lowStockItems.reduce((sum, p) => sum + (p.unit_quantity * (p.unit_cost || 0)), 0);
+    insights.push({
+      id: "inventory-insight-1",
+      title: "Low Stock Alerts Detected",
+      description: `${lowStockItems.length} active SKUs have critically low inventory levels (<10 units) with $${Math.round(totalValue).toLocaleString()} at risk of stockout.`,
+      severity: lowStockItems.length > 20 ? "critical" : "warning",
+      dollarImpact: Math.round(totalValue * 2), // Lost sales potential
+      suggestedActions: [
+        "Implement automated reorder triggers for low-stock items",
+        "Review safety stock levels for affected SKUs",
+        "Set up supplier expedite processes",
+        "Configure low-stock alerts for inventory team"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "inventory_agent"
+    });
+  }
+  
+  if (outOfStockItems.length > 0) {
+    const avgValue = products.filter(p => p.unit_cost).reduce((sum, p) => sum + (p.unit_cost || 0), 0) / products.filter(p => p.unit_cost).length;
+    const lostSalesPotential = outOfStockItems.length * avgValue * 50; // Conservative estimate
+    insights.push({
+      id: "inventory-insight-2", 
+      title: "Stockout Risk Analysis",
+      description: `${outOfStockItems.length} active SKUs are completely out of stock, creating potential lost sales of $${Math.round(lostSalesPotential).toLocaleString()}.`,
+      severity: "critical",
+      dollarImpact: Math.round(lostSalesPotential),
+      suggestedActions: [
+        "Emergency reorder for out-of-stock SKUs",
+        "Implement demand forecasting improvements",
+        "Review lead times with suppliers",
+        "Set up backorder management system"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "inventory_agent"
+    });
+  }
+  
+  // Overstock Capital Optimization
+  if (overstockedItems.length > 0) {
+    const overstockValue = overstockedItems.reduce((sum, p) => {
+      const excessUnits = Math.max(0, p.unit_quantity - 50); // Assume 50 is optimal max
+      return sum + (excessUnits * (p.unit_cost || 0));
+    }, 0);
+    insights.push({
+      id: "inventory-insight-3",
+      title: "Overstock Capital Optimization",
+      description: `${overstockedItems.length} SKUs have excess inventory (>100 units) tying up $${Math.round(overstockValue).toLocaleString()} in working capital.`,
+      severity: "warning",
+      dollarImpact: Math.round(overstockValue * 0.15), // 15% carrying cost
+      suggestedActions: [
+        "Implement ABC analysis for inventory categorization",
+        "Review max stock levels for overstocked items",
+        "Consider promotional strategies to move excess stock",
+        "Negotiate consignment arrangements with suppliers"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "inventory_agent"
+    });
+  }
+  
+  // Supplier Risk Management
+  if (highRiskSuppliers.length > 0) {
+    const concentrationRisk = highRiskSuppliers.reduce((sum, s) => sum + s.total_value, 0);
+    insights.push({
+      id: "inventory-insight-4",
+      title: "Supplier Concentration Risk",
+      description: `${highRiskSuppliers.length} suppliers represent >30% portfolio concentration with $${Math.round(concentrationRisk).toLocaleString()} exposure requiring diversification.`,
+      severity: "warning", 
+      dollarImpact: Math.round(concentrationRisk * 0.1), // 10% risk premium
+      suggestedActions: [
+        "Diversify supplier base to reduce concentration",
+        "Negotiate backup supplier agreements",
+        "Implement supplier performance scorecards",
+        "Review geographic risk distribution"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "inventory_agent"
+    });
+  }
+  
+  return insights.slice(0, 4); // Limit to top 4 insights
+}
+
 // This part of the code generates AI insights for inventory management using OpenAI
 async function generateInventoryInsights(
   products: ProductData[],
@@ -207,8 +308,8 @@ async function generateInventoryInsights(
   console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No OpenAI API key found - returning empty insights');
-    return [];
+    console.log('❌ No OpenAI API key found - using data-driven insights');
+    return generateInventoryDataDrivenInsights(products, kpis, supplierAnalysis);
   }
 
   try {

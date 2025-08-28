@@ -194,6 +194,114 @@ function calculateReplenishmentKPIs(products: ProductData[], shipments: Shipment
   return kpiResults;
 }
 
+// This part of the code generates data-driven replenishment insights when OpenAI is not available
+function generateReplenishmentDataDrivenInsights(
+  products: ProductData[],
+  shipments: ShipmentData[],
+  kpis: ReplenishmentKPIs
+): any[] {
+  const insights: any[] = [];
+  
+  // Calculate critical metrics
+  const criticalItems = products.filter(p => p.active && p.unit_quantity >= 0 && p.unit_quantity < 10);
+  const outOfStockItems = products.filter(p => p.active && p.unit_quantity === 0);
+  const lowStockItems = products.filter(p => p.active && p.unit_quantity > 0 && p.unit_quantity < 20);
+  
+  // Critical Stock Replenishment
+  if (criticalItems.length > 0) {
+    const urgentValue = criticalItems.reduce((sum, p) => {
+      const reorderAmount = Math.max(30 - p.unit_quantity, 0);
+      return sum + (reorderAmount * (p.unit_cost || 0));
+    }, 0);
+    insights.push({
+      type: "replenishment_urgent",
+      title: "Critical Stock Replenishment Required",
+      description: `${criticalItems.length} SKUs below critical threshold (<10 units) requiring immediate replenishment worth $${Math.round(urgentValue).toLocaleString()}.`,
+      severity: criticalItems.length > 15 ? "critical" : "warning",
+      dollarImpact: Math.round(urgentValue),
+      suggestedActions: [
+        "Generate emergency purchase orders for critical SKUs",
+        "Implement expedited supplier delivery agreements",
+        "Set up automated reorder triggers at 10-unit threshold",
+        "Review safety stock levels for frequent stockouts"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "replenishment_agent"
+    });
+  }
+  
+  // Stockout Prevention
+  if (outOfStockItems.length > 0) {
+    const lostSalesRisk = outOfStockItems.length * 500; // Conservative estimate
+    insights.push({
+      id: "replenishment-insight-2",
+      title: "Stockout Prevention Priority",
+      description: `${outOfStockItems.length} active SKUs are completely out of stock, creating immediate revenue risk and customer satisfaction impact.`,
+      severity: "critical",
+      dollarImpact: lostSalesRisk,
+      suggestedActions: [
+        "Expedite supplier orders for out-of-stock items",
+        "Implement stock substitution recommendations",
+        "Review demand forecasting accuracy",
+        "Set up backorder customer communication"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "replenishment_agent"
+    });
+  }
+  
+  // Supplier Performance Issues
+  const recentShipments = shipments.filter(s => {
+    if (!s.created_date) return false;
+    const shipmentDate = new Date(s.created_date);
+    const daysAgo = (Date.now() - shipmentDate.getTime()) / (1000 * 60 * 60 * 24);
+    return daysAgo <= 30;
+  });
+  const issueShipments = recentShipments.filter(s => s.expected_quantity !== s.received_quantity);
+  
+  if (issueShipments.length > 0) {
+    const impactValue = issueShipments.reduce((sum, s) => {
+      const diff = Math.abs(s.expected_quantity - s.received_quantity);
+      return sum + (diff * (s.unit_cost || 0));
+    }, 0);
+    insights.push({
+      id: "replenishment-insight-3",
+      title: "Supplier Delivery Performance Issues",
+      description: `${issueShipments.length} recent shipments had quantity discrepancies worth $${Math.round(impactValue).toLocaleString()}, affecting replenishment accuracy.`,
+      severity: issueShipments.length > 10 ? "warning" : "info",
+      dollarImpact: Math.round(impactValue),
+      suggestedActions: [
+        "Review supplier quality agreements",
+        "Implement pre-shipment verification process",
+        "Negotiate performance penalties for discrepancies",
+        "Diversify supplier base for critical SKUs"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "replenishment_agent"
+    });
+  }
+  
+  // Overall Replenishment Health
+  const totalValue = kpis.replenishmentValue;
+  insights.push({
+    id: "replenishment-insight-4",
+    title: "Replenishment Portfolio Summary",
+    description: `Portfolio requires $${totalValue.toLocaleString()} in replenishment orders across ${kpis.reorderRecommendations} SKUs to maintain optimal stock levels.`,
+    severity: "info",
+    dollarImpact: totalValue,
+    suggestedActions: [
+      "Schedule weekly replenishment planning sessions",
+      "Implement vendor-managed inventory for key suppliers",
+      "Review seasonal demand patterns for planning",
+      "Optimize order quantities using EOQ calculations"
+    ],
+    createdAt: new Date().toISOString(),
+    source: "replenishment_agent"
+  });
+  
+  return insights.slice(0, 4); // Limit to top 4 insights
+}
+
 // This part of the code generates AI insights for replenishment management using OpenAI
 async function generateReplenishmentInsights(
   products: ProductData[],
@@ -204,8 +312,8 @@ async function generateReplenishmentInsights(
   console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No OpenAI API key found - returning empty insights');
-    return [];
+    console.log('❌ No OpenAI API key found - using data-driven insights');
+    return generateReplenishmentDataDrivenInsights(products, shipments, kpis);
   }
 
   try {

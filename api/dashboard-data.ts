@@ -169,6 +169,90 @@ interface InsightData {
   suggestedActions?: string[];
 }
 
+/**
+ * This part of the code generates data-driven insights when OpenAI is not available
+ * Uses real operational data to provide meaningful insights without AI
+ */
+function generateDataDrivenInsights(products: ProductData[], shipments: ShipmentData[]): InsightData[] {
+  const insights: InsightData[] = [];
+  const financialImpacts = calculateFinancialImpacts(products, shipments);
+  
+  // Calculate key metrics
+  const atRiskShipments = shipments.filter(s => s.expected_quantity !== s.received_quantity).length;
+  const cancelledShipments = shipments.filter(s => s.status === "cancelled").length;
+  const inactiveProducts = products.filter(p => !p.active).length;
+  const totalProducts = products.length;
+  
+  // High-Priority Operational Issues Based on Real Data
+  if (atRiskShipments > 5) {
+    insights.push({
+      type: "operational_risk",
+      title: "Shipment Quantity Discrepancies Detected",
+      description: `${atRiskShipments} shipments have quantity discrepancies with $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()} financial impact. Review receiving processes and supplier accuracy.`,
+      severity: atRiskShipments > 20 ? "critical" : "warning",
+      dollarImpact: financialImpacts.quantityDiscrepancyImpact,
+      suggestedActions: [
+        "Implement automated quantity verification at receiving",
+        "Review supplier performance for quantity accuracy",
+        "Establish escalation process for discrepancy resolution",
+        "Set up real-time shipment tracking alerts"
+      ]
+    });
+  }
+  
+  if (cancelledShipments > 2) {
+    insights.push({
+      type: "supplier_risk",
+      title: "Cancelled Shipment Impact",
+      description: `${cancelledShipments} cancelled shipments with $${financialImpacts.cancelledShipmentsImpact.toLocaleString()} impact. Supplier reliability issues affecting operations.`,
+      severity: cancelledShipments > 8 ? "critical" : "warning",
+      dollarImpact: financialImpacts.cancelledShipmentsImpact,
+      suggestedActions: [
+        "Review supplier reliability scorecards",
+        "Implement backup supplier strategies",
+        "Negotiate penalty clauses for cancellations",
+        "Diversify supplier portfolio to reduce risk"
+      ]
+    });
+  }
+  
+  if (inactiveProducts > totalProducts * 0.15) {
+    insights.push({
+      type: "inventory_optimization",
+      title: "High Inactive Inventory Levels",
+      description: `${inactiveProducts} inactive products (${Math.round(inactiveProducts/totalProducts*100)}% of portfolio) with $${financialImpacts.inactiveProductsValue.toLocaleString()} opportunity cost.`,
+      severity: inactiveProducts > totalProducts * 0.3 ? "critical" : "warning",
+      dollarImpact: financialImpacts.inactiveProductsValue,
+      suggestedActions: [
+        "Implement automated reactivation workflows",
+        "Review product lifecycle management",
+        "Optimize inventory turnover strategies",
+        "Consider liquidation for non-performing SKUs"
+      ]
+    });
+  }
+  
+  // Always include a performance summary
+  const onTimeShipments = shipments.filter(s => s.status === "completed" || s.status === "delivered").length;
+  const successRate = shipments.length > 0 ? Math.round((onTimeShipments / shipments.length) * 100) : 100;
+  
+  insights.push({
+    type: "performance_summary",
+    title: "Operational Performance Overview",
+    description: `Processing ${shipments.length} shipments with ${successRate}% success rate. ${totalProducts} products managed across operations with $${financialImpacts.totalFinancialRisk.toLocaleString()} total risk exposure.`,
+    severity: successRate < 85 ? "warning" : "info",
+    dollarImpact: financialImpacts.totalFinancialRisk,
+    suggestedActions: [
+      "Monitor KPI trends for operational efficiency",
+      "Establish performance benchmarks",
+      "Implement continuous improvement processes",
+      "Review monthly operational metrics"
+    ]
+  });
+  
+  return insights.slice(0, 4); // Limit to top 4 insights
+}
+
 async function generateInsights(
   products: ProductData[],
   shipments: ShipmentData[],
@@ -176,9 +260,9 @@ async function generateInsights(
   const apiKey = process.env.OPENAI_API_KEY;
   console.log('🔑 Dashboard Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
   if (!apiKey) {
-    console.log('❌ OPENAI_API_KEY not found in environment variables');
-    // Return empty insights - no fallback data generation
-    return [];
+    console.log('❌ OPENAI_API_KEY not found in environment variables - using data-driven insights');
+    // Return data-driven insights when OpenAI is not available
+    return generateDataDrivenInsights(products, shipments);
   }
 
   try {

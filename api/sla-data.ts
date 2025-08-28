@@ -680,6 +680,105 @@ function generateOptimizationRecommendations(
 }
 
 /**
+ * This part of the code generates data-driven SLA insights when OpenAI is not available
+ * Uses real performance data to provide meaningful insights without AI
+ */
+function generateSLADataDrivenInsights(
+  products: ProductData[],
+  shipments: ShipmentData[],
+  slaData: any
+): any[] {
+  const insights: any[] = [];
+  
+  // SLA Compliance Performance
+  const compliance = slaData.kpis.overallSLACompliance || 0;
+  if (compliance < 95) {
+    const complianceRisk = compliance < 80 ? "critical" : compliance < 90 ? "warning" : "info";
+    const improvementOpportunity = (95 - compliance) * slaData.financialImpact.totalSLABreachCost / 100;
+    insights.push({
+      id: "sla-insight-1",
+      title: "SLA Compliance Below Target Performance",
+      description: `Overall SLA compliance at ${compliance}% (target: 95%). ${slaData.kpis.atRiskShipments} shipments currently at risk with $${slaData.kpis.costOfSLABreaches.toLocaleString()} in breach costs.`,
+      severity: complianceRisk,
+      dollarImpact: Math.round(improvementOpportunity),
+      suggestedActions: [
+        "Implement automated SLA monitoring with escalation triggers",
+        "Review supplier performance agreements",
+        "Set up proactive customer communication for delays",
+        "Establish service recovery processes for SLA breaches"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "dashboard_agent"
+    });
+  }
+  
+  // Supplier Performance Issues
+  const poorPerformers = slaData.supplierScorecard.filter((s: any) => s.performanceScore < 80);
+  if (poorPerformers.length > 0) {
+    const totalRiskValue = poorPerformers.reduce((sum: number, s: any) => sum + s.totalValue, 0);
+    insights.push({
+      id: "sla-insight-2",
+      title: "Supplier Performance Risk Exposure",
+      description: `${poorPerformers.length} suppliers performing below 80% represent $${Math.round(totalRiskValue).toLocaleString()} in risk exposure affecting service levels.`,
+      severity: poorPerformers.length > 3 ? "critical" : "warning",
+      dollarImpact: Math.round(totalRiskValue * 0.1), // 10% risk premium
+      suggestedActions: [
+        "Diversify supplier base to reduce concentration risk",
+        "Negotiate improved delivery commitments",
+        "Implement supplier scorecards with penalty clauses",
+        "Establish backup supplier relationships"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "dashboard_agent"
+    });
+  }
+  
+  // Financial Impact Management
+  if (slaData.financialImpact.totalSLABreachCost > 10000) {
+    const annualizedCost = slaData.financialImpact.totalSLABreachCost * 12;
+    insights.push({
+      id: "sla-insight-3",
+      title: "SLA Breach Cost Optimization Opportunity",
+      description: `Current SLA breach costs of $${slaData.financialImpact.totalSLABreachCost.toLocaleString()} per month, with potential savings of $${slaData.financialImpact.potentialSavings.toLocaleString()}.`,
+      severity: "warning",
+      dollarImpact: slaData.financialImpact.potentialSavings,
+      suggestedActions: [
+        "Invest in automated shipment tracking systems",
+        "Implement real-time delay notification processes",
+        "Negotiate performance-based contracts with penalties",
+        "Optimize safety stock levels to buffer delays"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "dashboard_agent"
+    });
+  }
+  
+  // Delivery Performance Optimization
+  const avgDeliveryPerformance = slaData.kpis.averageDeliveryPerformance || 0;
+  if (Math.abs(avgDeliveryPerformance) > 1) {
+    const performanceType = avgDeliveryPerformance > 0 ? "late" : "early";
+    const optimizationValue = Math.abs(avgDeliveryPerformance) * 1000; // Cost per day variance
+    insights.push({
+      id: "sla-insight-4",
+      title: `Delivery Timing Optimization - ${performanceType.charAt(0).toUpperCase() + performanceType.slice(1)} Deliveries`,
+      description: `Average delivery variance of ${Math.abs(avgDeliveryPerformance)} days ${performanceType}. Optimize delivery scheduling for better predictability.`,
+      severity: Math.abs(avgDeliveryPerformance) > 3 ? "warning" : "info",
+      dollarImpact: Math.round(optimizationValue),
+      suggestedActions: [
+        "Review and adjust supplier lead time agreements",
+        "Implement buffer time management strategies",
+        "Coordinate receiving capacity with delivery schedules",
+        "Set up delivery appointment scheduling systems"
+      ],
+      createdAt: new Date().toISOString(),
+      source: "dashboard_agent"
+    });
+  }
+  
+  return insights.slice(0, 4); // Limit to top 4 insights
+}
+
+/**
  * This part of the code generates AI-powered SLA insights using Customer Success Director expertise
  */
 async function generateAISLAInsights(
@@ -691,8 +790,8 @@ async function generateAISLAInsights(
   console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No OpenAI API key found - returning empty insights');
-    return [];
+    console.log('❌ No OpenAI API key found - using data-driven insights');
+    return generateSLADataDrivenInsights(products, shipments, slaData);
   }
 
   try {

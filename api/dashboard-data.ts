@@ -174,9 +174,9 @@ interface InsightData {
  * Uses real operational data to provide meaningful insights without AI
  */
 function generateDataDrivenInsights(products: ProductData[], shipments: ShipmentData[]): InsightData[] {
-  const insights: InsightData[] = [];
-  const financialImpacts = calculateFinancialImpacts(products, shipments);
-  
+    const insights: InsightData[] = [];
+    const financialImpacts = calculateFinancialImpacts(products, shipments);
+    
   // Calculate key metrics
   const atRiskShipments = shipments.filter(s => s.expected_quantity !== s.received_quantity).length;
   const cancelledShipments = shipments.filter(s => s.status === "cancelled").length;
@@ -185,12 +185,12 @@ function generateDataDrivenInsights(products: ProductData[], shipments: Shipment
   
   // High-Priority Operational Issues Based on Real Data
   if (atRiskShipments > 5) {
-    insights.push({
+      insights.push({
       type: "operational_risk",
       title: "Shipment Quantity Discrepancies Detected",
       description: `${atRiskShipments} shipments have quantity discrepancies with $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()} financial impact. Review receiving processes and supplier accuracy.`,
       severity: atRiskShipments > 20 ? "critical" : "warning",
-      dollarImpact: financialImpacts.quantityDiscrepancyImpact,
+        dollarImpact: financialImpacts.quantityDiscrepancyImpact,
       suggestedActions: [
         "Implement automated quantity verification at receiving",
         "Review supplier performance for quantity accuracy",
@@ -201,12 +201,12 @@ function generateDataDrivenInsights(products: ProductData[], shipments: Shipment
   }
   
   if (cancelledShipments > 2) {
-    insights.push({
+      insights.push({
       type: "supplier_risk",
       title: "Cancelled Shipment Impact",
       description: `${cancelledShipments} cancelled shipments with $${financialImpacts.cancelledShipmentsImpact.toLocaleString()} impact. Supplier reliability issues affecting operations.`,
       severity: cancelledShipments > 8 ? "critical" : "warning",
-      dollarImpact: financialImpacts.cancelledShipmentsImpact,
+        dollarImpact: financialImpacts.cancelledShipmentsImpact,
       suggestedActions: [
         "Review supplier reliability scorecards",
         "Implement backup supplier strategies",
@@ -217,12 +217,12 @@ function generateDataDrivenInsights(products: ProductData[], shipments: Shipment
   }
   
   if (inactiveProducts > totalProducts * 0.15) {
-    insights.push({
+      insights.push({
       type: "inventory_optimization",
       title: "High Inactive Inventory Levels",
       description: `${inactiveProducts} inactive products (${Math.round(inactiveProducts/totalProducts*100)}% of portfolio) with $${financialImpacts.inactiveProductsValue.toLocaleString()} opportunity cost.`,
       severity: inactiveProducts > totalProducts * 0.3 ? "critical" : "warning",
-      dollarImpact: financialImpacts.inactiveProductsValue,
+        dollarImpact: financialImpacts.inactiveProductsValue,
       suggestedActions: [
         "Implement automated reactivation workflows",
         "Review product lifecycle management",
@@ -374,7 +374,8 @@ Draw from your extensive experience in operational excellence and provide insigh
         } catch (parseError) {
           console.error('❌ Dashboard Agent JSON Parse Error:', parseError);
           console.error('❌ Raw content that failed:', content?.substring(0, 500));
-          throw parseError;
+          console.log('🔄 Dashboard: JSON parse failed, falling back to data-driven insights');
+          return generateDataDrivenInsights(products, shipments);
         }
       }
     } else {
@@ -384,8 +385,9 @@ Draw from your extensive experience in operational excellence and provide insigh
     console.error('❌ Dashboard OpenAI analysis failed:', error);
   }
 
-  // Return empty insights when AI fails - no fallback data generation
-  return [];
+  // Return data-driven insights when AI fails
+  console.log('🔄 Dashboard: Falling back to data-driven insights due to OpenAI failure');
+  return generateDataDrivenInsights(products, shipments);
 }
 
 /**

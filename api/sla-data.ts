@@ -930,7 +930,7 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
   res.status(200).json(response);
 }
 
-// This part of the code handles insights mode for AI-generated SLA insights only
+// This part of the code handles insights mode for AI-generated SLA insights only - FIXED RESPONSE FORMAT
 async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
   console.log("🤖 SLA Insights Mode: Loading AI insights only...");
   
@@ -957,12 +957,28 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
     optimizationRecommendations
   };
 
-  const insights = await generateAISLAInsights(products, shipments, slaData);
+  const rawInsights = await generateAISLAInsights(products, shipments, slaData);
 
   console.log("✅ SLA Insights Mode: AI insights compiled successfully");
   res.status(200).json({
-    insights,
-    lastUpdated: new Date().toISOString(),
+    success: true,
+    data: {
+      insights: rawInsights.map((insight, index) => ({
+        id: `sla-insight-${index + 1}`,
+        title: insight.title,
+        description: insight.description,
+        severity: (insight.severity === 'high' || insight.severity === 'critical') ? 'critical' as const :
+                 (insight.severity === 'medium' || insight.severity === 'warning') ? 'warning' as const :
+                 'info' as const,
+        dollarImpact: insight.dollarImpact || 0,
+        suggestedActions: insight.suggestedActions || [],
+        createdAt: new Date().toISOString(),
+        source: 'sla_agent' as const
+      })),
+      lastUpdated: new Date().toISOString(),
+    },
+    message: "SLA insights retrieved successfully",
+    timestamp: new Date().toISOString(),
   });
 }
 

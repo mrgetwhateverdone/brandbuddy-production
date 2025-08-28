@@ -411,15 +411,17 @@ Focus on immediate inventory optimization priorities, supplier risk mitigation, 
       }));
     } catch (parseError) {
       console.error('❌ JSON parsing failed:', parseError);
-      return [];
+      console.log('🔄 Inventory: JSON parse failed, falling back to data-driven insights');
+      return generateInventoryDataDrivenInsights(products, kpis, supplierAnalysis);
     }
 
   } catch (error) {
     console.error("❌ Inventory AI analysis failed:", error);
   }
   
-  // Return empty insights when AI fails - no fallback data generation
-  return [];
+  // Return data-driven insights when AI fails
+  console.log('🔄 Inventory: Falling back to data-driven insights due to OpenAI failure');
+  return generateInventoryDataDrivenInsights(products, kpis, supplierAnalysis);
 }
 
 // This part of the code handles fast mode for quick inventory data loading without AI insights

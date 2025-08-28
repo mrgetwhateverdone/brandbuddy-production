@@ -2,7 +2,7 @@
 // It provides comprehensive workflow tracking with status management and automatic refresh capabilities
 
 import React, { useState } from 'react';
-import { Plus, Settings, Trash2, Play, CheckCircle } from 'lucide-react';
+import { Plus, Settings, Trash2, Play, CheckCircle, Bot } from 'lucide-react';
 import { Layout } from '../components/layout/Layout';
 import { useWorkflows } from '../hooks/useWorkflows';
 import { CreatedWorkflow } from '../utils/workflowStorage';

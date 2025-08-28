@@ -1,6 +1,6 @@
 # BrandBuddy - Brand Operations Management Platform 🚀.
 
-<!-- Deployment: Rollback to stable commit 1e795d9 - January 16, 2025 10:07 AM -->
+<!-- Deployment: Restored to working version a2dc8f7 with enhanced AI insights - August 28, 2025 2:25 PM -->
 
 > **Powered by Heft IQ** - A sophisticated, production-ready brand operations platform focused on Callahan-Smith brand management with real-time data integration, AI-powered insights, advanced analytics, and comprehensive operational oversight.
 

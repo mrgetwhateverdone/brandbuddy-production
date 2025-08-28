@@ -184,6 +184,57 @@ async function generateInsights(
   }
 
   try {
+    // This part of the code extracts specific data for actionable AI recommendations
+    const topAtRiskShipments = shipments
+      .filter(s => s.expected_quantity !== s.received_quantity)
+      .sort((a, b) => Math.abs(b.expected_quantity - b.received_quantity) * (b.unit_cost || 0) - Math.abs(a.expected_quantity - a.received_quantity) * (a.unit_cost || 0))
+      .slice(0, 5)
+      .map(s => ({
+        shipmentId: s.shipment_id,
+        supplier: s.supplier,
+        expectedQty: s.expected_quantity,
+        receivedQty: s.received_quantity,
+        variance: s.expected_quantity - s.received_quantity,
+        impact: Math.round(Math.abs(s.expected_quantity - s.received_quantity) * (s.unit_cost || 0))
+      }));
+
+    const topInactiveProducts = products
+      .filter(p => !p.active && p.unit_cost)
+      .sort((a, b) => (b.unit_cost || 0) * b.unit_quantity - (a.unit_cost || 0) * a.unit_quantity)
+      .slice(0, 4)
+      .map(p => ({
+        sku: p.product_sku,
+        name: p.product_name,
+        supplier: p.supplier_name,
+        opportunityCost: Math.round((p.unit_cost || 0) * Math.min(p.unit_quantity, 10))
+      }));
+
+    const topCancelledShipments = shipments
+      .filter(s => s.status === "cancelled" && s.unit_cost)
+      .sort((a, b) => (b.unit_cost || 0) * b.expected_quantity - (a.unit_cost || 0) * a.expected_quantity)
+      .slice(0, 3)
+      .map(s => ({
+        shipmentId: s.shipment_id,
+        supplier: s.supplier,
+        lostValue: Math.round((s.unit_cost || 0) * s.expected_quantity),
+        expectedQty: s.expected_quantity
+      }));
+
+    const supplierConcentrationRisks = Object.entries(
+      shipments.reduce((acc, s) => {
+        const supplier = s.supplier || 'Unknown';
+        if (!acc[supplier]) acc[supplier] = { shipments: 0, value: 0 };
+        acc[supplier].shipments++;
+        acc[supplier].value += (s.received_quantity * (s.unit_cost || 0));
+        return acc;
+      }, {} as Record<string, { shipments: number; value: number }>)
+    ).sort(([,a], [,b]) => b.shipments - a.shipments).slice(0, 3);
+
+    console.log('🔍 Dashboard AI Enhancement - At-Risk Shipments:', topAtRiskShipments.length);
+    console.log('🔍 Dashboard AI Enhancement - Inactive Products:', topInactiveProducts.length);
+    console.log('🔍 Dashboard AI Enhancement - Cancelled Shipments:', topCancelledShipments.length);
+    console.log('🔍 Dashboard AI Enhancement - Supplier Concentration:', supplierConcentrationRisks.length);
+
     const financialImpacts = calculateFinancialImpacts(products, shipments);
     
     // This part of the code calculates enhanced operational intelligence metrics
@@ -231,6 +282,21 @@ async function generateInsights(
             role: "user",
             content: `You are a Senior Operations Director with 15+ years of experience in supply chain management and business intelligence. You specialize in identifying critical operational bottlenecks and implementing data-driven solutions that improve efficiency and reduce costs.
 
+SPECIFIC DATA FOR ACTIONABLE RECOMMENDATIONS:
+===========================================
+
+TOP AT-RISK SHIPMENTS (for immediate review):
+${topAtRiskShipments.map(s => `- Shipment: ${s.shipmentId} - Supplier: ${s.supplier || 'Unknown'} - Variance: ${s.variance} units - Impact: $${s.impact.toLocaleString()}`).join('\n')}
+
+INACTIVE PRODUCTS (for reactivation strategy):
+${topInactiveProducts.map(p => `- SKU: ${p.sku || 'Unknown'} (${p.name || 'Unknown'}) - Supplier: ${p.supplier || 'Unknown'} - Opportunity Cost: $${p.opportunityCost.toLocaleString()}`).join('\n')}
+
+CANCELLED SHIPMENTS (for supplier performance review):
+${topCancelledShipments.map(s => `- Shipment: ${s.shipmentId} - Supplier: ${s.supplier || 'Unknown'} - Lost Value: $${s.lostValue.toLocaleString()} (${s.expectedQty} units)`).join('\n')}
+
+SUPPLIER CONCENTRATION RISKS (for diversification):
+${supplierConcentrationRisks.map(([supplier, data]) => `- ${supplier}: ${data.shipments} shipments, $${Math.round(data.value).toLocaleString()} total value`).join('\n')}
+
 Analyze the current operational data including ${shipments.length} shipments, ${products.length} products, and ${new Set(shipments.map(s => s.warehouse_id)).size} warehouses. Identify the top 3-5 most critical operational issues that need immediate attention. Focus on: shipment delays, inventory discrepancies, cost overruns, and performance bottlenecks. For each issue, provide specific actionable workflows like 'Implement automated reorder triggers for low-stock items' or 'Create escalation process for at-risk shipments'. Include financial impact estimates and ROI projections based on your extensive industry experience.
 
 OPERATIONAL DATA OVERVIEW:
@@ -271,6 +337,21 @@ Format as JSON with 3-5 strategic insights:
 ]
 
 EACH INSIGHT MUST HAVE 3-5 DETAILED SUGGESTED ACTIONS. NO EXCEPTIONS.
+
+CRITICAL REQUIREMENTS for Actionable Recommendations:
+- MUST reference specific Shipment IDs from the AT-RISK SHIPMENTS data above
+- MUST include actual SKU numbers from the INACTIVE PRODUCTS data for reactivation recommendations  
+- MUST name specific suppliers from the CANCELLED SHIPMENTS and SUPPLIER CONCENTRATION data
+- MUST use real dollar amounts and quantities from the specific data sections above
+- MUST provide concrete next steps with specific parties to contact (suppliers, warehouses, etc.)
+- NO generic recommendations like "Implement automated reorder triggers" - use specific shipment IDs and SKU numbers
+
+EXAMPLE SPECIFIC RECOMMENDATIONS:
+✅ GOOD: "Review Shipment ${topAtRiskShipments[0]?.shipmentId || 'SH-12345'} with ${topAtRiskShipments[0]?.supplier || 'Clark supplier'} - ${topAtRiskShipments[0]?.variance || 15} unit variance causing $${topAtRiskShipments[0]?.impact?.toLocaleString() || '2,500'} impact"
+✅ GOOD: "Reactivate high-value SKUs: ${topInactiveProducts[0]?.sku || 'ABC-123'}, ${topInactiveProducts[1]?.sku || 'DEF-456'} from ${topInactiveProducts[0]?.supplier || 'West Barber'} - $${(topInactiveProducts[0]?.opportunityCost || 0) + (topInactiveProducts[1]?.opportunityCost || 0)} opportunity cost"
+✅ GOOD: "Schedule performance review with ${topCancelledShipments[0]?.supplier || 'Garcia Ltd'} - $${topCancelledShipments[0]?.lostValue?.toLocaleString() || '8,200'} lost from cancelled shipments"
+❌ BAD: "Implement automated reorder triggers for low-stock items" (too generic, no specific data)
+❌ BAD: "Create escalation process for at-risk shipments" (no specific shipment IDs mentioned)
 
 Draw from your extensive experience in operational excellence and provide insights that deliver measurable business value.`,
           },

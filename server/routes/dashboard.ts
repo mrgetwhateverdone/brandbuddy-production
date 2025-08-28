@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import { logger } from "../../shared/services/logger";
 import { dataFetchingService, type ProductData, type ShipmentData } from "../services/DataFetchingService";
+import { langfuse, createInsightTraceMetadata, createGenerationMetadata } from "../../utils/langfuse-client";
 
 /**
  * Server-side proxy for TinyBird and OpenAI APIs
@@ -148,20 +149,44 @@ export const getShipmentsData: RequestHandler = async (_req, res) => {
 };
 
 /**
- * Secure OpenAI Insights generation proxy
+ * Secure OpenAI Insights generation proxy with Langfuse observability
  * API key not exposed to client
  */
 export const generateInsights: RequestHandler = async (req, res) => {
+  // This part of the code creates Langfuse trace for dashboard insights monitoring
+  const trace = langfuse.trace({
+    name: "dashboard-insights-generation",
+    userId: "system",
+    sessionId: `dashboard-${Date.now()}`,
+    metadata: createInsightTraceMetadata("dashboard-server", {
+      analysisDataSize: JSON.stringify(req.body.analysisData || {}).length,
+      requestId: req.headers['x-request-id'] || Date.now().toString(),
+      userAgent: req.headers['user-agent']
+    })
+  });
+
   try {
     console.log("🔒 Server: Generating AI insights securely...");
 
     const openaiKey = process.env.OPENAI_API_KEY;
     if (!openaiKey) {
+      // This part of the code tracks missing API key events
+      trace.event({
+        name: "openai-key-missing",
+        level: "ERROR",
+        metadata: { error: "OPENAI_API_KEY environment variable not configured" }
+      });
       throw new Error("OPENAI_API_KEY environment variable not configured");
     }
 
     const { analysisData } = req.body;
     if (!analysisData) {
+      // This part of the code tracks missing analysis data events
+      trace.event({
+        name: "analysis-data-missing", 
+        level: "ERROR",
+        metadata: { error: "Analysis data required for insight generation" }
+      });
       return res.status(400).json({
         success: false,
         error: "Analysis data required for insight generation",
@@ -169,6 +194,14 @@ export const generateInsights: RequestHandler = async (req, res) => {
     }
 
     const prompt = buildAnalysisPrompt(analysisData);
+
+    // This part of the code creates generation tracking with input/output monitoring
+    const generation = trace.generation({
+      name: "openai-dashboard-insights",
+      model: "gpt-4",
+      input: prompt,
+      metadata: createGenerationMetadata("dashboard-server-insights", prompt.length)
+    });
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -185,13 +218,40 @@ export const generateInsights: RequestHandler = async (req, res) => {
     });
 
     if (!response.ok) {
-      throw new Error(
-        `OpenAI API Error: ${response.status} ${response.statusText}`,
-      );
+      // This part of the code tracks OpenAI API errors
+      trace.event({
+        name: "openai-api-error",
+        level: "ERROR", 
+        metadata: {
+          status: response.status,
+          statusText: response.statusText
+        }
+      });
+      throw new Error(`OpenAI API Error: ${response.status} ${response.statusText}`);
     }
 
     const result = await response.json();
     const insights = parseInsightsResponse(result.choices[0].message.content);
+
+    // This part of the code completes generation tracking with usage metrics
+    generation.end({
+      output: result.choices[0].message.content,
+      usage: {
+        promptTokens: result.usage?.prompt_tokens || 0,
+        completionTokens: result.usage?.completion_tokens || 0,
+      },
+      level: "DEFAULT"
+    });
+
+    // This part of the code tracks successful insight generation
+    trace.event({
+      name: "insights-generated-successfully",
+      metadata: { 
+        insightCount: insights.length,
+        totalTokens: result.usage?.total_tokens || 0,
+        cost: calculateCost(result.usage?.prompt_tokens || 0, result.usage?.completion_tokens || 0)
+      }
+    });
 
     console.log(
       "✅ Server: AI insights generated successfully:",
@@ -205,6 +265,15 @@ export const generateInsights: RequestHandler = async (req, res) => {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
+    // This part of the code tracks generation failures for monitoring
+    trace.event({
+      name: "insight-generation-failed",
+      level: "ERROR",
+      metadata: { 
+        error: error instanceof Error ? error.message : "Unknown error"
+      }
+    });
+
     console.error("❌ Server: AI insight generation failed:", error);
     return res.status(500).json({
       success: false,
@@ -213,6 +282,14 @@ export const generateInsights: RequestHandler = async (req, res) => {
     });
   }
 };
+
+// This part of the code calculates OpenAI costs for tracking
+function calculateCost(promptTokens: number, completionTokens: number): number {
+  const PROMPT_COST_PER_1K = 0.03; // GPT-4 pricing
+  const COMPLETION_COST_PER_1K = 0.06;
+  
+  return (promptTokens / 1000 * PROMPT_COST_PER_1K) + (completionTokens / 1000 * COMPLETION_COST_PER_1K);
+}
 
 /**
  * Combined dashboard data endpoint

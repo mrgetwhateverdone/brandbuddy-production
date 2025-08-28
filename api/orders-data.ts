@@ -376,9 +376,9 @@ async function generateOrdersInsights(
   const apiKey = process.env.OPENAI_API_KEY;
   console.log('🔑 Orders Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
   if (!apiKey) {
-    console.log('❌ OPENAI_API_KEY not found in environment variables for Orders Agent - using data-driven insights');
-    // This part of the code returns data-driven insights when no API key is available
-    return generateOrdersDataDrivenInsights(orders, kpis, inboundIntelligence);
+    console.log('❌ OPENAI_API_KEY not found in environment variables for Orders Agent - returning empty insights (NO FALLBACK)');
+    // Return empty insights when OpenAI is not available - NO FALLBACK like daily brief
+    return [];
   }
 
   try {
@@ -469,7 +469,7 @@ CRITICAL REQUIREMENTS for Chief Fulfillment Officer:
 - Focus on measurable ROI and operational efficiency improvements based on your proven track record`,
           },
         ],
-        max_tokens: 700,
+        max_tokens: 1500, // Increased for detailed insights and recommendations
         temperature: 0.2,
       }),
     });
@@ -486,7 +486,8 @@ CRITICAL REQUIREMENTS for Chief Fulfillment Officer:
         } catch (parseError) {
           console.error('❌ Orders Agent JSON Parse Error:', parseError);
           console.error('❌ Raw content that failed:', content?.substring(0, 500));
-          throw parseError;
+          console.log('❌ Orders: JSON parse failed, returning empty insights (NO FALLBACK)');
+          return [];
         }
       }
     } else {
@@ -496,7 +497,8 @@ CRITICAL REQUIREMENTS for Chief Fulfillment Officer:
     console.error('❌ Orders Agent OpenAI analysis failed:', error);
   }
 
-  // This part of the code returns empty insights when AI fails - no fallback data
+  // Return empty insights when AI fails - NO FALLBACK like daily brief
+  console.log('❌ Orders: OpenAI failed, returning empty insights (NO FALLBACK)');
   return [];
 }
 

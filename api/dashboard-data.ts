@@ -260,9 +260,9 @@ async function generateInsights(
   const apiKey = process.env.OPENAI_API_KEY;
   console.log('🔑 Dashboard Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
   if (!apiKey) {
-    console.log('❌ OPENAI_API_KEY not found in environment variables - using data-driven insights');
-    // Return data-driven insights when OpenAI is not available
-    return generateDataDrivenInsights(products, shipments);
+    console.log('❌ OPENAI_API_KEY not found in environment variables - returning empty insights (NO FALLBACK)');
+    // Return empty insights when OpenAI is not available - NO FALLBACK like daily brief
+    return [];
   }
 
   try {
@@ -357,7 +357,7 @@ EACH INSIGHT MUST HAVE 3-5 DETAILED SUGGESTED ACTIONS. NO EXCEPTIONS.
 Draw from your extensive experience in operational excellence and provide insights that deliver measurable business value.`,
           },
         ],
-        max_tokens: 300, // OPTIMIZED for speed
+        max_tokens: 1500, // Increased for detailed insights and recommendations
         temperature: 0.2,
       }),
     });
@@ -374,8 +374,8 @@ Draw from your extensive experience in operational excellence and provide insigh
         } catch (parseError) {
           console.error('❌ Dashboard Agent JSON Parse Error:', parseError);
           console.error('❌ Raw content that failed:', content?.substring(0, 500));
-          console.log('🔄 Dashboard: JSON parse failed, falling back to data-driven insights');
-          return generateDataDrivenInsights(products, shipments);
+          console.log('❌ Dashboard: JSON parse failed, returning empty insights (NO FALLBACK)');
+          return [];
         }
       }
     } else {
@@ -385,9 +385,9 @@ Draw from your extensive experience in operational excellence and provide insigh
     console.error('❌ Dashboard OpenAI analysis failed:', error);
   }
 
-  // Return data-driven insights when AI fails
-  console.log('🔄 Dashboard: Falling back to data-driven insights due to OpenAI failure');
-  return generateDataDrivenInsights(products, shipments);
+  // Return empty insights when AI fails - NO FALLBACK like daily brief
+  console.log('❌ Dashboard: OpenAI failed, returning empty insights (NO FALLBACK)');
+  return [];
 }
 
 /**

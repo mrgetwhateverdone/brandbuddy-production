@@ -296,6 +296,55 @@ async function generateOrdersInsights(
   }
 
   try {
+    // This part of the code extracts specific data for actionable AI recommendations
+    const topAtRiskOrders = orders
+      .filter(o => o.sla_status === 'at_risk' || o.sla_status === 'breach')
+      .sort((a, b) => (b.unit_cost || 0) * b.expected_quantity - (a.unit_cost || 0) * a.expected_quantity)
+      .slice(0, 5)
+      .map(o => ({
+        po: o.order_id,
+        value: Math.round((o.unit_cost || 0) * o.expected_quantity),
+        supplier: o.supplier,
+        daysPastDue: Math.max(0, Math.ceil((new Date().getTime() - new Date(o.expected_date || o.created_date).getTime()) / (1000 * 60 * 60 * 24)))
+      }));
+
+    const topDelayedShipments = orders
+      .filter(o => o.status.includes('delayed') || o.sla_status.includes('breach'))
+      .slice(0, 3)
+      .map(o => ({
+        po: o.order_id,
+        supplier: o.supplier,
+        sku: o.product_sku,
+        impact: Math.round((o.unit_cost || 0) * o.expected_quantity)
+      }));
+
+    const unfulfillableItems = orders
+      .filter(o => o.received_quantity === 0 && o.expected_quantity > 0)
+      .slice(0, 4)
+      .map(o => ({
+        sku: o.product_sku,
+        shortfall: o.expected_quantity,
+        supplier: o.supplier,
+        po: o.order_id
+      }));
+
+    const supplierPerformanceIssues = Object.entries(
+      orders.reduce((acc, o) => {
+        if (o.expected_quantity !== o.received_quantity) {
+          const supplier = o.supplier || 'Unknown';
+          if (!acc[supplier]) acc[supplier] = { issues: 0, value: 0 };
+          acc[supplier].issues++;
+          acc[supplier].value += Math.abs(o.expected_quantity - o.received_quantity) * (o.unit_cost || 0);
+        }
+        return acc;
+      }, {} as Record<string, { issues: number; value: number }>)
+    ).sort(([,a], [,b]) => b.value - a.value).slice(0, 3);
+
+    console.log('🔍 Orders AI Enhancement - At-Risk Orders:', topAtRiskOrders.length);
+    console.log('🔍 Orders AI Enhancement - Delayed Shipments:', topDelayedShipments.length);
+    console.log('🔍 Orders AI Enhancement - Unfulfillable Items:', unfulfillableItems.length);
+    console.log('🔍 Orders AI Enhancement - Supplier Issues:', supplierPerformanceIssues.length);
+
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     const response = await fetch(openaiUrl, {
       method: "POST",
@@ -309,6 +358,21 @@ async function generateOrdersInsights(
           {
             role: "user",
             content: `You are an Order Analysis Agent - a specialized AI assistant analyzing comprehensive order operations data. Provide strategic insights based on complete order analytics including KPIs, supplier performance, financial metrics, time patterns, and status intelligence.
+
+SPECIFIC DATA FOR ACTIONABLE RECOMMENDATIONS:
+===========================================
+
+TOP AT-RISK ORDERS (for immediate escalation):
+${topAtRiskOrders.map(o => `- PO: ${o.po} - ${o.daysPastDue} days overdue - $${o.value.toLocaleString()} value - Supplier: ${o.supplier || 'Unknown'}`).join('\n')}
+
+DELAYED SHIPMENTS (for supplier intervention):
+${topDelayedShipments.map(s => `- PO: ${s.po} - SKU: ${s.sku || 'Unknown'} - Supplier: ${s.supplier || 'Unknown'} - Impact: $${s.impact.toLocaleString()}`).join('\n')}
+
+UNFULFILLABLE ITEMS (for emergency reorders):
+${unfulfillableItems.map(i => `- SKU: ${i.sku || 'Unknown'} - ${i.shortfall} units short - PO: ${i.po} - Supplier: ${i.supplier || 'Unknown'}`).join('\n')}
+
+SUPPLIER PERFORMANCE ISSUES (for contract reviews):
+${supplierPerformanceIssues.map(([supplier, data]) => `- ${supplier}: ${data.issues} quantity discrepancies, $${Math.round(data.value).toLocaleString()} total impact`).join('\n')}
 
 COMPREHENSIVE ORDER ANALYSIS:
 ============================
@@ -373,6 +437,21 @@ FORMAT AS ORDER FULFILLMENT EXCELLENCE JSON:
 ]
 
 EACH INSIGHT MUST HAVE 3-5 DETAILED SUGGESTED ACTIONS. NO EXCEPTIONS.
+
+CRITICAL REQUIREMENTS for Actionable Recommendations:
+- MUST reference specific PO numbers from the AT-RISK ORDERS and DELAYED SHIPMENTS data above
+- MUST include actual SKU numbers from the UNFULFILLABLE ITEMS data for reorder recommendations  
+- MUST name specific suppliers from the SUPPLIER PERFORMANCE ISSUES data for contract discussions
+- MUST use real dollar amounts and quantities from the specific data sections above
+- MUST provide concrete next steps with specific parties to contact (suppliers, warehouses, etc.)
+- NO generic recommendations like "Set up automated alerts" - use specific PO numbers and supplier names
+
+EXAMPLE SPECIFIC RECOMMENDATIONS:
+✅ GOOD: "Escalate PO-33464701 and PO-33464702 (3+ days overdue, $12,500 combined value) - contact Clark supplier for expedited delivery"
+✅ GOOD: "Emergency reorder SKU ABC-123 (15 units short) and DEF-456 (8 units) from PO-12345 - contact West Barber as backup supplier"
+✅ GOOD: "Review Clark supplier performance: 5 quantity discrepancies worth $8,200 this month - schedule contract renegotiation meeting"
+❌ BAD: "Set up automated alerts for orders approaching SLA deadlines" (too generic, no specific data)
+❌ BAD: "Implement supplier diversification strategy" (no specific suppliers or actions mentioned)
 
 CRITICAL REQUIREMENTS for Chief Fulfillment Officer:
 - Reference specific data from order value, supplier, time, and status analytics

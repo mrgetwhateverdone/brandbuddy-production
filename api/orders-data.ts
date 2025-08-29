@@ -465,6 +465,7 @@ CRITICAL REQUIREMENTS for Chief Fulfillment Officer:
         max_tokens: 1500, // Increased for detailed insights and recommendations
         temperature: 0.2,
       }),
+      signal: AbortSignal.timeout(25000), // 25 second timeout to prevent Vercel function timeouts
     });
 
     if (response.ok) {

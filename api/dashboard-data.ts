@@ -359,6 +359,7 @@ Draw from your extensive experience in operational excellence and provide insigh
         max_tokens: 1500, // Increased for detailed insights and recommendations
         temperature: 0.2,
       }),
+      signal: AbortSignal.timeout(25000), // 25 second timeout to prevent Vercel function timeouts
     });
 
     if (response.ok) {
@@ -454,6 +455,7 @@ Do NOT include greetings, pleasantries, or source attributions. Start directly w
         max_tokens: 100, // OPTIMIZED for speed
         temperature: 0.2,
       }),
+      signal: AbortSignal.timeout(25000), // 25 second timeout to prevent Vercel function timeouts
     });
 
     if (response.ok) {

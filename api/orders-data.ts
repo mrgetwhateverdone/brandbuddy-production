@@ -345,6 +345,11 @@ async function generateOrdersInsights(
     console.log('🔍 Orders AI Enhancement - Unfulfillable Items:', unfulfillableItems.length);
     console.log('🔍 Orders AI Enhancement - Supplier Issues:', supplierPerformanceIssues.length);
 
+    // This part of the code creates safe example variables to prevent complex nested template literal parsing errors
+    const examplePOEscalation = `Escalate PO-${topAtRiskOrders[0]?.po || '33464701'} and PO-${topAtRiskOrders[1]?.po || '33464702'} (${topAtRiskOrders[0]?.daysPastDue || 3}+ days overdue, $${((topAtRiskOrders[0]?.value || 0) + (topAtRiskOrders[1]?.value || 0)).toLocaleString()} combined value) - contact ${topAtRiskOrders[0]?.supplier || 'Clark'} supplier for expedited delivery`;
+    const exampleSKUReorder = `Emergency reorder SKU ${unfulfillableItems[0]?.sku || 'ABC-123'} (${unfulfillableItems[0]?.shortfall || 15} units short) and ${unfulfillableItems[1]?.sku || 'DEF-456'} (${unfulfillableItems[1]?.shortfall || 8} units) from PO-${unfulfillableItems[0]?.po || '12345'} - contact ${topDelayedShipments[0]?.supplier || 'West Barber'} as backup supplier`;
+    const exampleSupplierReview = `Review ${supplierPerformanceIssues[0]?.[0] || 'Clark'} supplier performance: ${supplierPerformanceIssues[0]?.[1]?.issues || 5} quantity discrepancies worth $${Math.round(supplierPerformanceIssues[0]?.[1]?.value || 8200).toLocaleString()} this month - schedule contract renegotiation meeting`;
+
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     const response = await fetch(openaiUrl, {
       method: "POST",
@@ -353,113 +358,78 @@ async function generateOrdersInsights(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-3.5-turbo", // This part of the code switches to GPT-3.5 turbo for faster orders insights generation
         messages: [
           {
             role: "user",
-            content: `You are an Order Analysis Agent - a specialized AI assistant analyzing comprehensive order operations data. Provide strategic insights based on complete order analytics including KPIs, supplier performance, financial metrics, time patterns, and status intelligence.
+            content: `You are a Chief Fulfillment Officer with 18+ years of experience in order management, customer service, and logistics optimization. You have successfully reduced order fulfillment times by 40% and improved customer satisfaction scores across multiple Fortune 500 companies.
+
+🎯 CRITICAL INSTRUCTION: You MUST use the specific data provided below to create detailed, actionable recommendations. Do NOT provide generic advice. Every recommendation must reference actual PO numbers, SKU numbers, supplier names, or dollar amounts from the data.
 
 SPECIFIC DATA FOR ACTIONABLE RECOMMENDATIONS:
 ===========================================
 
-TOP AT-RISK ORDERS (for immediate escalation):
+TOP AT-RISK ORDERS (use these exact PO numbers and suppliers):
 ${topAtRiskOrders.map(o => `- PO: ${o.po} - ${o.daysPastDue} days overdue - $${o.value.toLocaleString()} value - Supplier: ${o.supplier || 'Unknown'}`).join('\n')}
 
-DELAYED SHIPMENTS (for supplier intervention):
+DELAYED SHIPMENTS (use these exact PO numbers and SKUs):
 ${topDelayedShipments.map(s => `- PO: ${s.po} - SKU: ${s.sku || 'Unknown'} - Supplier: ${s.supplier || 'Unknown'} - Impact: $${s.impact.toLocaleString()}`).join('\n')}
 
-UNFULFILLABLE ITEMS (for emergency reorders):
+UNFULFILLABLE ITEMS (use these exact SKU numbers and quantities):
 ${unfulfillableItems.map(i => `- SKU: ${i.sku || 'Unknown'} - ${i.shortfall} units short - PO: ${i.po} - Supplier: ${i.supplier || 'Unknown'}`).join('\n')}
 
-SUPPLIER PERFORMANCE ISSUES (for contract reviews):
+SUPPLIER PERFORMANCE ISSUES (use these exact supplier names and dollar amounts):
 ${supplierPerformanceIssues.map(([supplier, data]) => `- ${supplier}: ${data.issues} quantity discrepancies, $${Math.round(data.value).toLocaleString()} total impact`).join('\n')}
 
-COMPREHENSIVE ORDER ANALYSIS:
-============================
+ORDER ANALYTICS CONTEXT:
+- ${orders.length} total orders worth $${totalOrderValue.toLocaleString()}
+- ${kpis.atRiskOrders} at-risk orders (${inboundIntelligence.totalInbound > 0 ? ((kpis.atRiskOrders / inboundIntelligence.totalInbound) * 100).toFixed(1) : 0}% of portfolio)
+- ${kpis.openPOs} active purchase orders
+- $${inboundIntelligence.valueAtRisk.toLocaleString()} financial impact from delays
 
-ORDER VALUE INTELLIGENCE:
-- Total Order Portfolio Value: $${totalOrderValue.toLocaleString()}
-- Average Order Value: $${avgOrderValue.toFixed(2)}
-- Daily Order Velocity: ${kpis.ordersToday || 0} orders today
-- At-Risk Orders: ${kpis.atRiskOrders} (${inboundIntelligence.totalInbound > 0 ? ((kpis.atRiskOrders / inboundIntelligence.totalInbound) * 100).toFixed(1) : 0}% of portfolio)
-- Open Purchase Orders: ${kpis.openPOs} active POs
-- Unfulfillable SKUs: ${kpis.unfulfillableSKUs} with fulfillment issues
+📋 STEP-BY-STEP INSTRUCTIONS:
+1. Analyze the specific order data provided above
+2. Identify 3-5 critical order fulfillment issues
+3. For EACH insight, create 3-5 specific recommendations that reference the actual data
+4. Include exact PO numbers, SKU numbers, supplier names, and dollar amounts
+5. Focus on actionable next steps with specific contacts and timelines
 
-SUPPLIER PERFORMANCE MATRIX:
-- Active Supplier Count: ${Object.keys(supplierGroups).length} suppliers
-- Top Volume Supplier: ${topSupplier ? topSupplier[0] : 'N/A'} (${topSupplier ? topSupplier[1].length : 0} orders)
-- Supplier Concentration Risk: ${topSupplier && orders.length > 0 ? ((topSupplier[1].length / orders.length) * 100).toFixed(1) : 0}% from top supplier
-- Total Inbound Shipments: ${inboundIntelligence.totalInbound}
-- Delayed Shipments: ${inboundIntelligence.delayedShipments.count} (${(inboundIntelligence.delayedShipments.percentage || 0).toFixed(1)}%)
-- Average Lead Time Variance: ${(inboundIntelligence.avgDelayDays || 0).toFixed(1)} days delay
-- Supplier Reliability Rate: ${inboundIntelligence.totalInbound > 0 ? (((inboundIntelligence.totalInbound - inboundIntelligence.delayedShipments.count) / inboundIntelligence.totalInbound) * 100).toFixed(1) : 100}%
-
-STATUS & LIFECYCLE INTELLIGENCE:
-- Cancellation Rate: ${cancellationRate.toFixed(1)}% (Industry benchmark: 15%)
-- Processing Efficiency: ${inboundIntelligence.totalInbound > 0 ? (((inboundIntelligence.totalInbound - kpis.atRiskOrders) / inboundIntelligence.totalInbound) * 100).toFixed(1) : 100}% orders on track
-- Perfect Order Rate: ${inboundIntelligence.totalInbound > 0 ? (((inboundIntelligence.totalInbound - inboundIntelligence.delayedShipments.count) / inboundIntelligence.totalInbound) * 100).toFixed(1) : 100}%
-- Order Lifecycle Health Score: ${Math.max(0, Math.min(100, ((orders.length - cancelledOrders - kpis.atRiskOrders) / Math.max(orders.length, 1)) * 100)).toFixed(0)}/100
-
-TIME-BASED PATTERN ANALYSIS:
-- Order Age Distribution: ${oldOrders} orders (${orders.length > 0 ? ((oldOrders / orders.length) * 100).toFixed(1) : 0}%) older than 6 months
-- Supply Chain Velocity: ${inboundIntelligence.avgDelayDays > 0 ? (1 / (inboundIntelligence.avgDelayDays + 1) * 100).toFixed(1) : 95}% optimal speed
-- Inventory Fulfillment Rate: ${((orders.length - kpis.unfulfillableSKUs) / Math.max(orders.length, 1) * 100).toFixed(1)}%
-
-FINANCIAL RISK ASSESSMENT:
-- Financial Impact of Delays: $${inboundIntelligence.valueAtRisk.toLocaleString()}
-- Supply Chain Risk Score: ${Math.min(10, Math.max(1, (inboundIntelligence.delayedShipments.percentage || 0) / 10 + (kpis.atRiskOrders / Math.max(inboundIntelligence.totalInbound, 1)) * 10)).toFixed(1)}/10
-- Geographic Risk Exposure: ${inboundIntelligence.geopoliticalRisks ? 
-  `${inboundIntelligence.geopoliticalRisks.riskCountries.join(', ')} (${inboundIntelligence.geopoliticalRisks.affectedShipments} shipments affected)` : 
-  'Low geographic concentration risk'}
-- Recovery Capacity: ${Math.max(1, 10 - (inboundIntelligence.delayedShipments.percentage || 0) / 10).toFixed(1)}/10
-
-You are a Chief Fulfillment Officer with 18+ years of experience in order management, customer service, and logistics optimization. You have successfully reduced order fulfillment times by 40% and improved customer satisfaction scores across multiple Fortune 500 companies.
-
-Based on ${orders.length} orders with ${kpis.atRiskOrders} at-risk and ${cancelledOrders} cancellations, identify critical order management improvements. Analyze patterns in order delays, cancellations, and SLA breaches. Recommend specific workflows such as 'Set up automated alerts for orders approaching SLA deadlines', 'Create supplier performance scorecards', or 'Implement order prioritization based on customer tier'. Draw from your proven track record of improving order accuracy and reducing fulfillment costs.
-
-AS ORDER FULFILLMENT EXPERT, PROVIDE STRATEGIC OPERATIONAL INSIGHTS (3-5 insights):
-Focus on comprehensive order analytics covering value optimization, supplier performance, time efficiency, and status intelligence with measurable business impact based on your extensive experience in reducing fulfillment costs by 25-35%.
-
-Each insight should address implementable changes with 30-90 day impact timelines based on the complete order analytics dashboard and your proven methodologies.
-
-CRITICAL: You MUST provide exactly 3-5 strategic insights. Each insight MUST include 3-5 specific, actionable suggestedActions.
-
-FORMAT AS ORDER FULFILLMENT EXCELLENCE JSON:
+🎯 MANDATORY OUTPUT FORMAT:
 [
   {
     "type": "warning",
-    "title": "Order Fulfillment Strategic Initiative",
-    "description": "Expert analysis covering order value, supplier performance, time patterns, and status intelligence with specific implementation roadmap based on proven industry best practices",
+    "title": "[Issue Title Based on Specific Order Data]",
+    "description": "Analysis referencing specific POs, SKUs, suppliers, and dollar amounts from the data above. Include financial impact and root cause.",
     "severity": "critical|warning|info",
-    "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Set up automated alerts for orders approaching SLA deadlines", "Create supplier performance scorecards with penalty clauses", "Implement order prioritization workflow based on customer tier and value", "Configure escalation process for at-risk orders", "Establish real-time order tracking dashboard"]
+    "dollarImpact": [actual_number_from_data],
+    "suggestedActions": [
+      "[Action 1: Reference specific PO number, SKU, or supplier from data]",
+      "[Action 2: Include actual dollar amounts and quantities]",
+      "[Action 3: Name specific suppliers or warehouses to contact]",
+      "[Action 4: Use real data points, not generic terms]",
+      "[Action 5: Provide concrete next steps with timelines]"
+    ]
   }
 ]
 
-EACH INSIGHT MUST HAVE 3-5 DETAILED SUGGESTED ACTIONS. NO EXCEPTIONS.
+✅ EXAMPLES OF SPECIFIC RECOMMENDATIONS (reference these patterns):
+"${examplePOEscalation}"
+"${exampleSKUReorder}"
+"${exampleSupplierReview}"
 
-CRITICAL REQUIREMENTS for Actionable Recommendations:
-- MUST reference specific PO numbers from the AT-RISK ORDERS and DELAYED SHIPMENTS data above
-- MUST include actual SKU numbers from the UNFULFILLABLE ITEMS data for reorder recommendations  
-- MUST name specific suppliers from the SUPPLIER PERFORMANCE ISSUES data for contract discussions
-- MUST use real dollar amounts and quantities from the specific data sections above
-- MUST provide concrete next steps with specific parties to contact (suppliers, warehouses, etc.)
-- NO generic recommendations like "Set up automated alerts" - use specific PO numbers and supplier names
+❌ AVOID GENERIC RECOMMENDATIONS LIKE:
+- "Set up automated alerts for orders approaching SLA deadlines" (no specific POs)
+- "Create supplier performance scorecards" (no specific suppliers)
+- "Implement order prioritization workflow" (no specific orders)
 
-EXAMPLE SPECIFIC RECOMMENDATIONS:
-✅ GOOD: "Escalate PO-33464701 and PO-33464702 (3+ days overdue, $12,500 combined value) - contact Clark supplier for expedited delivery"
-✅ GOOD: "Emergency reorder SKU ABC-123 (15 units short) and DEF-456 (8 units) from PO-12345 - contact West Barber as backup supplier"
-✅ GOOD: "Review Clark supplier performance: 5 quantity discrepancies worth $8,200 this month - schedule contract renegotiation meeting"
-❌ BAD: "Set up automated alerts for orders approaching SLA deadlines" (too generic, no specific data)
-❌ BAD: "Implement supplier diversification strategy" (no specific suppliers or actions mentioned)
+🚨 CRITICAL SUCCESS CRITERIA:
+- Each suggestedAction MUST include specific data from above sections
+- Use actual PO numbers, SKU numbers, supplier names, dollar amounts
+- Provide concrete next steps with specific parties to contact
+- Include implementation timelines and expected ROI
+- Reference exact data points, not general concepts
 
-CRITICAL REQUIREMENTS for Chief Fulfillment Officer:
-- Reference specific data from order value, supplier, time, and status analytics
-- Include supplier names, financial impacts, or processing timeframes when relevant  
-- Address operational issues across the entire orders dashboard scope
-- Ordered by business impact (financial/operational urgency first)
-- Between 3-5 actionable insights based on comprehensive order analysis
-- Focus on measurable ROI and operational efficiency improvements based on your proven track record`,
+Generate exactly 3-5 insights with 3-5 specific actions each.`,
           },
         ],
         max_tokens: 1500, // Increased for detailed insights and recommendations

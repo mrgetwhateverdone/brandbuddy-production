@@ -70,7 +70,7 @@ const tourConfigs = {
 export function TourProvider({ children }: TourProviderProps) {
   // This part of the code creates reusable tour functions with enhanced positioning and responsiveness
   const createTour = useCallback((config: any): any => {
-    const tour = introJs()
+    const tour = introJs.tour()
       .setOptions({
         showProgress: true,
         showBullets: false,

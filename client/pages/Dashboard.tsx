@@ -87,8 +87,10 @@ export default function Dashboard() {
         {data && (
           <>
             {/* BrandBuddy KPI Cards - Now using consistent KPISection component */}
-            <div data-tour="kpi-section">
-              <KPISection kpis={data.kpis} isLoading={isLoading} />
+            <div className="tour-section-wrapper kpi-tour-target" data-tour="kpi-section">
+              <div className="tour-content-boundary">
+                <KPISection kpis={data.kpis} isLoading={isLoading} />
+              </div>
             </div>
 
             {/* Insight Filters */}
@@ -108,7 +110,8 @@ export default function Dashboard() {
             </div>
 
             {/* AI Insights Section - Progressive loading with fast data + separate AI insights */}
-            <div data-tour="insights-section">
+            <div className="tour-section-wrapper insights-tour-target" data-tour="insights-section">
+              <div className="tour-content-boundary">
             {insightsLoading && !insightsData ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -136,6 +139,7 @@ export default function Dashboard() {
                 subtitle={`(${insightsData?.insights?.length || 0})`}
               />
             )}
+              </div>
             </div>
 
             {/* Daily Brief Section */}

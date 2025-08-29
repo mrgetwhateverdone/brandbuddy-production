@@ -13,7 +13,7 @@ interface TourProviderProps {
   children: ReactNode;
 }
 
-// This part of the code creates focused tour configurations for overview and orders pages
+// This part of the code creates focused tour configurations with adaptive positioning
 const tourConfigs = {
   overview: {
     steps: [
@@ -23,17 +23,17 @@ const tourConfigs = {
       {
         element: '[data-tour="kpi-section"]',
         intro: "Key Performance Indicators show your operational health at a glance - revenue, orders, inventory levels.",
-        position: 'bottom'
+        position: 'auto'
       },
       {
         element: '[data-tour="insights-section"]',
         intro: "AI-powered insights provide strategic recommendations from our Operations Director AI.",
-        position: 'bottom'
+        position: 'top'
       },
       {
         element: '[data-tour="header-refresh"]',
         intro: "Keep your data fresh with the refresh button. Real-time updates every 5 minutes!",
-        position: 'bottom'
+        position: 'left'
       },
       {
         intro: "That's your overview tour! Use the sidebar to navigate to other features like Orders and Inventory."
@@ -68,9 +68,9 @@ const tourConfigs = {
 };
 
 export function TourProvider({ children }: TourProviderProps) {
-  // This part of the code creates reusable tour functions with consistent BrandBuddy styling
-  const createTour = useCallback((config: any) => {
-    return introJs()
+  // This part of the code creates reusable tour functions with enhanced positioning and responsiveness
+  const createTour = useCallback((config: any): any => {
+    const tour = introJs()
       .setOptions({
         showProgress: true,
         showBullets: false,
@@ -83,19 +83,35 @@ export function TourProvider({ children }: TourProviderProps) {
         tooltipClass: 'brandbuddy-tour',
         highlightClass: 'brandbuddy-tour-highlight',
         disableInteraction: true,
+        scrollToElement: true,
+        scrollPadding: 30,
+        overlayOpacity: 0.8,
         steps: config.steps
       })
       .onbeforeexit(() => {
         return confirm("Are you sure you want to exit the tour?");
+      })
+      .onchange(() => {
+        // This part of the code ensures proper scrolling and timing for each step
+        setTimeout(() => {
+          const activeElement = document.querySelector('.introjs-helperLayer');
+          if (activeElement) {
+            activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
       });
+    
+    return tour;
   }, []);
 
   const startOverviewTour = useCallback(() => {
-    createTour(tourConfigs.overview).start();
+    const tour = createTour(tourConfigs.overview);
+    tour.start();
   }, [createTour]);
 
   const startOrdersTour = useCallback(() => {
-    createTour(tourConfigs.orders).start();
+    const tour = createTour(tourConfigs.orders);
+    tour.start();
   }, [createTour]);
 
   const value: TourContextType = {

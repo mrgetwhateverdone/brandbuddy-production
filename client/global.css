@@ -190,7 +190,7 @@
 
 /* BrandBuddy Tour Styles - Intro.js customization */
 .brandbuddy-tour {
-  max-width: 350px;
+  max-width: min(350px, 90vw);
 }
 
 .brandbuddy-tour .introjs-tooltip {
@@ -235,11 +235,113 @@
   background: #f9fafb;
 }
 
+/* This part of the code fixes visual artifacts with proper border highlighting */
 .brandbuddy-tour-highlight {
-  box-shadow: 0 0 0 2px #dc2626, 0 0 0 4px rgba(220, 38, 38, 0.2) !important;
+  border: 3px solid #dc2626 !important;
   border-radius: 8px !important;
+  background: rgba(220, 38, 38, 0.02) !important;
+  box-shadow: none !important;
+}
+
+/* This part of the code manages z-index layering for tours */
+.introjs-overlay {
+  z-index: 999999 !important;
+}
+
+.introjs-tooltip {
+  z-index: 1000000 !important;
+}
+
+/* This part of the code improves element targeting boundaries */
+.brandbuddy-tour .introjs-helperLayer {
+  border-radius: 8px !important;
+  padding: 4px !important;
 }
 
 .introjs-progressbar {
   background-color: #dc2626 !important;
+}
+
+/* This part of the code provides tour target wrapper styles with responsive design */
+.tour-section-wrapper {
+  position: relative;
+  margin: 4px 0;
+  transition: all 0.3s ease;
+}
+
+.tour-content-boundary {
+  position: relative;
+  z-index: 1;
+}
+
+.kpi-tour-target {
+  position: relative;
+  padding: 2px;
+}
+
+.insights-tour-target {
+  position: relative;
+  padding: 2px;
+}
+
+/* This part of the code provides responsive tour enhancements */
+@media (max-width: 768px) {
+  .brandbuddy-tour {
+    max-width: min(320px, 85vw);
+  }
+  
+  .brandbuddy-tour .introjs-tooltip {
+    font-size: 13px;
+  }
+  
+  .brandbuddy-tour .introjs-tooltiptext {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  
+  .tour-section-wrapper {
+    margin: 8px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .brandbuddy-tour {
+    max-width: min(280px, 90vw);
+  }
+  
+  .brandbuddy-tour .introjs-button {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+  
+  .brandbuddy-tour .introjs-skipbutton {
+    padding: 6px 12px;
+    font-size: 13px;
+  }
+}
+
+/* This part of the code enhances tour animations and transitions */
+.brandbuddy-tour-highlight {
+  transition: all 0.3s ease-in-out !important;
+}
+
+.introjs-tooltip {
+  transition: opacity 0.3s ease, transform 0.3s ease !important;
+}
+
+.introjs-helperLayer {
+  transition: all 0.3s ease !important;
+}
+
+/* This part of the code improves tour accessibility */
+.brandbuddy-tour .introjs-button:focus,
+.brandbuddy-tour .introjs-skipbutton:focus {
+  outline: 2px solid #dc2626;
+  outline-offset: 2px;
+}
+
+/* This part of the code ensures proper overlay behavior */
+.introjs-overlay {
+  background: rgba(0, 0, 0, 0.8) !important;
+  transition: opacity 0.3s ease !important;
 }

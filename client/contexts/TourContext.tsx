@@ -28,7 +28,7 @@ const tourConfigs = {
       {
         element: '[data-tour="insights-section"]',
         intro: "AI-powered insights provide strategic recommendations from our Operations Director AI.",
-        position: 'top'
+        position: 'bottom'
       },
       {
         element: '[data-tour="header-refresh"]',
@@ -78,7 +78,7 @@ export function TourProvider({ children }: TourProviderProps) {
         exitOnEsc: true,
         nextLabel: 'Next →',
         prevLabel: '← Back',
-        skipLabel: 'Skip Tour',
+        skipLabel: 'Skip',
         doneLabel: 'Got it! ✨',
         tooltipClass: 'brandbuddy-tour',
         highlightClass: 'brandbuddy-tour-highlight',

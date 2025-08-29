@@ -2,6 +2,9 @@ import { createContext, useContext, useCallback, ReactNode } from 'react';
 import introJs from 'intro.js';
 import 'intro.js/introjs.css';
 
+// Ensure introJs is properly loaded
+console.log('IntroJs loaded:', !!introJs, 'tour method:', typeof introJs?.tour);
+
 interface TourContextType {
   startOverviewTour: () => void;
   startOrdersTour: () => void;
@@ -70,6 +73,7 @@ const tourConfigs = {
 export function TourProvider({ children }: TourProviderProps) {
   // This part of the code creates reusable tour functions with enhanced positioning and responsiveness
   const createTour = useCallback((config: any): any => {
+    console.log('Creating tour with introJs.tour():', typeof introJs.tour);
     const tour = introJs.tour()
       .setOptions({
         showProgress: true,

@@ -890,6 +890,48 @@ class InternalApiService {
   }
 
   /**
+   * Generate AI suggestion for specific order
+   * NO external API keys - server handles OpenAI calls
+   * 🎯 FAST: GPT-3.5 turbo for speed and cost efficiency
+   */
+  async generateOrderSuggestion(orderData: any): Promise<OrderSuggestion> {
+    try {
+      this.apiLogger.info("Requesting AI suggestion for order", { orderId: orderData.order_id });
+
+      const response = await fetch(`${this.baseUrl}/api/order-suggestion`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ orderData }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<OrderSuggestion> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to generate order suggestion");
+      }
+
+      this.apiLogger.info("Order suggestion received securely", { orderId: orderData.order_id });
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("Order suggestion API call failed", { 
+        error: error instanceof Error ? error.message : error,
+        orderId: orderData.order_id 
+      });
+      throw new Error(
+        `Unable to generate order suggestion: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
    * Health check - verify server is responding
    */
   async healthCheck(): Promise<boolean> {

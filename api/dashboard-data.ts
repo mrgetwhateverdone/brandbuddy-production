@@ -276,7 +276,7 @@ async function generateInsights(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-3.5-turbo", // This part of the code switches to GPT-3.5 turbo for faster insights generation
         messages: [
           {
             role: "user",
@@ -428,7 +428,7 @@ async function generateDailyBrief(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: "gpt-3.5-turbo", // This part of the code switches to GPT-3.5 turbo for faster daily brief generation
         messages: [
           {
             role: "user",

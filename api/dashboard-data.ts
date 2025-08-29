@@ -268,6 +268,11 @@ async function generateInsights(
     const topSuppliers = Object.entries(supplierCounts).sort(([,a], [,b]) => b - a).slice(0, 3);
     const supplierConcentration = topSuppliers.reduce((sum, [,count]) => sum + count, 0) / shipments.length * 100;
     
+    // This part of the code creates safe example variables to prevent complex nested template literal parsing errors
+    const exampleShipmentReview = `Review Shipment ${topAtRiskShipments[0]?.shipmentId || 'SH-12345'} with ${topAtRiskShipments[0]?.supplier || 'Clark supplier'} - ${topAtRiskShipments[0]?.variance || 15} unit variance causing $${topAtRiskShipments[0]?.impact?.toLocaleString() || '2,500'} impact`;
+    const exampleSKUReactivation = `Reactivate high-value SKUs: ${topInactiveProducts[0]?.sku || 'ABC-123'}, ${topInactiveProducts[1]?.sku || 'DEF-456'} from ${topInactiveProducts[0]?.supplier || 'West Barber'} - $${(topInactiveProducts[0]?.opportunityCost || 0) + (topInactiveProducts[1]?.opportunityCost || 0)} opportunity cost`;
+    const exampleSupplierReview = `Schedule performance review with ${topCancelledShipments[0]?.supplier || 'Garcia Ltd'} - $${topCancelledShipments[0]?.lostValue?.toLocaleString() || '8,200'} lost from cancelled shipments`;
+    
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     const response = await fetch(openaiUrl, {
       method: "POST",
@@ -282,78 +287,72 @@ async function generateInsights(
             role: "user",
             content: `You are a Senior Operations Director with 15+ years of experience in supply chain management and business intelligence. You specialize in identifying critical operational bottlenecks and implementing data-driven solutions that improve efficiency and reduce costs.
 
+🎯 CRITICAL INSTRUCTION: You MUST use the specific data provided below to create detailed, actionable recommendations. Do NOT provide generic advice. Every recommendation must reference actual shipment IDs, SKU numbers, supplier names, or dollar amounts from the data.
+
 SPECIFIC DATA FOR ACTIONABLE RECOMMENDATIONS:
 ===========================================
 
-TOP AT-RISK SHIPMENTS (for immediate review):
+TOP AT-RISK SHIPMENTS (use these exact shipment IDs and suppliers):
 ${topAtRiskShipments.map(s => `- Shipment: ${s.shipmentId} - Supplier: ${s.supplier || 'Unknown'} - Variance: ${s.variance} units - Impact: $${s.impact.toLocaleString()}`).join('\n')}
 
-INACTIVE PRODUCTS (for reactivation strategy):
+INACTIVE PRODUCTS (use these exact SKU numbers and suppliers):
 ${topInactiveProducts.map(p => `- SKU: ${p.sku || 'Unknown'} (${p.name || 'Unknown'}) - Supplier: ${p.supplier || 'Unknown'} - Opportunity Cost: $${p.opportunityCost.toLocaleString()}`).join('\n')}
 
-CANCELLED SHIPMENTS (for supplier performance review):
+CANCELLED SHIPMENTS (use these exact suppliers and dollar amounts):
 ${topCancelledShipments.map(s => `- Shipment: ${s.shipmentId} - Supplier: ${s.supplier || 'Unknown'} - Lost Value: $${s.lostValue.toLocaleString()} (${s.expectedQty} units)`).join('\n')}
 
-SUPPLIER CONCENTRATION RISKS (for diversification):
+SUPPLIER CONCENTRATION RISKS (use these exact supplier names and values):
 ${supplierConcentrationRisks.map(([supplier, data]) => `- ${supplier}: ${data.shipments} shipments, $${Math.round(data.value).toLocaleString()} total value`).join('\n')}
 
-Analyze the current operational data including ${shipments.length} shipments, ${products.length} products, and ${new Set(shipments.map(s => s.warehouse_id)).size} warehouses. Identify the top 3-5 most critical operational issues that need immediate attention. Focus on: shipment delays, inventory discrepancies, cost overruns, and performance bottlenecks. For each issue, provide specific actionable workflows like 'Implement automated reorder triggers for low-stock items' or 'Create escalation process for at-risk shipments'. Include financial impact estimates and ROI projections based on your extensive industry experience.
+OPERATIONAL CONTEXT:
+- ${shipments.length} total shipments across ${new Set(shipments.map(s => s.warehouse_id)).size} warehouses
+- ${products.length} products (${activeProducts} active, ${inactiveProducts} inactive)
+- ${uniqueSuppliers} suppliers, with ${supplierConcentration.toFixed(1)}% concentration risk
+- $${financialImpacts.totalFinancialRisk.toLocaleString()} total financial exposure
 
-OPERATIONAL DATA OVERVIEW:
-==========================================
+📋 STEP-BY-STEP INSTRUCTIONS:
+1. Analyze the specific data provided above
+2. Identify 3-5 critical operational issues
+3. For EACH insight, create 3-5 specific recommendations that reference the actual data
+4. Include exact shipment IDs, SKU numbers, supplier names, and dollar amounts
+5. Focus on actionable next steps with specific contacts
 
-BRAND PORTFOLIO STATUS:
-- Managing ${products.length} products (${activeProducts} active, ${inactiveProducts} inactive)
-- Working with ${uniqueSuppliers} suppliers across operations
-- Current SKU utilization at ${skuUtilization.toFixed(1)}%
-- Potential opportunity cost from inactive products: $${financialImpacts.inactiveProductsValue.toLocaleString()}
-
-TODAY'S OPERATIONAL PERFORMANCE:
-- Processed ${shipments.length} shipments (${onTimeShipments} on-time, ${delayedShipments} delayed)
-- Quantity accuracy running at ${quantityAccuracy.toFixed(1)}% (${atRiskShipments} with variances)
-- Financial impact from discrepancies: $${financialImpacts.quantityDiscrepancyImpact.toLocaleString()}
-- Cancelled shipment losses: $${financialImpacts.cancelledShipmentsImpact.toLocaleString()}
-
-RISK ASSESSMENT:
-- Total value at risk: $${Math.round(totalShipmentValue).toLocaleString()}
-- ${geoRiskPercent.toFixed(1)}% of shipments from high-risk countries: ${topRiskCountries.join(', ')}
-- Supplier concentration risk: ${supplierConcentration.toFixed(1)}% from top 3 suppliers
-- Total financial exposure: $${financialImpacts.totalFinancialRisk.toLocaleString()}
-
-Based on your proven track record of reducing operational costs by 30-40% and improving efficiency metrics across multiple organizations, provide strategic insights with specific workflows that address the most critical operational bottlenecks. Each recommendation should include estimated financial impact and implementation timeline.
-
-CRITICAL: You MUST provide exactly 3-5 strategic insights. Each insight MUST include 3-5 specific, actionable suggestedActions.
-
-Format as JSON with 3-5 strategic insights:
+🎯 MANDATORY OUTPUT FORMAT:
 [
   {
     "type": "warning",
-    "title": "Strategic operational insight title",
-    "description": "Professional analysis of the operational issue with specific data points, financial impact, and implementation strategy. Include your expert assessment of root causes and proven solutions.",
+    "title": "[Issue Title Based on Specific Data]",
+    "description": "Analysis referencing specific shipments, SKUs, suppliers, and dollar amounts from the data above. Include financial impact and root cause.",
     "severity": "critical|warning|info",
-    "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Implement automated reorder triggers for critical SKUs below safety stock", "Create escalation workflow for shipments approaching SLA deadlines", "Set up supplier performance scorecard with penalty clauses", "Establish real-time inventory monitoring dashboard", "Configure automated supplier notification system"]
+    "dollarImpact": [actual_number_from_data],
+    "suggestedActions": [
+      "[Action 1: Reference specific shipment ID, SKU, or supplier from data]",
+      "[Action 2: Include actual dollar amounts and quantities]",
+      "[Action 3: Name specific suppliers or warehouses to contact]",
+      "[Action 4: Use real data points, not generic terms]",
+      "[Action 5: Provide concrete next steps with timelines]"
+    ]
   }
 ]
 
-EACH INSIGHT MUST HAVE 3-5 DETAILED SUGGESTED ACTIONS. NO EXCEPTIONS.
+✅ EXAMPLES OF SPECIFIC RECOMMENDATIONS (reference these patterns):
+"${exampleShipmentReview}"
+"${exampleSKUReactivation}"
+"${exampleSupplierReview}"
 
-CRITICAL REQUIREMENTS for Actionable Recommendations:
-- MUST reference specific Shipment IDs from the AT-RISK SHIPMENTS data above
-- MUST include actual SKU numbers from the INACTIVE PRODUCTS data for reactivation recommendations  
-- MUST name specific suppliers from the CANCELLED SHIPMENTS and SUPPLIER CONCENTRATION data
-- MUST use real dollar amounts and quantities from the specific data sections above
-- MUST provide concrete next steps with specific parties to contact (suppliers, warehouses, etc.)
-- NO generic recommendations like "Implement automated reorder triggers" - use specific shipment IDs and SKU numbers
+❌ AVOID GENERIC RECOMMENDATIONS LIKE:
+- "Implement automated reorder triggers" (no specific SKUs)
+- "Create escalation process" (no specific shipments)
+- "Set up supplier scorecards" (no specific suppliers)
 
-EXAMPLE SPECIFIC RECOMMENDATIONS:
-✅ GOOD: "Review Shipment ${topAtRiskShipments[0]?.shipmentId || 'SH-12345'} with ${topAtRiskShipments[0]?.supplier || 'Clark supplier'} - ${topAtRiskShipments[0]?.variance || 15} unit variance causing $${topAtRiskShipments[0]?.impact?.toLocaleString() || '2,500'} impact"
-✅ GOOD: "Reactivate high-value SKUs: ${topInactiveProducts[0]?.sku || 'ABC-123'}, ${topInactiveProducts[1]?.sku || 'DEF-456'} from ${topInactiveProducts[0]?.supplier || 'West Barber'} - $${(topInactiveProducts[0]?.opportunityCost || 0) + (topInactiveProducts[1]?.opportunityCost || 0)} opportunity cost"
-✅ GOOD: "Schedule performance review with ${topCancelledShipments[0]?.supplier || 'Garcia Ltd'} - $${topCancelledShipments[0]?.lostValue?.toLocaleString() || '8,200'} lost from cancelled shipments"
-❌ BAD: "Implement automated reorder triggers for low-stock items" (too generic, no specific data)
-❌ BAD: "Create escalation process for at-risk shipments" (no specific shipment IDs mentioned)
+🚨 CRITICAL SUCCESS CRITERIA:
+- Each suggestedAction MUST include specific data from above sections
+- Use actual shipment IDs, SKU numbers, supplier names, dollar amounts
+- Provide concrete next steps with specific parties to contact
+- Include implementation timelines and expected ROI
+- Reference exact data points, not general concepts
 
-Draw from your extensive experience in operational excellence and provide insights that deliver measurable business value.`,
+Generate exactly 3-5 insights with 3-5 specific actions each.`,
           },
         ],
         max_tokens: 1500, // Increased for detailed insights and recommendations

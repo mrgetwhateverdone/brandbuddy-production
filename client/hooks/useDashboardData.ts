@@ -102,7 +102,7 @@ export const useDashboardInsights = () => {
 
       return insightsData;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - insights don't change frequently
+    staleTime: 15 * 60 * 1000, // 15 minutes - standardized with orders for consistency
     retry: 2, // Fewer retries for AI insights
     meta: {
       errorMessage:
@@ -171,7 +171,7 @@ export const useAIInsights = () => {
       });
     },
     enabled: !!dashboardData, // Only run when dashboard data is available
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 15 * 60 * 1000, // 15 minutes - standardized for consistency
     retry: 2, // Fewer retries for AI insights
     meta: {
       errorMessage:

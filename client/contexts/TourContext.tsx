@@ -2,9 +2,6 @@ import { createContext, useContext, useCallback, ReactNode } from 'react';
 import introJs from 'intro.js';
 import 'intro.js/introjs.css';
 
-// Ensure introJs is properly loaded
-console.log('IntroJs loaded:', !!introJs, 'tour method:', typeof introJs?.tour);
-
 interface TourContextType {
   startOverviewTour: () => void;
   startOrdersTour: () => void;
@@ -16,7 +13,7 @@ interface TourProviderProps {
   children: ReactNode;
 }
 
-// This part of the code creates focused tour configurations with adaptive positioning
+// This part of the code creates focused tour configurations with better positioning
 const tourConfigs = {
   overview: {
     steps: [
@@ -71,10 +68,9 @@ const tourConfigs = {
 };
 
 export function TourProvider({ children }: TourProviderProps) {
-  // This part of the code creates reusable tour functions with enhanced positioning and responsiveness
-  const createTour = useCallback((config: any): any => {
-    console.log('Creating tour with introJs.tour():', typeof introJs.tour);
-    const tour = introJs.tour()
+  // This part of the code creates reusable tour functions with better positioning and scroll behavior
+  const createTour = useCallback((config: any) => {
+    return introJs()
       .setOptions({
         showProgress: true,
         showBullets: false,
@@ -94,28 +90,15 @@ export function TourProvider({ children }: TourProviderProps) {
       })
       .onbeforeexit(() => {
         return confirm("Are you sure you want to exit the tour?");
-      })
-      .onchange(() => {
-        // This part of the code ensures proper scrolling and timing for each step
-        setTimeout(() => {
-          const activeElement = document.querySelector('.introjs-helperLayer');
-          if (activeElement) {
-            activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 100);
       });
-    
-    return tour;
   }, []);
 
   const startOverviewTour = useCallback(() => {
-    const tour = createTour(tourConfigs.overview);
-    tour.start();
+    createTour(tourConfigs.overview).start();
   }, [createTour]);
 
   const startOrdersTour = useCallback(() => {
-    const tour = createTour(tourConfigs.orders);
-    tour.start();
+    createTour(tourConfigs.orders).start();
   }, [createTour]);
 
   const value: TourContextType = {

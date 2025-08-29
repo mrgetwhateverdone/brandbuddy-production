@@ -135,6 +135,7 @@ export function Header({
 
         {/* Refresh Button */}
         <button
+          data-tour="header-refresh"
           onClick={handleRefresh}
           disabled={isRefreshing || isLoading}
           className={cn(

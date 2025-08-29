@@ -11,6 +11,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "next-themes";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { TourProvider } from "@/contexts/TourContext";
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-react";
 
 console.log("🚀 BrandBuddy: App.tsx loading...");
@@ -101,6 +102,7 @@ const App = () => {
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <QueryClientProvider client={queryClient}>
             <SettingsProvider>
+              <TourProvider>
           <TooltipProvider>
             <Toaster />
             <Sonner />
@@ -213,6 +215,7 @@ const App = () => {
               </Routes>
             </BrowserRouter>
           </TooltipProvider>
+              </TourProvider>
             </SettingsProvider>
         </QueryClientProvider>
       </ThemeProvider>

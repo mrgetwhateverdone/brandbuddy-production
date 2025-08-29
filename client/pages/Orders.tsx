@@ -5,6 +5,7 @@ import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import type { OrderData } from "@/types/api";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
+import { useTour } from "@/contexts/TourContext";
 
 // Orders Components
 import { OrdersKPISection } from "@/components/orders/OrdersKPISection";
@@ -56,6 +57,9 @@ export default function Orders() {
   const [showViewAllShipmentsModal, setShowViewAllShipmentsModal] = useState(false);
   const [showAIExplanationModal, setShowAIExplanationModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<OrderData | null>(null);
+  
+  // This part of the code provides tour functionality for the orders page
+  const { startOrdersTour } = useTour();
 
   // This part of the code handles opening the view all orders modal
   const handleViewAll = () => {
@@ -92,6 +96,16 @@ export default function Orders() {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Tour Button */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">Orders Management</h1>
+          <button
+            onClick={startOrdersTour}
+            className="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-md transition-colors"
+          >
+            📦 Take Orders Tour
+          </button>
+        </div>
         {/* This part of the code handles loading state for the entire orders dashboard */}
         {isLoading && (
           <LoadingState message="Loading BrandBuddy orders data..." />
@@ -112,7 +126,9 @@ export default function Orders() {
         {data && (
           <>
             {/* KPI Section - Orders Today, At-Risk Orders, Open POs, Unfulfillable SKUs */}
-            <OrdersKPISection kpis={data.kpis} isLoading={isLoading} />
+            <div data-tour="orders-kpi">
+              <OrdersKPISection kpis={data.kpis} isLoading={isLoading} />
+            </div>
 
             {/* AI Insights Section - Order Analysis Agent Insights with Progressive Loading */}
             {insightsLoading && !insightsData ? (
@@ -144,21 +160,25 @@ export default function Orders() {
             )}
 
             {/* Main Orders Table Section - Shows top 15 orders with AI explanations */}
-            <OrdersTableSection
-              orders={orders}
-              totalCount={totalCount}
-              hasMore={hasMore}
-              isLoading={isLoading}
-              onViewAll={handleViewAll}
-              onViewOrder={handleViewOrder}
-            />
+            <div data-tour="orders-table">
+              <OrdersTableSection
+                orders={orders}
+                totalCount={totalCount}
+                hasMore={hasMore}
+                isLoading={isLoading}
+                onViewAll={handleViewAll}
+                onViewOrder={handleViewOrder}
+              />
+            </div>
 
             {/* Inbound Shipments Intelligence Section - Complex intelligence dashboard */}
-            <InboundIntelligenceSection
-              inboundIntelligence={data.inboundIntelligence}
-              isLoading={isLoading}
-              onViewAll={handleViewAllShipments}
-            />
+            <div data-tour="orders-actions">
+              <InboundIntelligenceSection
+                inboundIntelligence={data.inboundIntelligence}
+                isLoading={isLoading}
+                onViewAll={handleViewAllShipments}
+              />
+            </div>
 
             {/* Order Value Analysis Section - Financial insights and value metrics */}
             <OrderValueAnalysisSection

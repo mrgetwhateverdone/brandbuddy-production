@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout/Layout";
 import { useDashboardDataFast, useDashboardInsights } from "@/hooks/useDashboardData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
+import { useTour } from "@/contexts/TourContext";
 
 // BrandBuddy Overview Components
 import { InsightsSection } from "@/components/dashboard/InsightsSection";
@@ -39,6 +40,9 @@ export default function Dashboard() {
     isLoading: insightsLoading, 
     error: insightsError 
   } = useDashboardInsights();
+  
+  // This part of the code provides tour functionality for the overview page
+  const { startOverviewTour } = useTour();
 
   // This part of the code formats the current date for the overview header
   const getCurrentDate = () => {
@@ -54,6 +58,16 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Tour Button */}
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-900">Operations Overview</h1>
+          <button
+            onClick={startOverviewTour}
+            className="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-md transition-colors"
+          >
+            📍 Take Overview Tour
+          </button>
+        </div>
 
 
         {isLoading && (
@@ -73,7 +87,9 @@ export default function Dashboard() {
         {data && (
           <>
             {/* BrandBuddy KPI Cards - Now using consistent KPISection component */}
-            <KPISection kpis={data.kpis} isLoading={isLoading} />
+            <div data-tour="kpi-section">
+              <KPISection kpis={data.kpis} isLoading={isLoading} />
+            </div>
 
             {/* Insight Filters */}
             <div className="flex flex-wrap gap-2 mb-4">
@@ -92,6 +108,7 @@ export default function Dashboard() {
             </div>
 
             {/* AI Insights Section - Progressive loading with fast data + separate AI insights */}
+            <div data-tour="insights-section">
             {insightsLoading && !insightsData ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -119,6 +136,7 @@ export default function Dashboard() {
                 subtitle={`(${insightsData?.insights?.length || 0})`}
               />
             )}
+            </div>
 
             {/* Daily Brief Section */}
             <div className="bg-white rounded-lg shadow">

@@ -134,23 +134,30 @@ async function generateOrderSuggestion(orderData: any): Promise<OrderSuggestion>
         messages: [
           {
             role: "system",
-            content: `You are an Order Analysis Specialist. Analyze individual orders and provide 2-3 sentence analysis plus 1-2 specific actionable recommendations.
+            content: `You are an Order Operations Specialist. Provide 2-3 sentence analysis plus 1-2 ACTIONABLE next steps the user can take TODAY.
 
 CRITICAL REQUIREMENTS:
-- Keep analysis to 2-3 sentences maximum
-- Provide 1-2 specific actionable recommendations
-- Reference actual PO numbers, SKUs, suppliers, and dollar amounts
-- Focus on immediate actions the user can take today
+- Analysis: 2-3 sentences explaining the order impact and situation
+- Actions: 1-2 specific, executable steps with WHO to contact and WHAT to do
+- Include actual PO numbers, suppliers, SKUs, and dollar amounts
+- Focus on immediate actions that solve the problem
+
+ACTIONABLE EXAMPLES:
+✅ "Contact Garcia Ltd directly to reschedule cancelled PO-13877774"
+✅ "Escalate to procurement team for backup supplier sourcing" 
+✅ "Follow up with Kim-Davis in 2 days on pending delivery"
+❌ "Monitor the situation" (too vague)
+❌ "Review supplier performance" (not actionable)
 
 RESPONSE FORMAT (JSON):
 {
-  "analysis": "2-3 sentence analysis of the specific order issue",
-  "recommendations": ["Specific action 1", "Specific action 2"]
+  "analysis": "2-3 sentence analysis focusing on business impact and root cause",
+  "actions": ["Specific action 1 with WHO to contact", "Specific action 2 with WHAT to do"]
 }`
           },
           {
             role: "user",
-            content: `Analyze this specific order:
+            content: `Analyze this specific order and provide actionable next steps:
 
 ORDER DETAILS:
 - PO Number: ${orderData.order_id}
@@ -163,7 +170,7 @@ ORDER DETAILS:
 - Order Value: $${orderValue.toLocaleString()}
 ${shortfall > 0 ? `- Shortfall: ${shortfall} units ($${impact.toLocaleString()} impact)` : ''}
 
-Provide 2-3 sentence analysis and 1-2 specific actionable recommendations for this order.`
+Provide analysis focusing on business impact + 1-2 specific actions with WHO to contact and WHAT to do TODAY.`
           }
         ],
         max_tokens: 200, // Keep responses concise
@@ -198,7 +205,7 @@ Provide 2-3 sentence analysis and 1-2 specific actionable recommendations for th
       // Fallback: treat the whole response as analysis
       parsedResponse = {
         analysis: aiContent.substring(0, 200),
-        recommendations: ["Review order status with supplier", "Contact procurement team"]
+        actions: [`Contact ${supplier} directly to resolve PO-${orderData.order_id} issue`, "Escalate to procurement team for immediate action"]
       };
     }
 
@@ -206,9 +213,16 @@ Provide 2-3 sentence analysis and 1-2 specific actionable recommendations for th
     const priority = getPriority(orderData);
     const hasIssues = shortfall > 0 || orderStatus.includes('delayed') || orderStatus.includes('cancelled');
 
+    // This part of the code formats analysis and actions into a single suggestion
+    const analysis = parsedResponse.analysis || "Order analysis completed";
+    const actions = parsedResponse.actions || [];
+    const formattedSuggestion = actions.length > 0 
+      ? `${analysis}\n\nNext Steps:\n• ${actions.join('\n• ')}`
+      : analysis;
+
     const suggestion: OrderSuggestion = {
       orderId: orderData.order_id,
-      suggestion: parsedResponse.analysis || "Order analysis completed",
+      suggestion: formattedSuggestion,
       priority,
       actionable: hasIssues,
       estimatedImpact: impact > 0 ? `$${impact.toLocaleString()}` : undefined

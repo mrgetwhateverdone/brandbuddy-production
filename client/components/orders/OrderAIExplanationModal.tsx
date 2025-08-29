@@ -201,7 +201,7 @@ export function OrderAIExplanationModal({ isOpen, onClose, order }: OrderAIExpla
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <Brain className="h-5 w-5 text-blue-600" />
-                      <span className="font-medium text-blue-800">AI Insights</span>
+                      <span className="font-medium text-blue-800">AI Insight</span>
                     </div>
                     <p className="text-blue-900 leading-relaxed">
                       {explanation}

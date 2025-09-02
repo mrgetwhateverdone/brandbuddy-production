@@ -8,10 +8,12 @@ import { useWorkflows } from '../hooks/useWorkflows';
 import { CreatedWorkflow } from '../utils/workflowStorage';
 import { BrainIcon } from '../components/ui/BrainIcon';
 import { InsightsSection } from '../components/dashboard/InsightsSection';
+import { WorkflowDetailsOverlay } from '../components/WorkflowDetailsOverlay';
 
 export default function Workflows() {
   const { workflows, loading, stats, workflowsByStatus, updateWorkflowStatus, removeWorkflow, refreshWorkflows } = useWorkflows();
   const [activeTab, setActiveTab] = useState<'todo' | 'inProgress' | 'completed'>('todo');
+  const [selectedWorkflow, setSelectedWorkflow] = useState<CreatedWorkflow | null>(null);
 
   // This part of the code handles workflow status transitions with immediate state updates
   const handleStatusChange = (workflowId: string, newStatus: CreatedWorkflow['status']) => {
@@ -23,6 +25,11 @@ export default function Workflows() {
     if (confirm('Are you sure you want to delete this workflow?')) {
       removeWorkflow(workflowId);
     }
+  };
+
+  // This part of the code opens the detailed overlay when the workflow card is clicked
+  const handleCardClick = (workflow: CreatedWorkflow) => {
+    setSelectedWorkflow(workflow);
   };
 
   // This part of the code renders priority badges with appropriate styling
@@ -43,7 +50,11 @@ export default function Workflows() {
 
   // This part of the code renders workflow cards with action buttons and progress tracking
   const renderWorkflowCard = (workflow: CreatedWorkflow) => (
-    <div key={workflow.id} className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div 
+      key={workflow.id} 
+      className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={() => handleCardClick(workflow)}
+    >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-2">
           {workflow.source === 'ai_insight' ? (
@@ -240,6 +251,14 @@ export default function Workflows() {
           </div>
         </div>
       </div>
+
+      {/* This part of the code renders the workflow details overlay using the proven insight overlay pattern */}
+      <WorkflowDetailsOverlay
+        isOpen={!!selectedWorkflow}
+        onClose={() => setSelectedWorkflow(null)}
+        workflow={selectedWorkflow}
+        agentName="Workflow Agent"
+      />
     </Layout>
   );
 }

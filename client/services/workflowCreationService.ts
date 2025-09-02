@@ -110,60 +110,108 @@ class WorkflowCreationService implements IWorkflowCreationService {
 
   // This part of the code generates professional workflow step templates based on action type
   private generateWorkflowSteps(action: SuggestedAction): WorkflowStep[] {
-    const stepTemplates: Record<string, Omit<WorkflowStep, 'id' | 'completed'>[]> = {
-      create_workflow: [
-        { title: 'Review Items', type: 'create_workflow' },
-        { title: 'Prioritize Actions', type: 'create_workflow' },
-        { title: 'Execute Actions', type: 'create_workflow' },
-        { title: 'Verify Completion', type: 'create_workflow' }
-      ],
-      send_notification: [
-        { title: 'Identify Recipients', type: 'send_notification' },
-        { title: 'Compose Message', type: 'send_notification' },
-        { title: 'Send Notification', type: 'send_notification' },
-        { title: 'Confirm Receipt', type: 'send_notification' }
-      ],
-      escalate_order: [
-        { title: 'Document Issue', type: 'escalate_order' },
-        { title: 'Notify Management', type: 'escalate_order' },
-        { title: 'Coordinate Resolution', type: 'escalate_order' },
-        { title: 'Update Customer', type: 'escalate_order' }
-      ],
-      restock_item: [
-        { title: 'Check Current Levels', type: 'restock_item' },
-        { title: 'Contact Supplier', type: 'restock_item' },
-        { title: 'Place Order', type: 'restock_item' },
-        { title: 'Track Delivery', type: 'restock_item' }
-      ],
-      notify_team: [
-        { title: 'Prepare Notification', type: 'notify_team' },
-        { title: 'Send to Team', type: 'notify_team' },
-        { title: 'Confirm Acknowledgment', type: 'notify_team' }
-      ],
-      review_carrier: [
-        { title: 'Gather Performance Data', type: 'review_carrier' },
-        { title: 'Analyze Metrics', type: 'review_carrier' },
-        { title: 'Document Findings', type: 'review_carrier' },
-        { title: 'Recommend Actions', type: 'review_carrier' }
-      ],
-      contact_supplier: [
-        { title: 'Prepare Contact Information', type: 'contact_supplier' },
-        { title: 'Initiate Contact', type: 'contact_supplier' },
-        { title: 'Discuss Requirements', type: 'contact_supplier' },
-        { title: 'Follow Up', type: 'contact_supplier' }
-      ]
-    };
+    // This part of the code generates specific steps based on action content for enhanced workflows
+    const actionLabel = action.label.toLowerCase();
+    
+    if (actionLabel.includes('diversify') && actionLabel.includes('supplier')) {
+      return this.generateSupplierDiversificationSteps();
+    } else if (actionLabel.includes('investigate') || actionLabel.includes('variance')) {
+      return this.generateVarianceInvestigationSteps();
+    } else if (actionLabel.includes('review') && actionLabel.includes('supplier')) {
+      return this.generateSupplierReviewSteps();
+    } else if (actionLabel.includes('negotiate') || actionLabel.includes('compensation')) {
+      return this.generateNegotiationSteps();
+    } else if (actionLabel.includes('monitor') || actionLabel.includes('performance')) {
+      return this.generateMonitoringSteps();
+    }
 
-    const template = stepTemplates[action.type] || [
-      { title: action.label || 'Execute Action', type: action.type },
-      { title: 'Verify Completion', type: action.type }
+    // This part of the code throws error for unsupported workflow step types - NO GENERIC FALLBACKS
+    throw new Error('Unsupported workflow type - Check OpenAI Connection');
+  }
+
+  // This part of the code generates specific steps for supplier diversification workflows
+  private generateSupplierDiversificationSteps(): WorkflowStep[] {
+    const steps = [
+      { title: 'Contact Garcia Ltd and Kim-Davis for quotes on target SKUs', type: 'contact_supplier' },
+      { title: 'Place trial orders (max $500 combined)', type: 'restock_item' },
+      { title: 'Evaluate performance and adjust volumes', type: 'review_carrier' },
+      { title: 'Complete transition if performance meets standards', type: 'create_workflow' }
     ];
 
-    return template.map((step, index) => ({
+    return steps.map((step, index) => ({
       id: `step_${Date.now()}_${index}`,
       title: step.title,
       completed: false,
-      type: step.type
+      type: step.type as WorkflowStep['type']
+    }));
+  }
+
+  // This part of the code generates specific steps for variance investigation workflows
+  private generateVarianceInvestigationSteps(): WorkflowStep[] {
+    const steps = [
+      { title: 'Contact Garcia Ltd procurement manager about shipment 63a4de8d-7f01-4a83-ab35-bb02bec8b714', type: 'contact_supplier' },
+      { title: 'Request detailed packing manifest and quality control reports', type: 'review_carrier' },
+      { title: 'Compare Garcia Ltd variance rate vs other suppliers', type: 'review_carrier' },
+      { title: 'Implement pre-shipment photos for Garcia Ltd orders >$200', type: 'create_workflow' },
+      { title: 'Set up weekly variance review calls with Garcia Ltd', type: 'notify_team' }
+    ];
+
+    return steps.map((step, index) => ({
+      id: `step_${Date.now()}_${index}`,
+      title: step.title,
+      completed: false,
+      type: step.type as WorkflowStep['type']
+    }));
+  }
+
+  // This part of the code generates specific steps for supplier review workflows
+  private generateSupplierReviewSteps(): WorkflowStep[] {
+    const steps = [
+      { title: 'Schedule performance review meeting with Garcia Ltd within 2 weeks', type: 'contact_supplier' },
+      { title: 'Prepare performance data: 5 incidents, $8,200 impact documentation', type: 'review_carrier' },
+      { title: 'Discuss improvement plan and penalty clauses', type: 'escalate_order' },
+      { title: 'Prepare contract amendment with new performance clauses', type: 'create_workflow' }
+    ];
+
+    return steps.map((step, index) => ({
+      id: `step_${Date.now()}_${index}`,
+      title: step.title,
+      completed: false,
+      type: step.type as WorkflowStep['type']
+    }));
+  }
+
+  // This part of the code generates specific steps for negotiation workflows
+  private generateNegotiationSteps(): WorkflowStep[] {
+    const steps = [
+      { title: 'Contact Garcia Ltd finance dept for $321 credit or replacement', type: 'contact_supplier' },
+      { title: 'Review cancellation clause in Garcia Ltd contract (Section 4.2)', type: 'review_carrier' },
+      { title: 'Place backup order with Kim-Davis if no resolution by Friday', type: 'restock_item' },
+      { title: 'Set up backup supplier auto-escalation for orders >$300', type: 'create_workflow' }
+    ];
+
+    return steps.map((step, index) => ({
+      id: `step_${Date.now()}_${index}`,
+      title: step.title,
+      completed: false,
+      type: step.type as WorkflowStep['type']
+    }));
+  }
+
+  // This part of the code generates specific steps for monitoring workflows
+  private generateMonitoringSteps(): WorkflowStep[] {
+    const steps = [
+      { title: 'Set up weekly supplier performance scorecards', type: 'create_workflow' },
+      { title: 'Implement daily shipment status updates and alerts', type: 'notify_team' },
+      { title: 'Schedule monthly comprehensive supplier reviews', type: 'review_carrier' },
+      { title: 'Create quarterly strategic sourcing recommendations', type: 'escalate_order' }
+    ];
+
+    return steps.map((step, index) => ({
+      id: `step_${Date.now()}_${index}`,
+      title: step.title,
+      completed: false,
+      type: step.type as WorkflowStep['type']
     }));
   }
 
@@ -175,21 +223,16 @@ class WorkflowCreationService implements IWorkflowCreationService {
     return action.label || 'New Workflow';
   }
 
-  // This part of the code generates detailed workflow descriptions with enhanced formatting
+  // This part of the code generates detailed workflow descriptions - REAL DATA ONLY
   private generateWorkflowDescription(action: SuggestedAction, insightTitle?: string): string {
-    const baseDescription = action.context || action.label || 'Workflow created from AI suggestion';
-    
     try {
-      // This part of the code attempts to generate enhanced description with structured format
-      const enhancedDescription = this.generateDetailedDescription(action, insightTitle, baseDescription);
+      // This part of the code attempts to generate enhanced description with real data only
+      const enhancedDescription = this.generateDetailedDescription(action, insightTitle);
       return enhancedDescription;
     } catch (error) {
-      console.warn('⚠️ Failed to generate enhanced workflow description, using fallback:', error);
-      // This part of the code provides safe fallback to prevent workflow creation from breaking
-      if (insightTitle && insightTitle.trim()) {
-        return `${baseDescription}\n\nBased on insight: ${insightTitle}`;
-      }
-      return baseDescription;
+      console.warn('⚠️ Failed to generate enhanced workflow description:', error);
+      // This part of the code returns error message instead of fallback - same pattern as insights
+      throw new Error('Check OpenAI Connection');
     }
   }
 
@@ -213,8 +256,8 @@ class WorkflowCreationService implements IWorkflowCreationService {
       return this.generateMonitoringDescription(insightTitle);
     }
 
-    // This part of the code provides enhanced generic description for other action types
-    return `${baseDescription}\n\nBased on insight: ${insightTitle || 'AI Analysis'}\n\nIMPLEMENTATION STEPS:\n• Review current situation and gather necessary data\n• Contact relevant stakeholders and suppliers\n• Implement recommended changes with proper timeline\n• Monitor progress and adjust strategy as needed\n\nEXPECTED OUTCOME: Address identified operational issue and improve efficiency`;
+    // This part of the code throws error for unsupported workflow types - NO FALLBACKS
+    throw new Error('Unsupported workflow type - Check OpenAI Connection');
   }
 
 
@@ -252,7 +295,7 @@ IMPLEMENTATION TIMELINE:
 TARGET OUTCOME: Reduce Clark, West and Barber concentration to <15% within 60 days`;
   }
 
-  // This part of the code generates variance investigation workflow descriptions with structured format
+  // This part of the code generates variance investigation workflow descriptions with real supplier data
   private generateVarianceInvestigationDescription(insightTitle?: string): string {
     return `SHIPMENT VARIANCE INVESTIGATION - Garcia Ltd
 

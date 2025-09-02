@@ -352,7 +352,7 @@ DIVERSIFICATION PLAN:
 • Transfer SKU-DEF456 completely to Kim-Davis (saves $48/month)
 • Set up Johnson Group as backup for SKU-GHI789 (emergency orders only)
 
-IMPLEMENTATION TIMELINE:
+Implementation Timeline:
 • Week 1: Contact Garcia Ltd and Kim-Davis for quotes on target SKUs
 • Week 2: Place trial orders (max $500 combined)
 • Week 3: Evaluate performance and adjust volumes
@@ -365,24 +365,24 @@ TARGET OUTCOME: Reduce Clark, West and Barber concentration to <15% within 60 da
   private generateVarianceInvestigationDescription(insightTitle?: string): string {
     return `SHIPMENT VARIANCE INVESTIGATION - Garcia Ltd
 
-INCIDENT DETAILS:
+Incident Details:
 • Shipment ID: 63a4de8d-7f01-4a83-ab35-bb02bec8b714
 • Variance: 9 units short (expected vs received)
 • Financial Impact: $289 loss
 • Supplier: Garcia Ltd
 
-INVESTIGATION STEPS:
+Investigation Steps:
 • Contact Garcia Ltd procurement manager directly about shipment 63a4de8d-7f01-4a83-ab35-bb02bec8b714
 • Request detailed packing manifest and quality control reports
 • Compare Garcia Ltd variance rate vs other suppliers (Kim-Davis: 2% vs Garcia: 8%)
 • Review similar SKUs from Garcia Ltd for pattern analysis
 
-CORRECTIVE ACTIONS:
+Corrective Actions:
 • Implement mandatory pre-shipment photos for Garcia Ltd orders >$200
 • Set up weekly variance review calls with Garcia Ltd (Wednesdays 2PM)
 • Create penalty clause: $50 per unit variance in next contract renewal
 
-TIMELINE: Complete investigation within 5 business days`;
+Timeline: Complete investigation within 5 business days`;
   }
 
   // This part of the code generates supplier review workflow descriptions with structured format
@@ -412,7 +412,7 @@ NEXT STEPS:
 • Prepare contract amendment with new performance clauses
 • Schedule monthly review meetings starting next month
 
-TIMELINE: Complete contract renegotiation within 30 days`;
+Timeline: Complete contract renegotiation within 30 days`;
   }
 
   // This part of the code generates negotiation workflow descriptions with structured format

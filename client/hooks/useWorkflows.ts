@@ -139,7 +139,7 @@ export const useWorkflowCreation = () => {
 
     try {
       // THIS IS THE KEY LINE - Creates the workflow using the service
-      const workflow = await workflowCreationService.createWorkflowFromAction(
+      const workflow = workflowCreationService.createWorkflowFromAction(
         action,     // ← The button action data
         source,     // ← "ai_insight" 
         sourceId,   // ← insight.id

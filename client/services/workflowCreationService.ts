@@ -120,8 +120,14 @@ class WorkflowCreationService implements IWorkflowCreationService {
       return this.generateSupplierDiversificationSteps(supplier);
     } else if (actionLabel.includes('investigate') || actionLabel.includes('variance')) {
       return this.generateVarianceInvestigationSteps(supplier);
-    } else if (actionLabel.includes('review') && (actionLabel.includes('supplier') || actionLabel.includes('shipment') || actionLabel.includes('cancelled'))) {
+    } else if (actionLabel.includes('review') && (actionLabel.includes('supplier') || actionLabel.includes('shipment') || actionLabel.includes('cancelled') || actionLabel.includes('performance'))) {
       return this.generateSupplierReviewSteps(supplier);
+    } else if (actionLabel.includes('escalate') && (actionLabel.includes('po') || actionLabel.includes('order'))) {
+      return this.generateNegotiationSteps(supplier);
+    } else if (actionLabel.includes('emergency') && (actionLabel.includes('reorder') || actionLabel.includes('sku'))) {
+      return this.generateVarianceInvestigationSteps(supplier);
+    } else if (actionLabel.includes('reorder') && actionLabel.includes('sku')) {
+      return this.generateVarianceInvestigationSteps(supplier);
     } else if (actionLabel.includes('negotiate') || actionLabel.includes('compensation')) {
       return this.generateNegotiationSteps(supplier);
     } else if (actionLabel.includes('monitor') || actionLabel.includes('performance')) {
@@ -348,8 +354,14 @@ class WorkflowCreationService implements IWorkflowCreationService {
       return this.generateSupplierDiversificationDescription(supplier);
     } else if (actionLabel.includes('investigate') || actionLabel.includes('variance')) {
       return this.generateVarianceInvestigationDescription(supplier);
-    } else if (actionLabel.includes('review') && (actionLabel.includes('supplier') || actionLabel.includes('shipment') || actionLabel.includes('cancelled'))) {
+    } else if (actionLabel.includes('review') && (actionLabel.includes('supplier') || actionLabel.includes('shipment') || actionLabel.includes('cancelled') || actionLabel.includes('performance'))) {
       return this.generateSupplierReviewDescription(supplier);
+    } else if (actionLabel.includes('escalate') && (actionLabel.includes('po') || actionLabel.includes('order'))) {
+      return this.generateNegotiationDescription(supplier);
+    } else if (actionLabel.includes('emergency') && (actionLabel.includes('reorder') || actionLabel.includes('sku'))) {
+      return this.generateVarianceInvestigationDescription(supplier);
+    } else if (actionLabel.includes('reorder') && actionLabel.includes('sku')) {
+      return this.generateVarianceInvestigationDescription(supplier);
     } else if (actionLabel.includes('negotiate') || actionLabel.includes('compensation')) {
       return this.generateNegotiationDescription(supplier);
     } else if (actionLabel.includes('monitor') || actionLabel.includes('performance')) {

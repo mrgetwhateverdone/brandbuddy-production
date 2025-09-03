@@ -148,6 +148,14 @@ class WorkflowCreationService implements IWorkflowCreationService {
       return this.generateSupplierDiversificationSteps(supplier);
     } else if ((actionLabel.includes('source') && actionLabel.includes('alternative')) || (actionLabel.includes('update') && actionLabel.includes('inventory'))) {
       return this.generateSupplierDiversificationSteps(supplier);
+    } else if ((actionLabel.includes('assign') && actionLabel.includes('team')) || (actionLabel.includes('implement') && actionLabel.includes('tracking'))) {
+      return this.generateMonitoringSteps(supplier);
+    } else if ((actionLabel.includes('establish') && actionLabel.includes('communication')) || (actionLabel.includes('follow up') || actionLabel.includes('follow-up'))) {
+      return this.generateScheduleMeetingSteps(supplier);
+    } else if ((actionLabel.includes('request') && actionLabel.includes('immediate') && actionLabel.includes('shipment'))) {
+      return this.generateVarianceInvestigationSteps(supplier);
+    } else if ((actionLabel.includes('explore') && actionLabel.includes('source')) || (actionLabel.includes('explore') && actionLabel.includes('options'))) {
+      return this.generateSupplierDiversificationSteps(supplier);
     }
 
     // This part of the code throws error for unsupported workflow step types - NO GENERIC FALLBACKS
@@ -387,6 +395,14 @@ class WorkflowCreationService implements IWorkflowCreationService {
     } else if (actionLabel.includes('identify') && actionLabel.includes('alternative') && actionLabel.includes('suppliers')) {
       return this.generateSupplierDiversificationDescription(supplier);
     } else if ((actionLabel.includes('source') && actionLabel.includes('alternative')) || (actionLabel.includes('update') && actionLabel.includes('inventory'))) {
+      return this.generateSupplierDiversificationDescription(supplier);
+    } else if ((actionLabel.includes('assign') && actionLabel.includes('team')) || (actionLabel.includes('implement') && actionLabel.includes('tracking'))) {
+      return this.generateMonitoringDescription(supplier);
+    } else if ((actionLabel.includes('establish') && actionLabel.includes('communication')) || (actionLabel.includes('follow up') || actionLabel.includes('follow-up'))) {
+      return this.generateScheduleMeetingDescription(supplier);
+    } else if ((actionLabel.includes('request') && actionLabel.includes('immediate') && actionLabel.includes('shipment'))) {
+      return this.generateVarianceInvestigationDescription(supplier);
+    } else if ((actionLabel.includes('explore') && actionLabel.includes('source')) || (actionLabel.includes('explore') && actionLabel.includes('options'))) {
       return this.generateSupplierDiversificationDescription(supplier);
     }
 

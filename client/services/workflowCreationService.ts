@@ -120,7 +120,7 @@ class WorkflowCreationService implements IWorkflowCreationService {
       return this.generateSupplierDiversificationSteps(supplier);
     } else if (actionLabel.includes('investigate') || actionLabel.includes('variance')) {
       return this.generateVarianceInvestigationSteps(supplier);
-    } else if (actionLabel.includes('review') && (actionLabel.includes('supplier') || actionLabel.includes('shipment') || actionLabel.includes('cancelled') || actionLabel.includes('performance'))) {
+    } else if (actionLabel.includes('review') && (actionLabel.includes('supplier') || actionLabel.includes('shipment') || actionLabel.includes('cancelled') || actionLabel.includes('performance') || actionLabel.includes('contract'))) {
       return this.generateSupplierReviewSteps(supplier);
     } else if (actionLabel.includes('escalate') && (actionLabel.includes('po') || actionLabel.includes('order'))) {
       return this.generateNegotiationSteps(supplier);
@@ -132,16 +132,22 @@ class WorkflowCreationService implements IWorkflowCreationService {
       return this.generateNegotiationSteps(supplier);
     } else if (actionLabel.includes('monitor') || actionLabel.includes('performance')) {
       return this.generateMonitoringSteps(supplier);
-    } else if (actionLabel.includes('schedule') && actionLabel.includes('meeting')) {
+    } else if ((actionLabel.includes('schedule') && actionLabel.includes('meeting')) || (actionLabel.includes('request') && actionLabel.includes('meeting')) || actionLabel.includes('contact')) {
       return this.generateScheduleMeetingSteps(supplier);
-    } else if (actionLabel.includes('implement') && actionLabel.includes('audit')) {
+    } else if ((actionLabel.includes('implement') && actionLabel.includes('audit')) || (actionLabel.includes('implement') && actionLabel.includes('quality') && actionLabel.includes('control'))) {
       return this.generateImplementAuditSteps(supplier);
     } else if (actionLabel.includes('consider') && actionLabel.includes('renegotiat')) {
       return this.generateConsiderRenegotiationSteps(supplier);
     } else if (actionLabel.includes('reevaluate') || actionLabel.includes('reeval')) {
       return this.generateSupplierReviewSteps(supplier);
-    } else if (actionLabel.includes('set') && actionLabel.includes('timeline')) {
+    } else if ((actionLabel.includes('set') && actionLabel.includes('timeline')) || (actionLabel.includes('set') && actionLabel.includes('deadline')) || (actionLabel.includes('develop') && actionLabel.includes('contingency')) || (actionLabel.includes('communicate') && actionLabel.includes('customers'))) {
       return this.generateMonitoringSteps(supplier);
+    } else if ((actionLabel.includes('conduct') && actionLabel.includes('risk') && actionLabel.includes('assessment')) || (actionLabel.includes('conduct') && actionLabel.includes('assessment'))) {
+      return this.generateSupplierReviewSteps(supplier);
+    } else if (actionLabel.includes('identify') && actionLabel.includes('alternative') && actionLabel.includes('suppliers')) {
+      return this.generateSupplierDiversificationSteps(supplier);
+    } else if ((actionLabel.includes('source') && actionLabel.includes('alternative')) || (actionLabel.includes('update') && actionLabel.includes('inventory'))) {
+      return this.generateSupplierDiversificationSteps(supplier);
     }
 
     // This part of the code throws error for unsupported workflow step types - NO GENERIC FALLBACKS
@@ -354,7 +360,7 @@ class WorkflowCreationService implements IWorkflowCreationService {
       return this.generateSupplierDiversificationDescription(supplier);
     } else if (actionLabel.includes('investigate') || actionLabel.includes('variance')) {
       return this.generateVarianceInvestigationDescription(supplier);
-    } else if (actionLabel.includes('review') && (actionLabel.includes('supplier') || actionLabel.includes('shipment') || actionLabel.includes('cancelled') || actionLabel.includes('performance'))) {
+    } else if (actionLabel.includes('review') && (actionLabel.includes('supplier') || actionLabel.includes('shipment') || actionLabel.includes('cancelled') || actionLabel.includes('performance') || actionLabel.includes('contract'))) {
       return this.generateSupplierReviewDescription(supplier);
     } else if (actionLabel.includes('escalate') && (actionLabel.includes('po') || actionLabel.includes('order'))) {
       return this.generateNegotiationDescription(supplier);
@@ -366,16 +372,22 @@ class WorkflowCreationService implements IWorkflowCreationService {
       return this.generateNegotiationDescription(supplier);
     } else if (actionLabel.includes('monitor') || actionLabel.includes('performance')) {
       return this.generateMonitoringDescription(supplier);
-    } else if (actionLabel.includes('schedule') && actionLabel.includes('meeting')) {
+    } else if ((actionLabel.includes('schedule') && actionLabel.includes('meeting')) || (actionLabel.includes('request') && actionLabel.includes('meeting')) || actionLabel.includes('contact')) {
       return this.generateScheduleMeetingDescription(supplier);
-    } else if (actionLabel.includes('implement') && actionLabel.includes('audit')) {
+    } else if ((actionLabel.includes('implement') && actionLabel.includes('audit')) || (actionLabel.includes('implement') && actionLabel.includes('quality') && actionLabel.includes('control'))) {
       return this.generateImplementAuditDescription(supplier);
     } else if (actionLabel.includes('consider') && actionLabel.includes('renegotiat')) {
       return this.generateConsiderRenegotiationDescription(supplier);
     } else if (actionLabel.includes('reevaluate') || actionLabel.includes('reeval')) {
       return this.generateSupplierReviewDescription(supplier);
-    } else if (actionLabel.includes('set') && actionLabel.includes('timeline')) {
+    } else if ((actionLabel.includes('set') && actionLabel.includes('timeline')) || (actionLabel.includes('set') && actionLabel.includes('deadline')) || (actionLabel.includes('develop') && actionLabel.includes('contingency')) || (actionLabel.includes('communicate') && actionLabel.includes('customers'))) {
       return this.generateMonitoringDescription(supplier);
+    } else if ((actionLabel.includes('conduct') && actionLabel.includes('risk') && actionLabel.includes('assessment')) || (actionLabel.includes('conduct') && actionLabel.includes('assessment'))) {
+      return this.generateSupplierReviewDescription(supplier);
+    } else if (actionLabel.includes('identify') && actionLabel.includes('alternative') && actionLabel.includes('suppliers')) {
+      return this.generateSupplierDiversificationDescription(supplier);
+    } else if ((actionLabel.includes('source') && actionLabel.includes('alternative')) || (actionLabel.includes('update') && actionLabel.includes('inventory'))) {
+      return this.generateSupplierDiversificationDescription(supplier);
     }
 
     // This part of the code throws error for unsupported workflow types - NO FALLBACKS

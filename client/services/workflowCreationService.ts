@@ -483,24 +483,24 @@ class WorkflowCreationService implements IWorkflowCreationService {
     // This part of the code generates alternative suppliers dynamically based on the primary supplier
     const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
     
-    return `SUPPLIER DIVERSIFICATION STRATEGY
+    return `Supplier Diversification Strategy
 
-CURRENT CONCENTRATION ANALYSIS:
+Current Concentration Analysis:
 • ${supplier}: 44 shipments ($2,496 total value)
 • Concentration Risk: 23.5% of total supply volume
 • Risk Level: HIGH - Single point of failure
 
-AFFECTED SKUs FOR DIVERSIFICATION:
+Affected SKUs For Diversification:
 • SKU-ABC123: 15 units/month from ${supplier} ($450 monthly)
 • SKU-DEF456: 8 units/month from ${supplier} ($320 monthly)  
 • SKU-GHI789: 12 units/month from ${supplier} ($380 monthly)
 
-ALTERNATIVE SUPPLIER ANALYSIS:
+Alternative Supplier Analysis:
 • ${alternativeSuppliers[0]}: Handles similar SKUs, 4.2-day avg delivery, 5% higher cost
 • ${alternativeSuppliers[1]}: 8 active shipments this month, 15% cost savings potential
 • ${alternativeSuppliers[2]}: Proven with SKUs ABC123, DEF456 - 3-day delivery
 
-DIVERSIFICATION PLAN:
+Diversification Plan:
 • Move 30% of SKU-ABC123 volume to ${alternativeSuppliers[0]} (test with 5 units next order)
 • Transfer SKU-DEF456 completely to ${alternativeSuppliers[1]} (saves $48/month)
 • Set up ${alternativeSuppliers[2]} as backup for SKU-GHI789 (emergency orders only)
@@ -511,12 +511,12 @@ Implementation Timeline:
 • Week 3: Evaluate performance and adjust volumes
 • Month 2: Full transition if performance meets standards
 
-TARGET OUTCOME: Reduce ${supplier} concentration to <15% within 60 days`;
+Target Outcome: Reduce ${supplier} concentration to <15% within 60 days`;
   }
 
   // This part of the code generates variance investigation workflow descriptions with dynamic supplier data
   private generateVarianceInvestigationDescription(supplier: string): string {
-    return `SHIPMENT VARIANCE INVESTIGATION - ${supplier}
+    return `Shipment Variance Investigation - ${supplier}
 
 Incident Details:
 • Shipment ID: 63a4de8d-7f01-4a83-ab35-bb02bec8b714
@@ -540,27 +540,27 @@ Timeline: Complete investigation within 5 business days`;
 
   // This part of the code generates supplier review workflow descriptions with dynamic supplier data
   private generateSupplierReviewDescription(supplier: string): string {
-    return `SUPPLIER PERFORMANCE REVIEW - ${supplier}
+    return `Supplier Performance Review - ${supplier}
 
-PERFORMANCE ANALYSIS:
+Performance Analysis:
 • Supplier: ${supplier}
 • Performance Issues: 5 quantity discrepancies this month
 • Financial Impact: $8,200 total impact from variances
 • Success Rate: 87% on-time, complete deliveries (below 95% target)
 
-REVIEW ACTIONS:
+Review Actions:
 • Schedule performance review meeting with ${supplier} within 2 weeks
 • Prepare performance data: 5 incidents, $8,200 impact documentation
 • Discuss improvement plan and penalty clauses
 • Set up monthly performance monitoring calls
 
-CONTRACT ADJUSTMENTS:
+Contract Adjustments:
 • Add performance benchmarks: 95% accuracy target
 • Include financial penalties: $50 per unit variance
 • Establish escalation procedures for repeated issues
 • Require 48-hour advance notice for delivery changes
 
-NEXT STEPS:
+Next Steps:
 • Contact ${supplier} procurement manager by Friday
 • Prepare contract amendment with new performance clauses
 • Schedule monthly review meetings starting next month
@@ -572,29 +572,29 @@ Timeline: Complete contract renegotiation within 30 days`;
   private generateNegotiationDescription(supplier: string): string {
     const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
     
-    return `COMPENSATION NEGOTIATION - ${supplier}
+    return `Compensation Negotiation - ${supplier}
 
-FINANCIAL IMPACT:
+Financial Impact:
 • Total Lost Value: $321 across 10 cancelled units
 • Primary Incident: Shipment 63a4de8d-7f01-4a83-ab35-bb02bec8b714
 • Supplier: ${supplier}
 
-IMMEDIATE RECOVERY ACTIONS:
+Immediate Recovery Actions:
 • Contact ${supplier} finance dept for $321 credit or replacement shipment
 • Review cancellation clause in ${supplier} contract (Section 4.2)
 • Document cancellation pattern: ${supplier} cancelled 3 shipments this quarter
 
-ALTERNATIVE SUPPLIER OPTIONS:
+Alternative Supplier Options:
 • ${alternativeSuppliers[0]}: Can fulfill 10 units within 48 hours ($340 cost)
 • ${alternativeSuppliers[1]}: 5-day lead time but 15% cost savings ($272 total)
 • ${alternativeSuppliers[2]}: Emergency backup (72-hour delivery)
 
-PREVENTION MEASURES:
+Prevention Measures:
 • Add cancellation penalties to ${supplier} contract: 10% of order value
 • Require 48-hour cancellation notice minimum
 • Set up backup supplier auto-escalation for orders >$300
 
-NEXT STEPS:
+Next Steps:
 • Call ${supplier} by EOD Wednesday for credit negotiation
 • Place backup order with ${alternativeSuppliers[0]} if no resolution by Friday`;
   }
@@ -603,33 +603,33 @@ NEXT STEPS:
   private generateMonitoringDescription(supplier: string): string {
     const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
     
-    return `SUPPLIER PERFORMANCE MONITORING SYSTEM
+    return `Supplier Performance Monitoring System
 
-MONITORING SCOPE:
+Monitoring Scope:
 • Primary Focus: ${supplier}
 • Alternative Suppliers: ${alternativeSuppliers.join(', ')}
 • Current Shipments: 187 shipments being tracked
 • Key Metrics: Delivery accuracy, timing, quality variance
 
-MONITORING SCHEDULE:
+Monitoring Schedule:
 • Daily: Shipment status updates and exception alerts
 • Weekly: Supplier performance scorecards and variance reports  
 • Monthly: Comprehensive supplier review and contract assessment
 • Quarterly: Strategic supplier relationship evaluation
 
-PERFORMANCE METRICS:
+Performance Metrics:
 • Delivery Accuracy: Target 95%+ complete deliveries
 • Timing Performance: Target <2 days variance from expected
 • Quality Variance: Target <5% quantity discrepancies
 • Communication: 24-hour response time requirement
 
-ESCALATION PROCEDURES:
+Escalation Procedures:
 • 1st Issue: Direct ${supplier} contact within 24 hours
 • 2nd Issue: Management escalation and performance plan
 • 3rd Issue: Contract review and penalty assessment
 • Critical Issues: Immediate backup supplier activation
 
-REPORTING SCHEDULE:
+Reporting Schedule:
 • Weekly supplier performance dashboard updates
 • Monthly executive briefings on supplier reliability
 • Quarterly strategic sourcing recommendations`;
@@ -639,28 +639,28 @@ REPORTING SCHEDULE:
   private generateScheduleMeetingDescription(supplier: string): string {
     const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
     
-    return `SUPPLIER PERFORMANCE MEETING - ${supplier}
+    return `Supplier Performance Meeting - ${supplier}
 
-MEETING PURPOSE:
+Meeting Purpose:
 • Address 24 quantity discrepancies identified in recent shipments
 • Total Financial Impact: $8,200 in quantity variance losses
 • Review ${supplier} performance vs benchmarks (${alternativeSuppliers[0]}: 2% variance vs ${supplier}: 8%)
 • Establish improved quality control procedures
 
-MEETING AGENDA:
+Meeting Agenda:
 • Shipment Review: Analyze specific discrepancy incidents from last 30 days
 • Root Cause Analysis: ${supplier} internal process review
 • Corrective Action Plan: Mandatory pre-shipment verification for orders >$200
 • Performance Metrics: Set monthly variance targets <3% starting next month
 • Contract Terms: Discuss penalty clauses for future quantity discrepancies
 
-MEETING PARTICIPANTS:
+Meeting Participants:
 • ${supplier}: Procurement Manager, Quality Control Director
 • Callahan-Smith: Supply Chain Manager, Finance Director
 • Meeting Format: Video conference with shared performance dashboard
 • Documentation: Meeting minutes, action items, follow-up timeline
 
-EXPECTED OUTCOMES:
+Expected Outcomes:
 • Immediate corrective actions for current discrepancies
 • Enhanced quality control process implementation
 • Monthly performance review schedule established
@@ -671,27 +671,27 @@ Timeline: Schedule meeting within 5 business days`;
 
   // This part of the code generates audit implementation workflow descriptions with dynamic supplier data
   private generateImplementAuditDescription(supplier: string): string {
-    return `SUPPLIER AUDIT IMPLEMENTATION - ${supplier} Quality Control
+    return `Supplier Audit Implementation - ${supplier} Quality Control
 
-AUDIT SCOPE:
+Audit Scope:
 • Target: ${supplier} incoming inventory verification
 • Focus: Quantity accuracy, product quality, documentation compliance
 • Frequency: Weekly random audits + 100% audit for orders >$500
 • Coverage: All SKUs with history of discrepancies (ABC-123, DEF-456, GHI-789)
 
-AUDIT PROCEDURES:
+Audit Procedures:
 • Pre-Arrival: ${supplier} submits packing manifests 24 hours before delivery
 • Arrival Inspection: 100% count verification with photo documentation
 • Quality Check: Random sampling for product condition and specifications
 • Documentation: Digital audit trail with timestamped photos and signatures
 
-AUDIT TEAM SETUP:
+Audit Team Setup:
 • Lead Auditor: Warehouse Quality Manager (${supplier} shipments)
 • Secondary: Receiving Supervisor (backup verification)
 • Technology: Mobile audit app with real-time sync to ${supplier} portal
 • Escalation: Direct line to ${supplier} Quality Director for immediate issues
 
-PERFORMANCE TRACKING:
+Performance Tracking:
 • Audit Results: Weekly variance reports shared with ${supplier}
 • Trend Analysis: Monthly patterns and improvement tracking
 • Cost Impact: Calculate monthly savings from improved accuracy
@@ -704,27 +704,27 @@ Timeline: Full audit system operational within 3 weeks`;
   private generateConsiderRenegotiationDescription(supplier: string): string {
     const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
     
-    return `CONTRACT RENEGOTIATION ANALYSIS - ${supplier} Performance Review
+    return `Contract Renegotiation Analysis - ${supplier} Performance Review
 
-PERFORMANCE ANALYSIS:
+Performance Analysis:
 • Current Performance: 8% quantity variance (industry benchmark: 3%)
 • Financial Impact: $8,200 monthly losses from quantity discrepancies
 • Comparison: ${alternativeSuppliers[0]} (2% variance) vs ${supplier} (8% variance)
 • Contract Terms: Current agreement lacks quantity accuracy penalties
 
-RENEGOTIATION OPPORTUNITIES:
+Renegotiation Opportunities:
 • Penalty Clauses: $50 per unit variance for orders >$200
 • Performance Bonuses: 2% price reduction for <1% monthly variance
 • Quality Standards: Mandatory pre-shipment verification requirements
 • Service Level Agreements: 95% quantity accuracy minimum threshold
 
-NEGOTIATION STRATEGY:
+Negotiation Strategy:
 • Leverage Data: Present 6-month variance analysis with financial impact
 • Benchmark Comparison: Use ${alternativeSuppliers[0]} performance as industry standard
 • Win-Win Approach: Offer volume incentives for improved performance
 • Implementation Support: Provide training for ${supplier} quality processes
 
-CONTRACT MODIFICATIONS:
+Contract Modifications:
 • Quality Performance Metrics: Define specific accuracy requirements
 • Financial Penalties: Clear cost structure for quantity discrepancies  
 • Audit Rights: Monthly quality audits with corrective action requirements

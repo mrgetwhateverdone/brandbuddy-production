@@ -128,19 +128,19 @@ class WorkflowCreationService implements IWorkflowCreationService {
       return this.generateVarianceInvestigationSteps(supplier);
     } else if (actionLabel.includes('reorder') && actionLabel.includes('sku')) {
       return this.generateVarianceInvestigationSteps(supplier);
-    } else if (actionLabel.includes('negotiate') || actionLabel.includes('compensation')) {
+    } else if (actionLabel.includes('negotiate') || actionLabel.includes('compensation') || (actionLabel.includes('implement') && actionLabel.includes('penalty') && actionLabel.includes('clause'))) {
       return this.generateNegotiationSteps(supplier);
     } else if (actionLabel.includes('monitor') || actionLabel.includes('performance')) {
       return this.generateMonitoringSteps(supplier);
     } else if ((actionLabel.includes('schedule') && actionLabel.includes('meeting')) || (actionLabel.includes('request') && actionLabel.includes('meeting')) || actionLabel.includes('contact')) {
       return this.generateScheduleMeetingSteps(supplier);
-    } else if ((actionLabel.includes('implement') && actionLabel.includes('audit')) || (actionLabel.includes('implement') && actionLabel.includes('quality') && actionLabel.includes('control'))) {
+    } else if ((actionLabel.includes('implement') && actionLabel.includes('audit')) || (actionLabel.includes('implement') && actionLabel.includes('quality') && actionLabel.includes('control')) || (actionLabel.includes('implement') && actionLabel.includes('quality') && actionLabel.includes('check'))) {
       return this.generateImplementAuditSteps(supplier);
     } else if (actionLabel.includes('consider') && actionLabel.includes('renegotiat')) {
       return this.generateConsiderRenegotiationSteps(supplier);
     } else if (actionLabel.includes('reevaluate') || actionLabel.includes('reeval')) {
       return this.generateSupplierReviewSteps(supplier);
-    } else if ((actionLabel.includes('set') && actionLabel.includes('timeline')) || (actionLabel.includes('set') && actionLabel.includes('deadline')) || (actionLabel.includes('develop') && actionLabel.includes('contingency')) || (actionLabel.includes('communicate') && actionLabel.includes('customers'))) {
+    } else if ((actionLabel.includes('set') && actionLabel.includes('timeline')) || (actionLabel.includes('set') && actionLabel.includes('deadline')) || (actionLabel.includes('develop') && actionLabel.includes('contingency')) || (actionLabel.includes('communicate') && actionLabel.includes('customers')) || (actionLabel.includes('implement') && actionLabel.includes('backup') && actionLabel.includes('plan')) || (actionLabel.includes('communicate') && actionLabel.includes('customer') && actionLabel.includes('delay'))) {
       return this.generateMonitoringSteps(supplier);
     } else if ((actionLabel.includes('conduct') && actionLabel.includes('risk') && actionLabel.includes('assessment')) || (actionLabel.includes('conduct') && actionLabel.includes('assessment'))) {
       return this.generateSupplierReviewSteps(supplier);
@@ -376,19 +376,19 @@ class WorkflowCreationService implements IWorkflowCreationService {
       return this.generateVarianceInvestigationDescription(supplier);
     } else if (actionLabel.includes('reorder') && actionLabel.includes('sku')) {
       return this.generateVarianceInvestigationDescription(supplier);
-    } else if (actionLabel.includes('negotiate') || actionLabel.includes('compensation')) {
+    } else if (actionLabel.includes('negotiate') || actionLabel.includes('compensation') || (actionLabel.includes('implement') && actionLabel.includes('penalty') && actionLabel.includes('clause'))) {
       return this.generateNegotiationDescription(supplier);
     } else if (actionLabel.includes('monitor') || actionLabel.includes('performance')) {
       return this.generateMonitoringDescription(supplier);
     } else if ((actionLabel.includes('schedule') && actionLabel.includes('meeting')) || (actionLabel.includes('request') && actionLabel.includes('meeting')) || actionLabel.includes('contact')) {
       return this.generateScheduleMeetingDescription(supplier);
-    } else if ((actionLabel.includes('implement') && actionLabel.includes('audit')) || (actionLabel.includes('implement') && actionLabel.includes('quality') && actionLabel.includes('control'))) {
+    } else if ((actionLabel.includes('implement') && actionLabel.includes('audit')) || (actionLabel.includes('implement') && actionLabel.includes('quality') && actionLabel.includes('control')) || (actionLabel.includes('implement') && actionLabel.includes('quality') && actionLabel.includes('check'))) {
       return this.generateImplementAuditDescription(supplier);
     } else if (actionLabel.includes('consider') && actionLabel.includes('renegotiat')) {
       return this.generateConsiderRenegotiationDescription(supplier);
     } else if (actionLabel.includes('reevaluate') || actionLabel.includes('reeval')) {
       return this.generateSupplierReviewDescription(supplier);
-    } else if ((actionLabel.includes('set') && actionLabel.includes('timeline')) || (actionLabel.includes('set') && actionLabel.includes('deadline')) || (actionLabel.includes('develop') && actionLabel.includes('contingency')) || (actionLabel.includes('communicate') && actionLabel.includes('customers'))) {
+    } else if ((actionLabel.includes('set') && actionLabel.includes('timeline')) || (actionLabel.includes('set') && actionLabel.includes('deadline')) || (actionLabel.includes('develop') && actionLabel.includes('contingency')) || (actionLabel.includes('communicate') && actionLabel.includes('customers')) || (actionLabel.includes('implement') && actionLabel.includes('backup') && actionLabel.includes('plan')) || (actionLabel.includes('communicate') && actionLabel.includes('customer') && actionLabel.includes('delay'))) {
       return this.generateMonitoringDescription(supplier);
     } else if ((actionLabel.includes('conduct') && actionLabel.includes('risk') && actionLabel.includes('assessment')) || (actionLabel.includes('conduct') && actionLabel.includes('assessment'))) {
       return this.generateSupplierReviewDescription(supplier);

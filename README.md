@@ -1,4 +1,4 @@
-# BrandBuddy - Brand Operations Management Platform 🚀.
+# BrandBuddy - Brand Operations Management Platform 🚀
 
 <!-- Deployment: Restored to working version a2dc8f7 with enhanced AI insights - August 28, 2025 2:25 PM -->
 

@@ -71,7 +71,7 @@ export default function Workflows() {
         {getPriorityBadge(workflow.priority)}
       </div>
 
-      <p className="text-sm text-gray-600 mb-3">Click for detailed analysis</p>
+      <p className="text-sm text-gray-600 mb-3">{workflow.description}</p>
 
       {/* This part of the code shows workflow progress based on completed steps */}
       <div className="mb-3">

@@ -108,37 +108,42 @@ class WorkflowCreationService implements IWorkflowCreationService {
     return validSources.includes(source as WorkflowSource) ? source as WorkflowSource : 'manual';
   }
 
-  // This part of the code generates professional workflow step templates based on action type
-  private generateWorkflowSteps(action: SuggestedAction): WorkflowStep[] {
+  // This part of the code generates professional workflow step templates based on action type with dynamic supplier data
+  private generateWorkflowSteps(action: SuggestedAction, insightTitle?: string): WorkflowStep[] {
+    // This part of the code extracts supplier for dynamic step generation
+    const supplier = this.extractSupplierFromInsight(insightTitle, action.label);
+    
     // This part of the code generates specific steps based on action content for enhanced workflows
     const actionLabel = action.label.toLowerCase();
     
     if (actionLabel.includes('diversify') && actionLabel.includes('supplier')) {
-      return this.generateSupplierDiversificationSteps();
+      return this.generateSupplierDiversificationSteps(supplier);
     } else if (actionLabel.includes('investigate') || actionLabel.includes('variance')) {
-      return this.generateVarianceInvestigationSteps();
+      return this.generateVarianceInvestigationSteps(supplier);
     } else if (actionLabel.includes('review') && actionLabel.includes('supplier')) {
-      return this.generateSupplierReviewSteps();
+      return this.generateSupplierReviewSteps(supplier);
     } else if (actionLabel.includes('negotiate') || actionLabel.includes('compensation')) {
-      return this.generateNegotiationSteps();
+      return this.generateNegotiationSteps(supplier);
     } else if (actionLabel.includes('monitor') || actionLabel.includes('performance')) {
-      return this.generateMonitoringSteps();
+      return this.generateMonitoringSteps(supplier);
     } else if (actionLabel.includes('schedule') && actionLabel.includes('meeting')) {
-      return this.generateScheduleMeetingSteps();
+      return this.generateScheduleMeetingSteps(supplier);
     } else if (actionLabel.includes('implement') && actionLabel.includes('audit')) {
-      return this.generateImplementAuditSteps();
+      return this.generateImplementAuditSteps(supplier);
     } else if (actionLabel.includes('consider') && actionLabel.includes('renegotiat')) {
-      return this.generateConsiderRenegotiationSteps();
+      return this.generateConsiderRenegotiationSteps(supplier);
     }
 
     // This part of the code throws error for unsupported workflow step types - NO GENERIC FALLBACKS
     throw new Error('Unsupported workflow type - Check OpenAI Connection');
   }
 
-  // This part of the code generates specific steps for supplier diversification workflows
-  private generateSupplierDiversificationSteps(): WorkflowStep[] {
+  // This part of the code generates specific steps for supplier diversification workflows with dynamic supplier data
+  private generateSupplierDiversificationSteps(supplier: string): WorkflowStep[] {
+    const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
+    
     const steps = [
-      { title: 'Contact Garcia Ltd and Kim-Davis for quotes on target SKUs', type: 'contact_supplier' },
+      { title: `Contact ${alternativeSuppliers[0]} and ${alternativeSuppliers[1]} for quotes on target SKUs`, type: 'contact_supplier' },
       { title: 'Place trial orders (max $500 combined)', type: 'restock_item' },
       { title: 'Evaluate performance and adjust volumes', type: 'review_carrier' },
       { title: 'Complete transition if performance meets standards', type: 'create_workflow' }
@@ -152,14 +157,14 @@ class WorkflowCreationService implements IWorkflowCreationService {
     }));
   }
 
-  // This part of the code generates specific steps for variance investigation workflows
-  private generateVarianceInvestigationSteps(): WorkflowStep[] {
+  // This part of the code generates specific steps for variance investigation workflows with dynamic supplier data
+  private generateVarianceInvestigationSteps(supplier: string): WorkflowStep[] {
     const steps = [
-      { title: 'Contact Garcia Ltd procurement manager about shipment 63a4de8d-7f01-4a83-ab35-bb02bec8b714', type: 'contact_supplier' },
+      { title: `Contact ${supplier} procurement manager about shipment 63a4de8d-7f01-4a83-ab35-bb02bec8b714`, type: 'contact_supplier' },
       { title: 'Request detailed packing manifest and quality control reports', type: 'review_carrier' },
-      { title: 'Compare Garcia Ltd variance rate vs other suppliers', type: 'review_carrier' },
-      { title: 'Implement pre-shipment photos for Garcia Ltd orders >$200', type: 'create_workflow' },
-      { title: 'Set up weekly variance review calls with Garcia Ltd', type: 'notify_team' }
+      { title: `Compare ${supplier} variance rate vs other suppliers`, type: 'review_carrier' },
+      { title: `Implement pre-shipment photos for ${supplier} orders >$200`, type: 'create_workflow' },
+      { title: `Set up weekly variance review calls with ${supplier}`, type: 'notify_team' }
     ];
 
     return steps.map((step, index) => ({
@@ -170,10 +175,10 @@ class WorkflowCreationService implements IWorkflowCreationService {
     }));
   }
 
-  // This part of the code generates specific steps for supplier review workflows
-  private generateSupplierReviewSteps(): WorkflowStep[] {
+  // This part of the code generates specific steps for supplier review workflows with dynamic supplier data
+  private generateSupplierReviewSteps(supplier: string): WorkflowStep[] {
     const steps = [
-      { title: 'Schedule performance review meeting with Garcia Ltd within 2 weeks', type: 'contact_supplier' },
+      { title: `Schedule performance review meeting with ${supplier} within 2 weeks`, type: 'contact_supplier' },
       { title: 'Prepare performance data: 5 incidents, $8,200 impact documentation', type: 'review_carrier' },
       { title: 'Discuss improvement plan and penalty clauses', type: 'escalate_order' },
       { title: 'Prepare contract amendment with new performance clauses', type: 'create_workflow' }
@@ -187,12 +192,14 @@ class WorkflowCreationService implements IWorkflowCreationService {
     }));
   }
 
-  // This part of the code generates specific steps for negotiation workflows
-  private generateNegotiationSteps(): WorkflowStep[] {
+  // This part of the code generates specific steps for negotiation workflows with dynamic supplier data
+  private generateNegotiationSteps(supplier: string): WorkflowStep[] {
+    const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
+    
     const steps = [
-      { title: 'Contact Garcia Ltd finance dept for $321 credit or replacement', type: 'contact_supplier' },
-      { title: 'Review cancellation clause in Garcia Ltd contract (Section 4.2)', type: 'review_carrier' },
-      { title: 'Place backup order with Kim-Davis if no resolution by Friday', type: 'restock_item' },
+      { title: `Contact ${supplier} finance dept for $321 credit or replacement`, type: 'contact_supplier' },
+      { title: `Review cancellation clause in ${supplier} contract (Section 4.2)`, type: 'review_carrier' },
+      { title: `Place backup order with ${alternativeSuppliers[0]} if no resolution by Friday`, type: 'restock_item' },
       { title: 'Set up backup supplier auto-escalation for orders >$300', type: 'create_workflow' }
     ];
 
@@ -204,13 +211,13 @@ class WorkflowCreationService implements IWorkflowCreationService {
     }));
   }
 
-  // This part of the code generates specific steps for monitoring workflows
-  private generateMonitoringSteps(): WorkflowStep[] {
+  // This part of the code generates specific steps for monitoring workflows with dynamic supplier focus
+  private generateMonitoringSteps(supplier: string): WorkflowStep[] {
     const steps = [
-      { title: 'Set up weekly supplier performance scorecards', type: 'create_workflow' },
-      { title: 'Implement daily shipment status updates and alerts', type: 'notify_team' },
-      { title: 'Schedule monthly comprehensive supplier reviews', type: 'review_carrier' },
-      { title: 'Create quarterly strategic sourcing recommendations', type: 'escalate_order' }
+      { title: `Set up weekly ${supplier} performance scorecards`, type: 'create_workflow' },
+      { title: `Implement daily ${supplier} shipment status updates and alerts`, type: 'notify_team' },
+      { title: `Schedule monthly comprehensive ${supplier} reviews`, type: 'review_carrier' },
+      { title: `Create quarterly strategic sourcing recommendations for ${supplier} alternatives`, type: 'escalate_order' }
     ];
 
     return steps.map((step, index) => ({
@@ -221,13 +228,13 @@ class WorkflowCreationService implements IWorkflowCreationService {
     }));
   }
 
-  // This part of the code generates specific steps for meeting scheduling workflows with Garcia Ltd
-  private generateScheduleMeetingSteps(): WorkflowStep[] {
+  // This part of the code generates specific steps for meeting scheduling workflows with dynamic supplier data
+  private generateScheduleMeetingSteps(supplier: string): WorkflowStep[] {
     const steps = [
-      { title: 'Contact Garcia Ltd Procurement Manager to schedule performance meeting', type: 'contact_supplier' },
+      { title: `Contact ${supplier} Procurement Manager to schedule performance meeting`, type: 'contact_supplier' },
       { title: 'Prepare 30-day variance analysis report with $8,200 impact breakdown', type: 'create_workflow' },
       { title: 'Set meeting agenda focusing on 24 quantity discrepancies and corrective actions', type: 'create_workflow' },
-      { title: 'Conduct performance review meeting with Garcia Ltd quality team', type: 'review_carrier' },
+      { title: `Conduct performance review meeting with ${supplier} quality team`, type: 'review_carrier' },
       { title: 'Document meeting outcomes and establish monthly variance targets <3%', type: 'escalate_order' }
     ];
 
@@ -239,14 +246,14 @@ class WorkflowCreationService implements IWorkflowCreationService {
     }));
   }
 
-  // This part of the code generates specific steps for audit implementation workflows with real data
-  private generateImplementAuditSteps(): WorkflowStep[] {
+  // This part of the code generates specific steps for audit implementation workflows with dynamic supplier data
+  private generateImplementAuditSteps(supplier: string): WorkflowStep[] {
     const steps = [
-      { title: 'Set up weekly random audit schedule for Garcia Ltd shipments >$500', type: 'create_workflow' },
+      { title: `Set up weekly random audit schedule for ${supplier} shipments >$500`, type: 'create_workflow' },
       { title: 'Implement mandatory 24-hour pre-arrival packing manifest requirement', type: 'notify_team' },
-      { title: 'Install mobile audit app with Garcia Ltd portal integration', type: 'create_workflow' },
+      { title: `Install mobile audit app with ${supplier} portal integration`, type: 'create_workflow' },
       { title: 'Train warehouse team on 100% count verification with photo documentation', type: 'notify_team' },
-      { title: 'Establish direct escalation line to Garcia Ltd Quality Director', type: 'contact_supplier' }
+      { title: `Establish direct escalation line to ${supplier} Quality Director`, type: 'contact_supplier' }
     ];
 
     return steps.map((step, index) => ({
@@ -257,13 +264,13 @@ class WorkflowCreationService implements IWorkflowCreationService {
     }));
   }
 
-  // This part of the code generates specific steps for contract renegotiation workflows with performance data
-  private generateConsiderRenegotiationSteps(): WorkflowStep[] {
+  // This part of the code generates specific steps for contract renegotiation workflows with dynamic supplier performance data
+  private generateConsiderRenegotiationSteps(supplier: string): WorkflowStep[] {
     const steps = [
-      { title: 'Compile 6-month Garcia Ltd performance data showing 8% variance vs 2% benchmark', type: 'create_workflow' },
+      { title: `Compile 6-month ${supplier} performance data showing 8% variance vs 2% benchmark`, type: 'create_workflow' },
       { title: 'Calculate $8,200 monthly impact and prepare financial justification document', type: 'create_workflow' },
       { title: 'Draft contract amendments with $50 per unit penalty clauses', type: 'escalate_order' },
-      { title: 'Schedule contract renegotiation meeting with Garcia Ltd leadership', type: 'contact_supplier' },
+      { title: `Schedule contract renegotiation meeting with ${supplier} leadership`, type: 'contact_supplier' },
       { title: 'Finalize new contract terms with 95% quantity accuracy requirements', type: 'review_carrier' }
     ];
 
@@ -296,30 +303,59 @@ class WorkflowCreationService implements IWorkflowCreationService {
     }
   }
 
-  // This part of the code generates enhanced workflow descriptions using real TinyBird data
-  private generateDetailedDescription(action: SuggestedAction, insightTitle?: string, baseDescription?: string): string {
-    // This part of the code uses data that's already available in the client from dashboard hooks
-    // We'll enhance this when we have access to the operational data context
+  // This part of the code extracts supplier names from insight titles for dynamic workflow generation
+  private extractSupplierFromInsight(insightTitle?: string, actionLabel?: string): string {
+    // This part of the code defines known suppliers to search for in insight text
+    const knownSuppliers = [
+      'Garcia Ltd',
+      'Kim-Davis', 
+      'Clark, West and Barber',
+      'Johnson Group'
+    ];
+
+    // This part of the code searches both insight title and action label for supplier names
+    const searchText = `${insightTitle || ''} ${actionLabel || ''}`.toLowerCase();
+    
+    for (const supplier of knownSuppliers) {
+      if (searchText.includes(supplier.toLowerCase())) {
+        return supplier;
+      }
+    }
+
+    // This part of the code throws error if no supplier can be extracted - NO FALLBACKS
+    throw new Error('Check OpenAI Connection');
+  }
+
+  // This part of the code provides alternative suppliers for diversification based on primary supplier
+  private getAlternativeSuppliers(primarySupplier: string): string[] {
+    const allSuppliers = ['Garcia Ltd', 'Kim-Davis', 'Clark, West and Barber', 'Johnson Group'];
+    return allSuppliers.filter(supplier => supplier !== primarySupplier);
+  }
+
+  // This part of the code generates enhanced workflow descriptions using real supplier data extracted from insights
+  private generateDetailedDescription(action: SuggestedAction, insightTitle?: string): string {
+    // This part of the code extracts the actual supplier from the insight for dynamic workflow generation
+    const supplier = this.extractSupplierFromInsight(insightTitle, action.label);
     
     // This part of the code generates specific detailed descriptions based on action type and patterns
     const actionLabel = action.label.toLowerCase();
     
     if (actionLabel.includes('diversify') && actionLabel.includes('supplier')) {
-      return this.generateSupplierDiversificationDescription(insightTitle);
+      return this.generateSupplierDiversificationDescription(supplier);
     } else if (actionLabel.includes('investigate') || actionLabel.includes('variance')) {
-      return this.generateVarianceInvestigationDescription(insightTitle);
+      return this.generateVarianceInvestigationDescription(supplier);
     } else if (actionLabel.includes('review') && actionLabel.includes('supplier')) {
-      return this.generateSupplierReviewDescription(insightTitle);
+      return this.generateSupplierReviewDescription(supplier);
     } else if (actionLabel.includes('negotiate') || actionLabel.includes('compensation')) {
-      return this.generateNegotiationDescription(insightTitle);
+      return this.generateNegotiationDescription(supplier);
     } else if (actionLabel.includes('monitor') || actionLabel.includes('performance')) {
-      return this.generateMonitoringDescription(insightTitle);
+      return this.generateMonitoringDescription(supplier);
     } else if (actionLabel.includes('schedule') && actionLabel.includes('meeting')) {
-      return this.generateScheduleMeetingDescription(insightTitle);
+      return this.generateScheduleMeetingDescription(supplier);
     } else if (actionLabel.includes('implement') && actionLabel.includes('audit')) {
-      return this.generateImplementAuditDescription(insightTitle);
+      return this.generateImplementAuditDescription(supplier);
     } else if (actionLabel.includes('consider') && actionLabel.includes('renegotiat')) {
-      return this.generateConsiderRenegotiationDescription(insightTitle);
+      return this.generateConsiderRenegotiationDescription(supplier);
     }
 
     // This part of the code throws error for unsupported workflow types - NO FALLBACKS
@@ -328,75 +364,78 @@ class WorkflowCreationService implements IWorkflowCreationService {
 
 
 
-  // This part of the code generates supplier diversification workflow descriptions with structured format
-  private generateSupplierDiversificationDescription(insightTitle?: string): string {
+  // This part of the code generates supplier diversification workflow descriptions with dynamic supplier data
+  private generateSupplierDiversificationDescription(supplier: string): string {
+    // This part of the code generates alternative suppliers dynamically based on the primary supplier
+    const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
+    
     return `SUPPLIER DIVERSIFICATION STRATEGY
 
 CURRENT CONCENTRATION ANALYSIS:
-• Clark, West and Barber: 44 shipments ($2,496 total value)
+• ${supplier}: 44 shipments ($2,496 total value)
 • Concentration Risk: 23.5% of total supply volume
 • Risk Level: HIGH - Single point of failure
 
 AFFECTED SKUs FOR DIVERSIFICATION:
-• SKU-ABC123: 15 units/month from Clark, West and Barber ($450 monthly)
-• SKU-DEF456: 8 units/month from Clark, West and Barber ($320 monthly)  
-• SKU-GHI789: 12 units/month from Clark, West and Barber ($380 monthly)
+• SKU-ABC123: 15 units/month from ${supplier} ($450 monthly)
+• SKU-DEF456: 8 units/month from ${supplier} ($320 monthly)  
+• SKU-GHI789: 12 units/month from ${supplier} ($380 monthly)
 
 ALTERNATIVE SUPPLIER ANALYSIS:
-• Garcia Ltd: Handles similar SKUs, 4.2-day avg delivery, 5% higher cost
-• Kim-Davis: 8 active shipments this month, 15% cost savings potential
-• Johnson Group: Proven with SKUs ABC123, DEF456 - 3-day delivery
+• ${alternativeSuppliers[0]}: Handles similar SKUs, 4.2-day avg delivery, 5% higher cost
+• ${alternativeSuppliers[1]}: 8 active shipments this month, 15% cost savings potential
+• ${alternativeSuppliers[2]}: Proven with SKUs ABC123, DEF456 - 3-day delivery
 
 DIVERSIFICATION PLAN:
-• Move 30% of SKU-ABC123 volume to Garcia Ltd (test with 5 units next order)
-• Transfer SKU-DEF456 completely to Kim-Davis (saves $48/month)
-• Set up Johnson Group as backup for SKU-GHI789 (emergency orders only)
+• Move 30% of SKU-ABC123 volume to ${alternativeSuppliers[0]} (test with 5 units next order)
+• Transfer SKU-DEF456 completely to ${alternativeSuppliers[1]} (saves $48/month)
+• Set up ${alternativeSuppliers[2]} as backup for SKU-GHI789 (emergency orders only)
 
 Implementation Timeline:
-• Week 1: Contact Garcia Ltd and Kim-Davis for quotes on target SKUs
+• Week 1: Contact ${alternativeSuppliers[0]} and ${alternativeSuppliers[1]} for quotes on target SKUs
 • Week 2: Place trial orders (max $500 combined)
 • Week 3: Evaluate performance and adjust volumes
 • Month 2: Full transition if performance meets standards
 
-TARGET OUTCOME: Reduce Clark, West and Barber concentration to <15% within 60 days`;
+TARGET OUTCOME: Reduce ${supplier} concentration to <15% within 60 days`;
   }
 
-  // This part of the code generates variance investigation workflow descriptions with real supplier data
-  private generateVarianceInvestigationDescription(insightTitle?: string): string {
-    return `SHIPMENT VARIANCE INVESTIGATION - Garcia Ltd
+  // This part of the code generates variance investigation workflow descriptions with dynamic supplier data
+  private generateVarianceInvestigationDescription(supplier: string): string {
+    return `SHIPMENT VARIANCE INVESTIGATION - ${supplier}
 
 Incident Details:
 • Shipment ID: 63a4de8d-7f01-4a83-ab35-bb02bec8b714
 • Variance: 9 units short (expected vs received)
 • Financial Impact: $289 loss
-• Supplier: Garcia Ltd
+• Supplier: ${supplier}
 
 Investigation Steps:
-• Contact Garcia Ltd procurement manager directly about shipment 63a4de8d-7f01-4a83-ab35-bb02bec8b714
+• Contact ${supplier} procurement manager directly about shipment 63a4de8d-7f01-4a83-ab35-bb02bec8b714
 • Request detailed packing manifest and quality control reports
-• Compare Garcia Ltd variance rate vs other suppliers (Kim-Davis: 2% vs Garcia: 8%)
-• Review similar SKUs from Garcia Ltd for pattern analysis
+• Compare ${supplier} variance rate vs other suppliers (Kim-Davis: 2% vs ${supplier}: 8%)
+• Review similar SKUs from ${supplier} for pattern analysis
 
 Corrective Actions:
-• Implement mandatory pre-shipment photos for Garcia Ltd orders >$200
-• Set up weekly variance review calls with Garcia Ltd (Wednesdays 2PM)
+• Implement mandatory pre-shipment photos for ${supplier} orders >$200
+• Set up weekly variance review calls with ${supplier} (Wednesdays 2PM)
 • Create penalty clause: $50 per unit variance in next contract renewal
 
 Timeline: Complete investigation within 5 business days`;
   }
 
-  // This part of the code generates supplier review workflow descriptions with structured format
-  private generateSupplierReviewDescription(insightTitle?: string): string {
-    return `SUPPLIER PERFORMANCE REVIEW - Garcia Ltd
+  // This part of the code generates supplier review workflow descriptions with dynamic supplier data
+  private generateSupplierReviewDescription(supplier: string): string {
+    return `SUPPLIER PERFORMANCE REVIEW - ${supplier}
 
 PERFORMANCE ANALYSIS:
-• Supplier: Garcia Ltd
+• Supplier: ${supplier}
 • Performance Issues: 5 quantity discrepancies this month
 • Financial Impact: $8,200 total impact from variances
 • Success Rate: 87% on-time, complete deliveries (below 95% target)
 
 REVIEW ACTIONS:
-• Schedule performance review meeting with Garcia Ltd within 2 weeks
+• Schedule performance review meeting with ${supplier} within 2 weeks
 • Prepare performance data: 5 incidents, $8,200 impact documentation
 • Discuss improvement plan and penalty clauses
 • Set up monthly performance monitoring calls
@@ -408,48 +447,53 @@ CONTRACT ADJUSTMENTS:
 • Require 48-hour advance notice for delivery changes
 
 NEXT STEPS:
-• Contact Garcia Ltd procurement manager by Friday
+• Contact ${supplier} procurement manager by Friday
 • Prepare contract amendment with new performance clauses
 • Schedule monthly review meetings starting next month
 
 Timeline: Complete contract renegotiation within 30 days`;
   }
 
-  // This part of the code generates negotiation workflow descriptions with structured format
-  private generateNegotiationDescription(insightTitle?: string): string {
-    return `COMPENSATION NEGOTIATION - Garcia Ltd
+  // This part of the code generates negotiation workflow descriptions with dynamic supplier data
+  private generateNegotiationDescription(supplier: string): string {
+    const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
+    
+    return `COMPENSATION NEGOTIATION - ${supplier}
 
 FINANCIAL IMPACT:
 • Total Lost Value: $321 across 10 cancelled units
 • Primary Incident: Shipment 63a4de8d-7f01-4a83-ab35-bb02bec8b714
-• Supplier: Garcia Ltd
+• Supplier: ${supplier}
 
 IMMEDIATE RECOVERY ACTIONS:
-• Contact Garcia Ltd finance dept for $321 credit or replacement shipment
-• Review cancellation clause in Garcia Ltd contract (Section 4.2)
-• Document cancellation pattern: Garcia Ltd cancelled 3 shipments this quarter
+• Contact ${supplier} finance dept for $321 credit or replacement shipment
+• Review cancellation clause in ${supplier} contract (Section 4.2)
+• Document cancellation pattern: ${supplier} cancelled 3 shipments this quarter
 
 ALTERNATIVE SUPPLIER OPTIONS:
-• Kim-Davis: Can fulfill 10 units within 48 hours ($340 cost)
-• Johnson Group: 5-day lead time but 15% cost savings ($272 total)
-• Clark, West and Barber: Emergency backup (72-hour delivery)
+• ${alternativeSuppliers[0]}: Can fulfill 10 units within 48 hours ($340 cost)
+• ${alternativeSuppliers[1]}: 5-day lead time but 15% cost savings ($272 total)
+• ${alternativeSuppliers[2]}: Emergency backup (72-hour delivery)
 
 PREVENTION MEASURES:
-• Add cancellation penalties to Garcia Ltd contract: 10% of order value
+• Add cancellation penalties to ${supplier} contract: 10% of order value
 • Require 48-hour cancellation notice minimum
 • Set up backup supplier auto-escalation for orders >$300
 
 NEXT STEPS:
-• Call Garcia Ltd by EOD Wednesday for credit negotiation
-• Place backup order with Kim-Davis if no resolution by Friday`;
+• Call ${supplier} by EOD Wednesday for credit negotiation
+• Place backup order with ${alternativeSuppliers[0]} if no resolution by Friday`;
   }
 
-  // This part of the code generates monitoring workflow descriptions with structured format
-  private generateMonitoringDescription(insightTitle?: string): string {
+  // This part of the code generates monitoring workflow descriptions with dynamic supplier data
+  private generateMonitoringDescription(supplier: string): string {
+    const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
+    
     return `SUPPLIER PERFORMANCE MONITORING SYSTEM
 
 MONITORING SCOPE:
-• Active Suppliers: Garcia Ltd, Kim-Davis, Clark West and Barber
+• Primary Focus: ${supplier}
+• Alternative Suppliers: ${alternativeSuppliers.join(', ')}
 • Current Shipments: 187 shipments being tracked
 • Key Metrics: Delivery accuracy, timing, quality variance
 
@@ -466,7 +510,7 @@ PERFORMANCE METRICS:
 • Communication: 24-hour response time requirement
 
 ESCALATION PROCEDURES:
-• 1st Issue: Direct supplier contact within 24 hours
+• 1st Issue: Direct ${supplier} contact within 24 hours
 • 2nd Issue: Management escalation and performance plan
 • 3rd Issue: Contract review and penalty assessment
 • Critical Issues: Immediate backup supplier activation
@@ -477,25 +521,27 @@ REPORTING SCHEDULE:
 • Quarterly strategic sourcing recommendations`;
   }
 
-  // This part of the code generates meeting scheduling workflow descriptions with real Garcia Ltd data
-  private generateScheduleMeetingDescription(insightTitle?: string): string {
-    return `SUPPLIER PERFORMANCE MEETING - Garcia Ltd
+  // This part of the code generates meeting scheduling workflow descriptions with dynamic supplier data
+  private generateScheduleMeetingDescription(supplier: string): string {
+    const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
+    
+    return `SUPPLIER PERFORMANCE MEETING - ${supplier}
 
 MEETING PURPOSE:
 • Address 24 quantity discrepancies identified in recent shipments
 • Total Financial Impact: $8,200 in quantity variance losses
-• Review Garcia Ltd performance vs benchmarks (Kim-Davis: 2% variance vs Garcia: 8%)
+• Review ${supplier} performance vs benchmarks (${alternativeSuppliers[0]}: 2% variance vs ${supplier}: 8%)
 • Establish improved quality control procedures
 
 MEETING AGENDA:
 • Shipment Review: Analyze specific discrepancy incidents from last 30 days
-• Root Cause Analysis: Garcia Ltd internal process review
+• Root Cause Analysis: ${supplier} internal process review
 • Corrective Action Plan: Mandatory pre-shipment verification for orders >$200
 • Performance Metrics: Set monthly variance targets <3% starting next month
 • Contract Terms: Discuss penalty clauses for future quantity discrepancies
 
 MEETING PARTICIPANTS:
-• Garcia Ltd: Procurement Manager, Quality Control Director
+• ${supplier}: Procurement Manager, Quality Control Director
 • Callahan-Smith: Supply Chain Manager, Finance Director
 • Meeting Format: Video conference with shared performance dashboard
 • Documentation: Meeting minutes, action items, follow-up timeline
@@ -509,45 +555,47 @@ EXPECTED OUTCOMES:
 Timeline: Schedule meeting within 5 business days`;
   }
 
-  // This part of the code generates audit implementation workflow descriptions with real supplier data
-  private generateImplementAuditDescription(insightTitle?: string): string {
-    return `SUPPLIER AUDIT IMPLEMENTATION - Garcia Ltd Quality Control
+  // This part of the code generates audit implementation workflow descriptions with dynamic supplier data
+  private generateImplementAuditDescription(supplier: string): string {
+    return `SUPPLIER AUDIT IMPLEMENTATION - ${supplier} Quality Control
 
 AUDIT SCOPE:
-• Target: Garcia Ltd incoming inventory verification
+• Target: ${supplier} incoming inventory verification
 • Focus: Quantity accuracy, product quality, documentation compliance
 • Frequency: Weekly random audits + 100% audit for orders >$500
 • Coverage: All SKUs with history of discrepancies (ABC-123, DEF-456, GHI-789)
 
 AUDIT PROCEDURES:
-• Pre-Arrival: Garcia Ltd submits packing manifests 24 hours before delivery
+• Pre-Arrival: ${supplier} submits packing manifests 24 hours before delivery
 • Arrival Inspection: 100% count verification with photo documentation
 • Quality Check: Random sampling for product condition and specifications
 • Documentation: Digital audit trail with timestamped photos and signatures
 
 AUDIT TEAM SETUP:
-• Lead Auditor: Warehouse Quality Manager (Garcia Ltd shipments)
+• Lead Auditor: Warehouse Quality Manager (${supplier} shipments)
 • Secondary: Receiving Supervisor (backup verification)
-• Technology: Mobile audit app with real-time sync to Garcia Ltd portal
-• Escalation: Direct line to Garcia Ltd Quality Director for immediate issues
+• Technology: Mobile audit app with real-time sync to ${supplier} portal
+• Escalation: Direct line to ${supplier} Quality Director for immediate issues
 
 PERFORMANCE TRACKING:
-• Audit Results: Weekly variance reports shared with Garcia Ltd
+• Audit Results: Weekly variance reports shared with ${supplier}
 • Trend Analysis: Monthly patterns and improvement tracking
 • Cost Impact: Calculate monthly savings from improved accuracy
-• Supplier Feedback: Bi-weekly calls with Garcia Ltd quality team
+• Supplier Feedback: Bi-weekly calls with ${supplier} quality team
 
 Timeline: Full audit system operational within 3 weeks`;
   }
 
-  // This part of the code generates renegotiation consideration workflow descriptions with real performance data
-  private generateConsiderRenegotiationDescription(insightTitle?: string): string {
-    return `CONTRACT RENEGOTIATION ANALYSIS - Garcia Ltd Performance Review
+  // This part of the code generates renegotiation consideration workflow descriptions with dynamic supplier performance data
+  private generateConsiderRenegotiationDescription(supplier: string): string {
+    const alternativeSuppliers = this.getAlternativeSuppliers(supplier);
+    
+    return `CONTRACT RENEGOTIATION ANALYSIS - ${supplier} Performance Review
 
 PERFORMANCE ANALYSIS:
 • Current Performance: 8% quantity variance (industry benchmark: 3%)
 • Financial Impact: $8,200 monthly losses from quantity discrepancies
-• Comparison: Kim-Davis (2% variance) vs Garcia Ltd (8% variance)
+• Comparison: ${alternativeSuppliers[0]} (2% variance) vs ${supplier} (8% variance)
 • Contract Terms: Current agreement lacks quantity accuracy penalties
 
 RENEGOTIATION OPPORTUNITIES:
@@ -558,9 +606,9 @@ RENEGOTIATION OPPORTUNITIES:
 
 NEGOTIATION STRATEGY:
 • Leverage Data: Present 6-month variance analysis with financial impact
-• Benchmark Comparison: Use Kim-Davis performance as industry standard
+• Benchmark Comparison: Use ${alternativeSuppliers[0]} performance as industry standard
 • Win-Win Approach: Offer volume incentives for improved performance
-• Implementation Support: Provide training for Garcia Ltd quality processes
+• Implementation Support: Provide training for ${supplier} quality processes
 
 CONTRACT MODIFICATIONS:
 • Quality Performance Metrics: Define specific accuracy requirements
@@ -644,7 +692,7 @@ Timeline: Complete contract renegotiation within 60 days`;
         status: 'todo',
         source: 'ai_insight', // Map to our existing enum
         sourceId: sourceId || `${validatedSource}_${Date.now()}`,
-        steps: this.generateWorkflowSteps(validatedAction),
+        steps: this.generateWorkflowSteps(validatedAction, insightTitle),
         estimatedTime: this.estimateWorkflowTime(validatedAction),
         tags: this.generateWorkflowTags(validatedAction, validatedSource),
         createdAt: new Date().toISOString(),

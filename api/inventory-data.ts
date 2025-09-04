@@ -227,8 +227,6 @@ async function generateInventoryInsights(
 
     const prompt = `You are a VP of Inventory Management with 20+ years of experience in demand planning, inventory optimization, and warehouse operations. You have expertise in implementing JIT systems, ABC analysis, and advanced forecasting models that have saved companies millions in carrying costs.
 
-Analyze this specific inventory data to generate actionable workflow recommendations. Use the real SKUs, suppliers, and dollar amounts provided to create concrete, data-driven insights and suggested actions.
-
 INVENTORY INTELLIGENCE DASHBOARD:
 =================================
 
@@ -252,29 +250,27 @@ INVENTORY HEALTH BREAKDOWN:
 - Overstocked (>100 units): ${overstockedItems.length} SKUs tying up capital
 - Inactive Portfolio: ${inactiveItems.length} SKUs (${Math.round((inactiveItems.length / products.length) * 100)}% of total)
 
-Based on your proven track record of reducing inventory carrying costs by 25-35% and implementing successful JIT systems, provide strategic insights focused on inventory optimization opportunities including ABC analysis, demand forecasting improvements, and supplier diversification strategies.
-
-Format as JSON array with 3-5 strategic insights:
-[
-  {
-    "id": "inventory-insight-1",
-    "title": "Strategic inventory insight based on proven methodologies",
-    "description": "Expert analysis referencing inventory data with specific numbers and actionable recommendations drawing from your 20+ years of experience in inventory optimization",
-    "severity": "critical|warning|info",
-    "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Use specific SKU numbers, supplier names, and dollar amounts from the data above", "Reference actual quantities and inventory values", "Include specific suppliers and SKU codes in recommendations"],
-    "createdAt": "${new Date().toISOString()}",
-    "source": "inventory_agent"
-  }
-]
-
 SPECIFIC DATA TO REFERENCE:
 - Low Stock SKUs: ${lowStockItems.slice(0, 10).map(p => `${p.product_sku || p.product_id} (${p.unit_quantity} units, ${p.supplier_name || 'N/A'})`).join(', ')}
 - Out of Stock SKUs: ${outOfStockItems.slice(0, 10).map(p => `${p.product_sku || p.product_id} (${p.supplier_name || 'N/A'})`).join(', ')}
 - Overstocked SKUs: ${overstockedItems.slice(0, 10).map(p => `${p.product_sku || p.product_id} (${p.unit_quantity} units, $${((p.unit_cost || 0) * p.unit_quantity).toLocaleString()})`).join(', ')}
 - High Risk Suppliers: ${highRiskSuppliers.map(s => `${s.supplier_name} (${s.sku_count} SKUs, $${s.total_value.toLocaleString()})`).join(', ')}
 
-Use these specific SKUs, suppliers, and dollar amounts in your recommendations. Focus on immediate inventory optimization priorities and actionable workflow recommendations.`;
+Based on your proven track record of reducing inventory carrying costs by 25-35% and implementing successful JIT systems, analyze this data and provide strategic insights focused on inventory optimization opportunities.
+
+Generate exactly 3-5 insights as JSON array:
+[
+  {
+    "id": "inventory-insight-1",
+    "title": "Strategic inventory insight",
+    "description": "Expert analysis with specific numbers and actionable recommendations",
+    "severity": "critical|warning|info",
+    "dollarImpact": calculated_financial_impact,
+    "suggestedActions": ["Use specific SKU numbers and supplier names from data above", "Include actual quantities and dollar amounts"],
+    "createdAt": "${new Date().toISOString()}",
+    "source": "inventory_agent"
+  }
+]`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     console.log('🤖 Inventory Agent: Calling AI service for comprehensive inventory insights...');

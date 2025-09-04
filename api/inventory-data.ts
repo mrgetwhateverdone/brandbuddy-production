@@ -269,9 +269,9 @@ Format as JSON array with 3-5 strategic insights:
 ]
 
 SPECIFIC DATA TO REFERENCE:
-- Low Stock SKUs: ${lowStockItems.slice(0, 10).map(p => `${p.sku} (${p.unit_quantity} units, ${p.supplier || 'N/A'})`).join(', ')}
-- Out of Stock SKUs: ${outOfStockItems.slice(0, 10).map(p => `${p.sku} (${p.supplier || 'N/A'})`).join(', ')}
-- Overstocked SKUs: ${overstockedItems.slice(0, 10).map(p => `${p.sku} (${p.unit_quantity} units, $${(p.unit_cost * p.unit_quantity).toLocaleString()})`).join(', ')}
+- Low Stock SKUs: ${lowStockItems.slice(0, 10).map(p => `${p.product_sku || p.product_id} (${p.unit_quantity} units, ${p.supplier_name || 'N/A'})`).join(', ')}
+- Out of Stock SKUs: ${outOfStockItems.slice(0, 10).map(p => `${p.product_sku || p.product_id} (${p.supplier_name || 'N/A'})`).join(', ')}
+- Overstocked SKUs: ${overstockedItems.slice(0, 10).map(p => `${p.product_sku || p.product_id} (${p.unit_quantity} units, $${((p.unit_cost || 0) * p.unit_quantity).toLocaleString()})`).join(', ')}
 - High Risk Suppliers: ${highRiskSuppliers.map(s => `${s.supplier_name} (${s.sku_count} SKUs, $${s.total_value.toLocaleString()})`).join(', ')}
 
 Use these specific SKUs, suppliers, and dollar amounts in your recommendations. Focus on immediate inventory optimization priorities and actionable workflow recommendations.`;

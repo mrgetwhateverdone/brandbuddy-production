@@ -309,22 +309,13 @@ Generate exactly 3-5 insights as JSON array:
     const aiContent = data.choices?.[0]?.message?.content || '';
     console.log('🤖 Raw AI response:', aiContent);
 
-    // This part of the code uses JSON parsing like working dashboard API
+    // This part of the code uses JSON parsing like working orders API - return RAW insights
     try {
       const insights = JSON.parse(aiContent);
       console.log('✅ Inventory insights parsed successfully:', insights.length);
       
-      // This part of the code ensures proper structure for client consumption
-      return insights.map((insight: any, index: number) => ({
-        id: insight.id || `inventory-insight-${index}`,
-        title: insight.title || `Inventory Alert ${index + 1}`,
-        description: insight.description || insight.content || 'Analysis pending',
-        severity: insight.severity || 'warning',
-        dollarImpact: insight.dollarImpact || Math.round(kpis.totalInventoryValue * 0.1),
-        suggestedActions: insight.suggestedActions || [],
-        createdAt: insight.createdAt || new Date().toISOString(),
-        source: insight.source || "inventory_agent",
-      }));
+      // This part of the code returns RAW insights (mapping happens in handleInsightsMode like orders)
+      return insights;
     } catch (parseError) {
       console.error('❌ JSON parsing failed:', parseError);
       console.log('❌ Inventory: JSON parse failed - returning empty insights');
@@ -413,7 +404,18 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
   res.status(200).json({
     success: true,
     data: {
-      insights,
+      insights: insights.map((insight, index) => ({
+        id: `inventory-insight-${index + 1}`,
+        title: insight.title,
+        description: insight.description,
+        severity: (insight.severity === 'high' || insight.severity === 'critical') ? 'critical' as const :
+                 (insight.severity === 'medium' || insight.severity === 'warning') ? 'warning' as const :
+                 'info' as const,
+        dollarImpact: insight.dollarImpact || 0,
+        suggestedActions: insight.suggestedActions || [],
+        createdAt: new Date().toISOString(),
+        source: 'inventory_agent' as const
+      })),
       lastUpdated: new Date().toISOString(),
     },
     message: "Inventory insights retrieved successfully",
@@ -484,7 +486,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const inventoryData = {
       kpis,
-      insights,
+      insights: insights.map((insight, index) => ({
+        id: `inventory-insight-${index + 1}`,
+        title: insight.title,
+        description: insight.description,
+        severity: (insight.severity === 'high' || insight.severity === 'critical') ? 'critical' as const :
+                 (insight.severity === 'medium' || insight.severity === 'warning') ? 'warning' as const :
+                 'info' as const,
+        dollarImpact: insight.dollarImpact || 0,
+        suggestedActions: insight.suggestedActions || [],
+        createdAt: new Date().toISOString(),
+        source: 'inventory_agent' as const
+      })),
       inventory: inventory.slice(0, 500), // Limit for performance
       brandPerformance,
       supplierAnalysis,

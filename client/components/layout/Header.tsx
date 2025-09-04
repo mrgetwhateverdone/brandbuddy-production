@@ -35,7 +35,6 @@ export function Header({
 }: HeaderProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   
@@ -46,14 +45,6 @@ export function Header({
   const { isConnected, isLoading, hasError, lastUpdated } =
     useConnectionStatus();
 
-  // Live clock update
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -126,11 +117,6 @@ export function Header({
                   ? `Updated ${new Date(lastUpdated).toLocaleTimeString()}`
                   : "Connected"}
           </span>
-        </div>
-
-        {/* Live Clock */}
-        <div className="hidden sm:block text-sm text-gray-500">
-          {currentTime.toLocaleTimeString()}
         </div>
 
         {/* Refresh Button */}

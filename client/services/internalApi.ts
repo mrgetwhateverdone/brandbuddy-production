@@ -805,6 +805,7 @@ class InternalApiService {
     }
   }
 
+
   /**
    * Fetch complete SLA performance data from secure server endpoint
    * NO external API keys - server handles TinyBird + OpenAI calls

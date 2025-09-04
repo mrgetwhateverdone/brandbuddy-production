@@ -10,7 +10,7 @@ import type {
   ProductData,
   ShipmentData 
 } from "@/types/data";
-import type { ReplenishmentItemSuggestion } from "@/types/api";
+import type { ReplenishmentItemSuggestion, AIInsight } from "@/types/api";
 
 // This part of the code extends the base interface for additional replenishment-specific KPIs
 interface ExtendedReplenishmentKPIs extends ReplenishmentKPIs {
@@ -162,7 +162,7 @@ export const useReplenishmentInsights = () => {
       const insightsData = await internalApi.getReplenishmentInsights();
 
       // This part of the code ensures type-safe filtering for Callahan-Smith brand only
-      const filteredInsights: InsightData[] = (insightsData.insights || []).filter((insight: any) => 
+      const filteredInsights: AIInsight[] = (insightsData.insights || []).filter((insight: any) => 
         !insight.description || 
         insight.description.toLowerCase().includes('callahan-smith') || 
         insight.source === 'replenishment_agent'
@@ -175,7 +175,7 @@ export const useReplenishmentInsights = () => {
 
       return {
         insights: filteredInsights,
-        lastUpdated: insightsData.lastUpdated
+        lastUpdated: new Date().toISOString()
       };
     },
     ...queryConfig,

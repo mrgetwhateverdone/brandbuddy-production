@@ -592,7 +592,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const replenishmentData: ReplenishmentData = {
       kpis,
-      insights,
+      insights: insights.map((insight, index) => ({
+        id: `replenishment-insight-${index + 1}`,
+        title: insight.title,
+        description: insight.description,
+        severity: (insight.severity === 'high' || insight.severity === 'critical') ? 'critical' as const :
+                 (insight.severity === 'medium' || insight.severity === 'warning') ? 'warning' as const :
+                 'info' as const,
+        dollarImpact: insight.dollarImpact || 0,
+        suggestedActions: insight.suggestedActions || [],
+        createdAt: new Date().toISOString(),
+        source: "replenishment_agent" as const,
+      })),
       products, // Raw product data for client-side calculations
       shipments, // Raw shipment data for client-side calculations
       criticalItems: [], // Will be populated in future iterations

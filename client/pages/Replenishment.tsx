@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { Layout } from "@/components/layout/Layout";
 import { useReplenishmentDataFast, useReplenishmentInsights } from "@/hooks/useReplenishmentData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
+import { ReplenishmentItemAIExplanationModal } from "@/components/replenishment/ReplenishmentItemAIExplanationModal";
+import type { ProductData } from "@/types/api";
 
 // Replenishment Components
 import { ReplenishmentKPISection } from "@/components/replenishment/ReplenishmentKPISection";
@@ -34,6 +37,10 @@ const ReplenishmentInsightLoadingMessage = () => (
 );
 
 export default function Replenishment() {
+  // This part of the code manages modal state for AI explanations
+  const [selectedItem, setSelectedItem] = useState<ProductData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   // This part of the code uses progressive loading for better performance
   // Load fast data first, then AI insights separately in background
   const { data, isLoading, error, refetch } = useReplenishmentDataFast();
@@ -43,6 +50,27 @@ export default function Replenishment() {
     error: insightsError 
   } = useReplenishmentInsights();
   const { isPageAIEnabled } = useSettingsIntegration();
+
+  // This part of the code handles opening AI analysis for products (both from product table and supplier analysis)
+  const handleAnalyzeItem = (item: ProductData) => {
+    setSelectedItem(item);
+    setIsModalOpen(true);
+  };
+
+  // This part of the code handles supplier analysis by showing the first product from that supplier
+  const handleAnalyzeSupplier = (supplier: any) => {
+    // Find the first product from this supplier for analysis
+    const supplierProducts = data?.products?.filter(p => p.supplier_name === supplier.name) || [];
+    if (supplierProducts.length > 0) {
+      handleAnalyzeItem(supplierProducts[0]);
+    }
+  };
+
+  // This part of the code closes the AI analysis modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedItem(null);
+  };
 
   if (isLoading) {
     return (
@@ -121,12 +149,14 @@ export default function Replenishment() {
           products={data.products || []}
           shipments={data.shipments || []}
           isLoading={isLoading}
+          onAnalyzeSupplier={handleAnalyzeSupplier}
         />
 
         {/* This part of the code displays the Reorder Point Intelligence */}
         <ReorderPointSection
           products={data.products || []}
           isLoading={isLoading}
+          onAnalyzeProduct={handleAnalyzeItem}
         />
 
         {/* This part of the code displays the Financial Impact Calculator */}
@@ -136,6 +166,13 @@ export default function Replenishment() {
           isLoading={isLoading}
         />
       </div>
+
+      {/* This part of the code displays the AI analysis modal for replenishment items */}
+      <ReplenishmentItemAIExplanationModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        item={selectedItem}
+      />
     </Layout>
   );
 }

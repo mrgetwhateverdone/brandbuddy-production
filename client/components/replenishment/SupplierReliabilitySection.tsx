@@ -1,17 +1,20 @@
 import React from "react";
-import { Star, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
-import type { ProductData, ShipmentData } from "@/types/api";
+import { Star, TrendingUp, AlertTriangle, CheckCircle, Brain } from "lucide-react";
+import type { ProductData } from "@/types/api";
+import type { ShipmentData } from "@/types/data";
 
 interface SupplierReliabilitySectionProps {
   products: ProductData[];
   shipments: ShipmentData[];
   isLoading?: boolean;
+  onAnalyzeSupplier?: (supplier: any) => void;
 }
 
 export function SupplierReliabilitySection({ 
   products, 
   shipments, 
-  isLoading 
+  isLoading,
+  onAnalyzeSupplier
 }: SupplierReliabilitySectionProps) {
   // This part of the code calculates supplier reliability metrics using real data
   const calculateSupplierMetrics = () => {
@@ -137,6 +140,9 @@ export function SupplierReliabilitySection({
               <th className="text-right py-3 px-2 font-medium text-gray-700">Total Value</th>
               <th className="text-center py-3 px-2 font-medium text-gray-700">Risk Level</th>
               <th className="text-center py-3 px-2 font-medium text-gray-700">Issues</th>
+              {onAnalyzeSupplier && (
+                <th className="text-center py-3 px-2 font-medium text-gray-700">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -174,6 +180,21 @@ export function SupplierReliabilitySection({
                 <td className="text-center py-3 px-2 text-gray-600">
                   {supplier.outOfStockCount + supplier.lowStockCount} SKUs
                 </td>
+                {onAnalyzeSupplier && (
+                  <td className="text-center py-3 px-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAnalyzeSupplier(supplier);
+                      }}
+                      className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 border border-green-300 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-colors"
+                      title="Get AI analysis for this supplier"
+                    >
+                      <Brain className="h-3.5 w-3.5 mr-1" />
+                      Analyze Supplier
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

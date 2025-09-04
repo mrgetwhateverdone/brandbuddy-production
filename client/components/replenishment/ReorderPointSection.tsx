@@ -1,13 +1,14 @@
 import React from "react";
-import { Clock, AlertTriangle, TrendingUp, Package } from "lucide-react";
+import { Clock, AlertTriangle, TrendingUp, Package, Brain } from "lucide-react";
 import type { ProductData } from "@/types/api";
 
 interface ReorderPointSectionProps {
   products: ProductData[];
   isLoading?: boolean;
+  onAnalyzeProduct?: (product: any) => void;
 }
 
-export function ReorderPointSection({ products, isLoading }: ReorderPointSectionProps) {
+export function ReorderPointSection({ products, isLoading, onAnalyzeProduct }: ReorderPointSectionProps) {
   // This part of the code calculates reorder points using industry standard formula
   const calculateReorderData = () => {
     const activeProducts = products.filter(p => p.active && p.unit_quantity >= 0);
@@ -138,6 +139,9 @@ export function ReorderPointSection({ products, isLoading }: ReorderPointSection
               <th className="text-center py-3 px-2 font-medium text-gray-700">Suggested Qty</th>
               <th className="text-right py-3 px-2 font-medium text-gray-700">Est. Cost</th>
               <th className="text-center py-3 px-2 font-medium text-gray-700">Urgency</th>
+              {onAnalyzeProduct && (
+                <th className="text-center py-3 px-2 font-medium text-gray-700">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -180,6 +184,21 @@ export function ReorderPointSection({ products, isLoading }: ReorderPointSection
                     {item.urgencyLevel}
                   </span>
                 </td>
+                {onAnalyzeProduct && (
+                  <td className="text-center py-3 px-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onAnalyzeProduct(item);
+                      }}
+                      className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-green-700 bg-green-100 border border-green-300 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-1 transition-colors"
+                      title="Get AI analysis for this product"
+                    >
+                      <Brain className="h-3.5 w-3.5 mr-1" />
+                      Analyze Product
+                    </button>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

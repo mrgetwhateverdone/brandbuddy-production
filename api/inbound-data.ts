@@ -254,10 +254,10 @@ async function generateInboundInsights(
   kpis: InboundKPIs
 ): Promise<any[]> {
   const apiKey = process.env.OPENAI_API_KEY;
-  console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
+  console.log('🔑 AI service key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No OpenAI API key found - using data-driven insights');
+    console.log('❌ No AI service key found - using data-driven insights');
     return generateInboundDataDrivenInsights(shipments, kpis);
   }
 
@@ -328,7 +328,7 @@ Format as JSON array with 3-5 strategic insights:
 Focus on immediate receiving priorities, delivery optimization, and operational efficiency improvements based on your track record of reducing receiving times by 60%.`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
-    console.log('🤖 Inbound Operations Agent: Calling OpenAI for comprehensive dashboard insights...');
+    console.log('🤖 Inbound Operations Agent: Calling AI service for comprehensive dashboard insights...');
     
     const response = await fetch(openaiUrl, {
       method: "POST",
@@ -337,7 +337,7 @@ Focus on immediate receiving priorities, delivery optimization, and operational 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: process.env.AI_MODEL_ADVANCED || "gpt-4",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 1000,
         temperature: 0.2,
@@ -350,7 +350,7 @@ Focus on immediate receiving priorities, delivery optimization, and operational 
 
     const data = await response.json();
     const aiContent = data.choices?.[0]?.message?.content || '';
-    console.log('🤖 Raw OpenAI response:', aiContent);
+    console.log('🤖 Raw AI response:', aiContent);
 
     // This part of the code uses JSON parsing like working dashboard API
     try {

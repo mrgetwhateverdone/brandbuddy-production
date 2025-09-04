@@ -87,19 +87,19 @@ async function fetchProducts(): Promise<ProductData[]> {
   try {
     // This part of the code uses the same proven URL pattern as working inventory API
     const url = `${TINYBIRD_BASE_URL}?token=${TINYBIRD_TOKEN}&limit=1000&brand_name=Callahan-Smith`;
-    console.log("🔒 Fetching products from TinyBird:", url.replace(TINYBIRD_TOKEN, "[TOKEN]"));
+    console.log("🔒 Fetching products from data service:", url.replace(TINYBIRD_TOKEN, "[TOKEN]"));
     const response = await fetch(url);
     
     if (!response.ok) {
-      console.log("⚠️ TinyBird API failed:", response.status, response.statusText);
+      console.log("⚠️ Data service API failed:", response.status, response.statusText);
       throw new Error(`TinyBird API error: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log("✅ TinyBird response:", result.data?.length || 0, "products");
+    console.log("✅ Data service response:", result.data?.length || 0, "products");
     return result.data || [];
   } catch (error) {
-    console.log("⚠️ TinyBird fetch failed:", error);
+    console.log("⚠️ Data service fetch failed:", error);
     return [];
   }
 }
@@ -117,19 +117,19 @@ async function fetchShipments(): Promise<ShipmentData[]> {
   try {
     // This part of the code uses the same proven URL pattern as working orders API
     const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
-    console.log("🔒 Fetching shipments from TinyBird:", url.replace(token, "[TOKEN]"));
+    console.log("🔒 Fetching shipments from data service:", url.replace(token, "[TOKEN]"));
     const response = await fetch(url);
     
     if (!response.ok) {
-      console.log("⚠️ TinyBird API failed:", response.status, response.statusText);
+      console.log("⚠️ Data service API failed:", response.status, response.statusText);
       throw new Error(`TinyBird API error: ${response.status}`);
     }
 
     const result = await response.json();
-    console.log("✅ TinyBird response:", result.data?.length || 0, "shipments");
+    console.log("✅ Data service response:", result.data?.length || 0, "shipments");
     return result.data || [];
   } catch (error) {
-    console.log("⚠️ TinyBird fetch failed:", error);
+    console.log("⚠️ Data service fetch failed:", error);
     return [];
   }
 }
@@ -309,10 +309,10 @@ async function generateReplenishmentInsights(
   kpis: ReplenishmentKPIs
 ): Promise<any[]> {
   const apiKey = process.env.OPENAI_API_KEY;
-  console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
+  console.log('🔑 AI service key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No OpenAI API key found - using data-driven insights');
+    console.log('❌ No AI service key found - using data-driven insights');
     return generateReplenishmentDataDrivenInsights(products, shipments, kpis);
   }
 
@@ -393,7 +393,7 @@ Format as JSON array with 3-5 strategic insights:
 Focus on immediate replenishment priorities, supplier risk mitigation, and financial optimization opportunities based on your deep expertise in supply chain dynamics.`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
-    console.log('🤖 Replenishment Agent: Calling OpenAI for comprehensive dashboard insights...');
+    console.log('🤖 Replenishment Agent: Calling AI service for comprehensive dashboard insights...');
     
     const response = await fetch(openaiUrl, {
       method: "POST",
@@ -402,7 +402,7 @@ Focus on immediate replenishment priorities, supplier risk mitigation, and finan
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: process.env.AI_MODEL_ADVANCED || "gpt-4",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 1000,
         temperature: 0.2,
@@ -415,7 +415,7 @@ Focus on immediate replenishment priorities, supplier risk mitigation, and finan
 
     const data = await response.json();
     const aiContent = data.choices?.[0]?.message?.content || '';
-    console.log('🤖 Raw OpenAI response:', aiContent);
+    console.log('🤖 Raw AI response:', aiContent);
 
     // This part of the code uses JSON parsing like working dashboard API
     try {

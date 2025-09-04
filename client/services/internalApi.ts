@@ -892,7 +892,7 @@ class InternalApiService {
   /**
    * Generate AI suggestion for specific order
    * NO external API keys - server handles OpenAI calls
-   * 🎯 FAST: GPT-3.5 turbo for speed and cost efficiency
+   * 🎯 FAST: Fast AI model for speed and cost efficiency
    */
   async generateOrderSuggestion(orderData: any): Promise<OrderSuggestion> {
     try {

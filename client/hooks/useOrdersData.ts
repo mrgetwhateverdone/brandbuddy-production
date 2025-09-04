@@ -135,7 +135,7 @@ export const useOrderSuggestion = () => {
       // This part of the code shows an error toast when AI suggestion fails
       console.error("❌ Client: Order suggestion failed:", error);
       toast.error(`Failed to generate suggestion for ${orderData.order_id}`, {
-        description: "AI service temporarily unavailable. Please try again.",
+        description: "Analysis service unavailable. Please try again.",
         duration: 4000,
       });
     },

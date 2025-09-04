@@ -136,7 +136,7 @@ async function fetchProducts(): Promise<ProductData[]> {
   }
 
   try {
-    console.log("📊 Vercel API: Fetching products data from TinyBird", {
+    console.log("📊 API: Fetching products data from data service", {
       brandFilter: "Callahan-Smith",
       limit: 1000
     });
@@ -151,9 +151,9 @@ async function fetchProducts(): Promise<ProductData[]> {
     const result: TinyBirdResponse<ProductData> = await response.json();
     const products = result.data || [];
     
-    console.log("✅ Vercel API: Products fetched successfully", {
+    console.log("✅ API: Products fetched successfully", {
       count: products.length,
-      source: "TinyBird"
+      source: "Data service"
     });
     return products;
   } catch (error) {
@@ -178,7 +178,7 @@ async function fetchShipments(): Promise<ShipmentData[]> {
   }
 
   try {
-    console.log("📊 Vercel API: Fetching shipments data from TinyBird", {
+    console.log("📊 API: Fetching shipments data from data service", {
       brandFilter: "Callahan-Smith",
       limit: 1000
     });
@@ -193,9 +193,9 @@ async function fetchShipments(): Promise<ShipmentData[]> {
     const result: TinyBirdResponse<ShipmentData> = await response.json();
     const shipments = result.data || [];
     
-    console.log("✅ Vercel API: Shipments fetched successfully", {
+    console.log("✅ API: Shipments fetched successfully", {
       count: shipments.length,
-      source: "TinyBird"
+      source: "Data service"
     });
     return shipments;
   } catch (error) {
@@ -387,7 +387,7 @@ async function generateReportInsights(
         "Authorization": `Bearer ${openaiApiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo",
         messages: [
           {
             role: "system", 
@@ -438,7 +438,7 @@ async function generateReportInsights(
  * This part of the code calculates brand performance using proven logic from inventory-data.ts
  */
 function calculateAvailableBrands(products: ProductData[]) {
-  console.log("📊 Vercel API: Starting brand calculation", { productsCount: products.length });
+  console.log("📊 API: Starting brand calculation", { productsCount: products.length });
   const brandMap = new Map<string, {skuCount: number, totalValue: number, totalQuantity: number}>();
   
   products.forEach(p => {
@@ -473,7 +473,7 @@ function calculateAvailableBrands(products: ProductData[]) {
     }))
     .sort((a, b) => b.total_value - a.total_value);
   
-  console.log("✅ Vercel API: Brand calculation completed", { brandsCount: result.length });
+  console.log("✅ API: Brand calculation completed", { brandsCount: result.length });
   return result;
 }
 
@@ -630,16 +630,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    console.log("📊 Vercel API: Reports endpoint called", { method: req.method });
+    console.log("📊 API: Reports endpoint called", { method: req.method });
 
     // This part of the code extracts query parameters with validation
     const { template, startDate, endDate, brands, warehouses } = req.query;
 
     // If no template specified, return available templates with filter options
     if (!template) {
-      console.log("📊 Vercel API: Fetching templates and filter options");
+      console.log("📊 API: Fetching templates and filter options");
       const templates = getReportTemplates();
-      console.log("📊 Vercel API: Templates ready, fetching data");
+      console.log("📊 API: Templates ready, fetching data");
       
       // This part of the code fetches data to get available brands and warehouses
       const [products, shipments] = await Promise.all([
@@ -654,12 +654,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         sampleWarehouses: shipments.slice(0, 3).map(s => s.warehouse_id)
       });
       
-      console.log("📊 Vercel API: Starting brand calculation");
+      console.log("📊 API: Starting brand calculation");
       const availableBrands = calculateAvailableBrands(products);
-      console.log("📊 Vercel API: Starting warehouse calculation");
+      console.log("📊 API: Starting warehouse calculation");
       const availableWarehouses = calculateAvailableWarehouses(shipments);
       
-      console.log("✅ Vercel API: Calculations completed", {
+      console.log("✅ API: Calculations completed", {
         brandsCount: availableBrands.length,
         warehousesCount: availableWarehouses.length,
         sampleBrands: availableBrands.slice(0, 3).map(b => `${b.brand_name} ($${b.total_value})`),
@@ -741,7 +741,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       reportPeriod,
     };
 
-    console.log("✅ Vercel API: Report data generated successfully");
+    console.log("✅ API: Report data generated successfully");
 
     return res.status(200).json({
       success: true,

@@ -191,7 +191,7 @@ export function OrderAIExplanationModal({ isOpen, onClose, order }: OrderAIExpla
                   <div className="flex items-center space-x-3 text-amber-800">
                     <AlertCircle className="h-5 w-5 text-amber-600" />
                     <div>
-                      <p className="font-medium">Analysis Unavailable</p>
+                      <p className="font-medium">Analysis Currently Unavailable</p>
                       <p className="text-sm text-amber-700 mt-1">
                         Unable to generate AI explanation at this time. Please try again later.
                       </p>

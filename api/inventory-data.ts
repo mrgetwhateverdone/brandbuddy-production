@@ -21,7 +21,7 @@ async function fetchProducts(): Promise<ProductData[]> {
   const token = process.env.TINYBIRD_TOKEN;
 
   if (!baseUrl || !token) {
-    console.log("⚠️ TinyBird config missing, using fallback");
+    console.log("⚠️ Data service config missing, using fallback");
     return [];
   }
 
@@ -29,17 +29,17 @@ async function fetchProducts(): Promise<ProductData[]> {
   const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
   
   try {
-    console.log("🔒 Fetching from TinyBird:", url.replace(token, "[TOKEN]"));
+    console.log("🔒 Fetching from data service:", url.replace(token, "[TOKEN]"));
     const response = await fetch(url);
     if (!response.ok) {
-      console.log("⚠️ TinyBird API failed:", response.status, response.statusText);
+      console.log("⚠️ Data service API failed:", response.status, response.statusText);
       return [];
     }
     const result = await response.json();
-    console.log("✅ TinyBird response:", result.data?.length || 0, "products");
+    console.log("✅ Data service response:", result.data?.length || 0, "products");
     return result.data || [];
   } catch (error) {
-    console.log("⚠️ TinyBird fetch failed:", error);
+    console.log("⚠️ Data service fetch failed:", error);
     return [];
   }
 }
@@ -305,10 +305,10 @@ async function generateInventoryInsights(
   supplierAnalysis: any[]
 ): Promise<any[]> {
   const apiKey = process.env.OPENAI_API_KEY;
-  console.log('🔑 OpenAI API key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
+  console.log('🔑 AI service key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No OpenAI API key found - using data-driven insights');
+    console.log('❌ No AI service key found - using data-driven insights');
     return generateInventoryDataDrivenInsights(products, kpis, supplierAnalysis);
   }
 
@@ -369,7 +369,7 @@ Format as JSON array with 3-5 strategic insights:
 Focus on immediate inventory optimization priorities, supplier risk mitigation, and capital efficiency improvements based on your deep expertise in demand planning and inventory management.`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
-    console.log('🤖 Inventory Agent: Calling OpenAI for comprehensive inventory insights...');
+    console.log('🤖 Inventory Agent: Calling AI service for comprehensive inventory insights...');
     
     const response = await fetch(openaiUrl, {
       method: "POST",
@@ -378,7 +378,7 @@ Focus on immediate inventory optimization priorities, supplier risk mitigation, 
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: process.env.AI_MODEL_ADVANCED || "gpt-4",
         messages: [{ role: "user", content: prompt }],
         max_tokens: 1000,
         temperature: 0.2,
@@ -391,7 +391,7 @@ Focus on immediate inventory optimization priorities, supplier risk mitigation, 
 
     const data = await response.json();
     const aiContent = data.choices?.[0]?.message?.content || '';
-    console.log('🤖 Raw OpenAI response:', aiContent);
+    console.log('🤖 Raw AI response:', aiContent);
 
     // This part of the code uses JSON parsing like working dashboard API
     try {
@@ -420,7 +420,7 @@ Focus on immediate inventory optimization priorities, supplier risk mitigation, 
   }
   
   // Return data-driven insights when AI fails
-  console.log('🔄 Inventory: Falling back to data-driven insights due to OpenAI failure');
+  console.log('🔄 Inventory: Falling back to data-driven insights due to AI service failure');
   return generateInventoryDataDrivenInsights(products, kpis, supplierAnalysis);
 }
 

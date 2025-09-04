@@ -341,7 +341,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     console.log("🤖 AI Chat API: Processing chat request...");
     
     // This part of the code reads AI settings from request headers
-    const aiModel = req.headers['x-ai-model'] as string || "gpt-4";
+    const aiModel = req.headers['x-ai-model'] as string || process.env.AI_MODEL_ADVANCED || "gpt-4";
     const maxTokens = parseInt(req.headers['x-max-tokens'] as string) || 500;
     const contextLevel = req.headers['x-context-level'] as string || "full";
     

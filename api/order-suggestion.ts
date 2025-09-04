@@ -87,7 +87,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
  * 🎯 PROVEN PATTERN: Fast, reliable, cost-effective
  */
 async function generateOrderSuggestion(orderData: any): Promise<OrderSuggestion> {
-  console.log("🤖 API: Starting GPT-3.5 turbo analysis for order:", orderData.order_id);
+  console.log("🤖 API: Starting AI analysis for order:", orderData.order_id);
 
   // This part of the code validates OpenAI API key
   const openaiApiKey = process.env.OPENAI_API_KEY;
@@ -130,7 +130,7 @@ async function generateOrderSuggestion(orderData: any): Promise<OrderSuggestion>
       },
       signal: AbortSignal.timeout(25000), // 25-second timeout (proven working)
       body: JSON.stringify({
-        model: "gpt-3.5-turbo", // Fast and cost-effective (proven working)
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo", // Fast and cost-effective (proven working)
         messages: [
           {
             role: "system",

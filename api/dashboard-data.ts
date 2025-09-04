@@ -281,7 +281,7 @@ async function generateInsights(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo", // This part of the code switches to GPT-3.5 turbo for faster insights generation
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo", // This part of the code switches to fast AI model for faster insights generation
         messages: [
           {
             role: "user",
@@ -365,7 +365,7 @@ Generate exactly 3-5 insights with 3-5 specific actions each.`,
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (content) {
-        console.log('🤖 Dashboard Agent Raw OpenAI Response:', content.substring(0, 500) + '...');
+        console.log('🤖 Dashboard Agent Raw AI Response:', content.substring(0, 500) + '...');
         try {
           const parsed = JSON.parse(content);
           console.log('✅ Dashboard Agent Parsed Insights:', parsed.length, 'insights with actions:', parsed.map(p => p.suggestedActions?.length || 0));
@@ -385,7 +385,7 @@ Generate exactly 3-5 insights with 3-5 specific actions each.`,
   }
 
   // Return empty insights when AI fails - NO FALLBACK like daily brief
-  console.log('❌ Dashboard: OpenAI failed, returning empty insights (NO FALLBACK)');
+  console.log('❌ Dashboard: AI service failed, returning empty insights (NO FALLBACK)');
   return [];
 }
 
@@ -427,7 +427,7 @@ async function generateDailyBrief(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo", // This part of the code switches to GPT-3.5 turbo for faster daily brief generation
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo", // This part of the code switches to fast AI model for faster daily brief generation
         messages: [
           {
             role: "user",
@@ -1048,7 +1048,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       lastUpdated: new Date().toISOString(),
     };
 
-    console.log("✅ Vercel API: Dashboard data compiled successfully");
+    console.log("✅ API: Dashboard data compiled successfully");
     res.status(200).json({
       success: true,
       data: dashboardData,

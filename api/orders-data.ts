@@ -358,7 +358,7 @@ async function generateOrdersInsights(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo", // This part of the code switches to GPT-3.5 turbo for faster orders insights generation
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo", // This part of the code switches to fast AI model for faster orders insights generation
         messages: [
           {
             role: "user",
@@ -442,7 +442,7 @@ Generate exactly 3-5 insights with 3-5 specific actions each.`,
       const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (content) {
-        console.log('🤖 Orders Agent Raw OpenAI Response:', content.substring(0, 500) + '...');
+        console.log('🤖 Orders Agent Raw AI Response:', content.substring(0, 500) + '...');
         try {
           const parsed = JSON.parse(content);
           console.log('✅ Orders Agent Parsed Insights:', parsed.length, 'insights with actions:', parsed.map(p => p.suggestedActions?.length || 0));
@@ -462,7 +462,7 @@ Generate exactly 3-5 insights with 3-5 specific actions each.`,
   }
 
   // Return empty insights when AI fails - NO FALLBACK like daily brief
-  console.log('❌ Orders: OpenAI failed, returning empty insights (NO FALLBACK)');
+  console.log('❌ Orders: AI service failed, returning empty insights (NO FALLBACK)');
   return [];
 }
 
@@ -598,7 +598,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       lastUpdated: new Date().toISOString(),
     };
 
-    console.log("✅ Vercel API: Orders data compiled successfully");
+    console.log("✅ API: Orders data compiled successfully");
     res.status(200).json({
       success: true,
       data: ordersData,

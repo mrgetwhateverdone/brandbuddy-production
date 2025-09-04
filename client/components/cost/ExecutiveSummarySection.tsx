@@ -49,13 +49,13 @@ export function ExecutiveSummarySection({ kpis, costCenters, isLoading }: Execut
         </div>
         <div className="ml-4 flex-1">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            Executive Summary (Real TinyBird Data)
+            Executive Summary of Brand Operations
           </h3>
           
           {/* This part of the code generates dynamic executive summary text */}
           <div className="text-sm text-gray-700 space-y-2">
             <p>
-              Cost Optimization Analysis from real TinyBird data reveals performance across{" "}
+              Cost Optimization Analysis from real-time data reveals performance across{" "}
               <span className="font-semibold text-gray-900">{totalFacilities}</span> facilities.{" "}
               Average cost efficiency of{" "}
               <span className={`font-semibold ${efficiencyStatus.color}`}>

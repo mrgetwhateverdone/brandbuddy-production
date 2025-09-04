@@ -139,7 +139,7 @@ export function WarehouseKPISection({ kpis, isLoading }: WarehouseKPISectionProp
       {/* This part of the code shows real-time data timestamp */}
       <div className="mt-4 text-right">
         <p className="text-xs text-gray-500">
-          Real-time data from TinyBird warehouse operations
+          Real-time warehouse operations data
         </p>
       </div>
     </div>

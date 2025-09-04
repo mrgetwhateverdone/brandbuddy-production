@@ -196,9 +196,9 @@ export const generateInsights: RequestHandler = async (req, res) => {
     const prompt = buildAnalysisPrompt(analysisData);
 
     // This part of the code creates generation tracking with input/output monitoring
-    const generation = trace.generation({
+    const     generation = trace.generation({
       name: "openai-dashboard-insights",
-      model: "gpt-4",
+      model: process.env.AI_MODEL_ADVANCED || "gpt-4",
       input: prompt,
       metadata: createGenerationMetadata("dashboard-server-insights", prompt.length)
     });
@@ -210,7 +210,7 @@ export const generateInsights: RequestHandler = async (req, res) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4",
+        model: process.env.AI_MODEL_ADVANCED || "gpt-4",
         messages: [{ role: "user", content: prompt }],
         temperature: 0.7,
         max_tokens: 1500,
@@ -285,7 +285,7 @@ export const generateInsights: RequestHandler = async (req, res) => {
 
 // This part of the code calculates OpenAI costs for tracking
 function calculateCost(promptTokens: number, completionTokens: number): number {
-  const PROMPT_COST_PER_1K = 0.03; // GPT-4 pricing
+  const PROMPT_COST_PER_1K = 0.03; // Advanced AI model pricing
   const COMPLETION_COST_PER_1K = 0.06;
   
   return (promptTokens / 1000 * PROMPT_COST_PER_1K) + (completionTokens / 1000 * COMPLETION_COST_PER_1K);
@@ -535,7 +535,7 @@ async function generateInsightsInternal(data: DashboardData): Promise<DashboardI
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4",
+      model: process.env.AI_MODEL_ADVANCED || "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       max_tokens: 1500,
@@ -1054,7 +1054,7 @@ async function generateAnalyticsInsightsInternal(data: DashboardData): Promise<D
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "gpt-4",
+      model: process.env.AI_MODEL_ADVANCED || "gpt-4",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
       max_tokens: 1500,

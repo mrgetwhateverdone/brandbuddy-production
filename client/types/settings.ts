@@ -26,7 +26,7 @@ export interface AgentSettings {
 // AI Configuration Settings
 export interface AISettings {
   refreshStrategy: 'on_load' | 'every_page' | 'manual';
-  model: 'gpt-3.5-turbo' | 'gpt-4';
+  model: 'gpt-3.5-turbo' | 'gpt-4'; // Internal model IDs - not user-facing
   maxTokens: number;
   responseLength: 'brief' | 'detailed' | 'adaptive';
   contextLevel: 'full' | 'limited' | 'basic';
@@ -120,7 +120,7 @@ export const DEFAULT_SETTINGS: CargoSettings = {
   },
   ai: {
     refreshStrategy: 'on_load',
-    model: 'gpt-3.5-turbo',
+    model: 'gpt-3.5-turbo', // Internal model ID - not user-facing
     maxTokens: 150,
     responseLength: 'adaptive',
     contextLevel: 'full'

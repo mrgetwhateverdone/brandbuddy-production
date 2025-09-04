@@ -138,7 +138,7 @@ export function InventoryTableSection({
           <div className="flex justify-between items-center">
             <div>
               <h3 className="text-lg font-medium text-gray-900">Inventory</h3>
-              <p className="text-sm text-gray-500">Loading real inventory data from TinyBird...</p>
+              <p className="text-sm text-gray-500">Loading inventory data...</p>
             </div>
           </div>
         </div>

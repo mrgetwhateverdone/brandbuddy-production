@@ -356,7 +356,7 @@ class WorkflowCreationService implements IWorkflowCreationService {
     } catch (error) {
       console.warn('⚠️ Failed to generate enhanced workflow description:', error);
       // This part of the code returns error message instead of fallback - same pattern as insights
-      throw new Error('Check OpenAI Connection');
+      throw new Error('Backend Disconnected');
     }
   }
 

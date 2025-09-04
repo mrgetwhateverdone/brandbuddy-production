@@ -191,7 +191,7 @@ export default function Dashboard() {
                         <div>
                           <h4 className="text-sm font-medium text-yellow-800">AI Assistant Connection Required</h4>
                           <p className="text-sm text-yellow-700 mt-1">
-                            Check OpenAI API connection to receive executive briefing analysis.
+                            Backend disconnected - unable to load briefing analysis.
                           </p>
                         </div>
                       </div>

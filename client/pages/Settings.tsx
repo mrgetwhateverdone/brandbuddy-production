@@ -372,8 +372,8 @@ export default function Settings() {
                           <SelectValue className="text-gray-900" />
                         </SelectTrigger>
                         <SelectContent className="bg-white border border-gray-400 shadow-lg">
-                          <SelectItem value="gpt-3.5-turbo" className="text-gray-900 font-medium">GPT-3.5 Turbo (Cheaper, faster)</SelectItem>
-                          <SelectItem value="gpt-4" className="text-gray-900 font-medium">GPT-4 (More capable, slower)</SelectItem>
+                          <SelectItem value="gpt-3.5-turbo" className="text-gray-900 font-medium">Fast Model (Cheaper, faster)</SelectItem>
+                          <SelectItem value="gpt-4" className="text-gray-900 font-medium">Advanced Model (More capable, slower)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

@@ -2,13 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { internalApi } from "@/services/internalApi";
 import { useSettingsIntegration } from "./useSettingsIntegration";
 import { logger } from "@/lib/logger";
-import type { 
-  InventoryData, 
-  ProductData, 
-  InventoryItem, 
-  BrandPerformance, 
-  SupplierPerformance 
-} from "@/types/data";
+import type { InventoryData } from "@/types/api";
 
 /**
  * Main inventory data hook with settings-aware caching
@@ -32,14 +26,14 @@ export const useInventoryData = () => {
       const rawInventoryData = await internalApi.getInventoryData();
 
       // This part of the code ensures type-safe client-side filtering for Callahan-Smith brand only
-      const filteredInventory: InventoryItem[] = (rawInventoryData.inventory || []).filter((item: InventoryItem) => 
+      const filteredInventory = (rawInventoryData.inventory || []).filter((item: any) => 
         item.brand_name === 'Callahan-Smith'
       );
 
       // This part of the code filters supplier analysis for Callahan-Smith suppliers only
-      const filteredSupplierAnalysis: SupplierPerformance[] = (rawInventoryData.supplierAnalysis || []).filter((supplier: SupplierPerformance) => {
+      const filteredSupplierAnalysis = (rawInventoryData.supplierAnalysis || []).filter((supplier: any) => {
         // Check if this supplier has any Callahan-Smith inventory
-        const hasCallahanSmithInventory = filteredInventory.some((item: InventoryItem) => 
+        const hasCallahanSmithInventory = filteredInventory.some((item: any) => 
           item.supplier === supplier.supplier
         );
         return hasCallahanSmithInventory;
@@ -48,7 +42,7 @@ export const useInventoryData = () => {
       const inventoryData: InventoryData = {
         ...rawInventoryData,
         inventory: filteredInventory,
-        supplierAnalysis: filteredSupplierAnalysis
+        supplierAnalysis: filteredSupplierAnalysis as any
       };
 
       hookLogger.info("BrandBuddy inventory data filtered for Callahan-Smith", {
@@ -90,13 +84,13 @@ export const useInventoryDataFast = () => {
       const rawInventoryData = await internalApi.getInventoryDataFast();
 
       // This part of the code ensures type-safe client-side filtering for Callahan-Smith brand only
-      const filteredInventory: InventoryItem[] = (rawInventoryData.inventory || []).filter((item: InventoryItem) => 
+      const filteredInventory = (rawInventoryData.inventory || []).filter((item: any) => 
         item.brand_name === 'Callahan-Smith'
       );
 
       // This part of the code filters supplier analysis for Callahan-Smith suppliers only
       const filteredSupplierAnalysis: SupplierPerformance[] = (rawInventoryData.supplierAnalysis || []).filter((supplier: SupplierPerformance) => {
-        const hasCallahanSmithInventory = filteredInventory.some((item: InventoryItem) => 
+        const hasCallahanSmithInventory = filteredInventory.some((item: any) => 
           item.supplier === supplier.supplier
         );
         return hasCallahanSmithInventory;
@@ -105,7 +99,7 @@ export const useInventoryDataFast = () => {
       const inventoryData: InventoryData = {
         ...rawInventoryData,
         inventory: filteredInventory,
-        supplierAnalysis: filteredSupplierAnalysis
+        supplierAnalysis: filteredSupplierAnalysis as any
       };
 
       hookLogger.info("FAST inventory data loaded for Callahan-Smith", {

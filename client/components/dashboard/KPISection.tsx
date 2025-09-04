@@ -23,7 +23,7 @@ export function KPISection({ kpis, isLoading }: KPISectionProps) {
       value: kpis.atRiskOrders,
       description: "Orders with delays or issues",
       className: "bg-white",
-      colorClass: kpis.atRiskOrders > 0 ? "text-red-600" : "text-gray-600",
+      colorClass: (kpis.atRiskOrders || 0) > 0 ? "text-red-600" : "text-gray-600",
     },
     {
       title: "Open POs",
@@ -37,7 +37,7 @@ export function KPISection({ kpis, isLoading }: KPISectionProps) {
       value: kpis.unfulfillableSKUs,
       description: "SKUs with fulfillment issues",
       className: "bg-white",
-      colorClass: kpis.unfulfillableSKUs > 0 ? "text-orange-600" : "text-gray-600",
+      colorClass: (kpis.unfulfillableSKUs || 0) > 0 ? "text-orange-600" : "text-gray-600",
     },
   ];
 

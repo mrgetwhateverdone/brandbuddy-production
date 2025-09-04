@@ -17,10 +17,10 @@ const mockKPIs: DashboardKPIs = {
 };
 
 const mockKPIsWithNulls: DashboardKPIs = {
-  totalOrdersToday: null,
-  atRiskOrders: null,
-  openPOs: null,
-  unfulfillableSKUs: null,
+  totalOrdersToday: 0,
+  atRiskOrders: 0,
+  openPOs: 0,
+  unfulfillableSKUs: 0,
 };
 
 // Mock the settings hook

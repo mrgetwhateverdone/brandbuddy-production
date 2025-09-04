@@ -15,6 +15,7 @@ import type {
   OrdersData,
   OrderSuggestion,
   InventoryData,
+  InventoryItemSuggestion,
   ReportTemplatesResponse,
   ReportData,
   ReportFilters,

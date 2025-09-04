@@ -120,10 +120,9 @@ export const useInventoryDataFast = () => {
 /**
  * Inventory AI insights hook for progressive loading  
  * 🔒 SECURE: Uses internal API for AI insights only
+ * 🎯 STANDARDIZED: Uses same cache settings as Dashboard/Orders for reliability
  */
 export const useInventoryInsights = () => {
-  const { getQueryConfig } = useSettingsIntegration();  
-  const queryConfig = getQueryConfig();
   const hookLogger = logger.createLogger({ component: "useInventoryInsights", hook: "inventory-insights" });
 
   return useQuery({
@@ -140,7 +139,8 @@ export const useInventoryInsights = () => {
 
       return insightsData;
     },
-    ...queryConfig,
+    staleTime: 15 * 60 * 1000, // 15 minutes - standardized with Dashboard/Orders
+    retry: 2, // Fewer retries for AI insights - matches Dashboard/Orders
     meta: {
       errorMessage: "Unable to load inventory insights - Operating with data only",
     },

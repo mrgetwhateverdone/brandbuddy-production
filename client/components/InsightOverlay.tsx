@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 import { X, AlertTriangle, TrendingUp, DollarSign, Loader2, CheckCircle } from 'lucide-react';
 import { useWorkflowCreation } from '../hooks/useWorkflows';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { useInventoryData } from '../hooks/useInventoryData';
 import { BrainIcon } from './ui/BrainIcon';
 
 interface InsightOverlayProps {
@@ -27,6 +28,7 @@ interface InsightOverlayProps {
 export function InsightOverlay({ isOpen, onClose, insight, agentName = "Dashboard Agent" }: InsightOverlayProps) {
   const { createWorkflow, creating } = useWorkflowCreation();
   const { data: dashboardData } = useDashboardData();
+  const { data: inventoryData } = useInventoryData();
   const [processingActionId, setProcessingActionId] = useState<number | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -83,8 +85,20 @@ export function InsightOverlay({ isOpen, onClose, insight, agentName = "Dashboar
     }
   };
 
-  // This part of the code generates real context information from actual dashboard data
+  // This part of the code generates context information based on insight source
   const generateContextInfo = () => {
+    // This part of the code shows inventory-specific context for inventory insights
+    if (insight.source === 'inventory_agent' && inventoryData) {
+      return [
+        `${inventoryData.inventory?.length || 0} active SKUs currently in inventory`,
+        `${inventoryData.kpis?.lowStockAlerts || 0} SKUs flagged as low stock requiring attention`,
+        `$${(inventoryData.kpis?.totalInventoryValue || 0).toLocaleString()} total inventory value under management`,
+        `${inventoryData.kpis?.inactiveSKUs || 0} inactive SKUs identified for potential discontinuation`,
+        `${inventoryData.supplierAnalysis?.length || 0} suppliers being monitored for performance`
+      ];
+    }
+    
+    // This part of the code shows dashboard context for general insights  
     if (!dashboardData) return [];
     
     return [

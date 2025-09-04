@@ -5,6 +5,7 @@ import { useOrdersData } from "@/hooks/useOrdersData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
+import type { InventoryItem } from "@/types/api";
 
 // Inventory Components
 import { InventoryKPISection } from "@/components/inventory/InventoryKPISection";
@@ -13,6 +14,8 @@ import { InventoryTableSection } from "@/components/inventory/InventoryTableSect
 import { SKUPerformanceDashboard } from "@/components/inventory/SKUPerformanceDashboard";
 import { SupplierPerformanceSection } from "@/components/inventory/SupplierPerformanceSection";
 import { ViewAllInventoryModal } from "@/components/inventory/ViewAllInventoryModal";
+import { InventoryItemAIExplanationModal } from "@/components/inventory/InventoryItemAIExplanationModal";
+
 
 // This part of the code provides world-class insight loading experience for Inventory
 const InventoryInsightLoadingMessage = () => (
@@ -48,6 +51,8 @@ export default function Inventory() {
   const { data: ordersData, isLoading: ordersLoading } = useOrdersData();
   const { isPageAIEnabled, getTablePageSize } = useSettingsIntegration();
   const [showViewAllModal, setShowViewAllModal] = useState(false);
+  const [showItemAnalysisModal, setShowItemAnalysisModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
   // This part of the code processes inventory data for table display
   const inventory = data?.inventory || [];
@@ -64,6 +69,18 @@ export default function Inventory() {
   // This part of the code handles closing the view all inventory modal
   const handleCloseModal = () => {
     setShowViewAllModal(false);
+  };
+
+  // This part of the code handles opening the AI analysis modal for a specific inventory item
+  const handleViewItem = (item: InventoryItem) => {
+    setSelectedItem(item);
+    setShowItemAnalysisModal(true);
+  };
+
+  // This part of the code handles closing the AI analysis modal
+  const handleCloseItemAnalysisModal = () => {
+    setShowItemAnalysisModal(false);
+    setSelectedItem(null);
   };
 
   if (isLoading) {
@@ -145,6 +162,7 @@ export default function Inventory() {
           hasMore={hasMore}
           isLoading={isLoading}
           onViewAll={handleViewAll}
+          onViewItem={handleViewItem}
         />
 
         {/* This part of the code displays SKU performance intelligence dashboard */}
@@ -159,12 +177,21 @@ export default function Inventory() {
           isLoading={isLoading || ordersLoading}
         />
 
+
         {/* This part of the code displays the view all inventory modal */}
         <ViewAllInventoryModal
           isOpen={showViewAllModal}
           onClose={handleCloseModal}
           inventory={inventory}
           totalCount={totalCount}
+          onViewItem={handleViewItem}
+        />
+
+        {/* This part of the code displays the AI analysis modal when triggered */}
+        <InventoryItemAIExplanationModal
+          isOpen={showItemAnalysisModal}
+          onClose={handleCloseItemAnalysisModal}
+          item={selectedItem}
         />
       </div>
     </Layout>

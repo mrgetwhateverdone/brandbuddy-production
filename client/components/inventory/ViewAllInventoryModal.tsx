@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { X, ChevronUp, ChevronDown, ArrowUpDown, Search } from "lucide-react";
+import { X, ChevronUp, ChevronDown, ArrowUpDown, Search, Brain } from "lucide-react";
 import type { InventoryItem } from "@/types/api";
 
 interface ViewAllInventoryModalProps {
@@ -7,12 +7,13 @@ interface ViewAllInventoryModalProps {
   onClose: () => void;
   inventory: InventoryItem[];
   totalCount: number;
+  onViewItem?: (item: InventoryItem) => void;
 }
 
-type SortField = 'sku' | 'product_name' | 'brand_name' | 'on_hand' | 'committed' | 'available' | 'status';
+type SortField = 'sku' | 'product_name' | 'brand_name' | 'on_hand' | 'committed' | 'available' | 'status' | 'total_value' | 'supplier';
 type SortDirection = 'asc' | 'desc' | 'default';
 
-export function ViewAllInventoryModal({ isOpen, onClose, inventory, totalCount }: ViewAllInventoryModalProps) {
+export function ViewAllInventoryModal({ isOpen, onClose, inventory, totalCount, onViewItem }: ViewAllInventoryModalProps) {
   const [sortField, setSortField] = useState<SortField>('sku');
   const [sortDirection, setSortDirection] = useState<SortDirection>('default');
   const [searchTerm, setSearchTerm] = useState('');
@@ -107,6 +108,13 @@ export function ViewAllInventoryModal({ isOpen, onClose, inventory, totalCount }
       default:
         return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // This part of the code formats currency values for display
+  const formatCurrency = (value: number) => {
+    if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
+    if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
+    return `$${value.toLocaleString()}`;
   };
 
   if (!isOpen) return null;
@@ -217,13 +225,36 @@ export function ViewAllInventoryModal({ isOpen, onClose, inventory, totalCount }
                     {getSortIcon('status')}
                   </div>
                 </th>
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => handleSort('total_value')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Total Value</span>
+                    {getSortIcon('total_value')}
+                  </div>
+                </th>
+                <th 
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => handleSort('supplier')}
+                >
+                  <div className="flex items-center space-x-1">
+                    <span>Supplier</span>
+                    {getSortIcon('supplier')}
+                  </div>
+                </th>
+                {onViewItem && (
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {sortedInventory.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-12">
-                    <p className="text-gray-500">Information not in dataset.</p>
+                  <td colSpan={onViewItem ? 10 : 9} className="text-center py-12">
+                    <p className="text-gray-500">No inventory items match your current filters.</p>
                   </td>
                 </tr>
               ) : (
@@ -254,6 +285,24 @@ export function ViewAllInventoryModal({ isOpen, onClose, inventory, totalCount }
                         {item.status}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {formatCurrency(item.total_value)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.supplier || 'N/A'}
+                    </td>
+                    {onViewItem && (
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <button
+                          onClick={() => onViewItem(item)}
+                          className="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors border border-green-200"
+                          title="Analyze SKU with AI"
+                        >
+                          <Brain className="w-3 h-3 mr-1" />
+                          Analyze SKU
+                        </button>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ChevronUp, ChevronDown, ArrowUpDown, Search } from "lucide-react";
+import { ChevronUp, ChevronDown, ArrowUpDown, Search, Brain } from "lucide-react";
 import type { InventoryItem } from "@/types/api";
 
 interface InventoryTableSectionProps {
@@ -8,6 +8,7 @@ interface InventoryTableSectionProps {
   hasMore: boolean;
   isLoading?: boolean;
   onViewAll?: () => void;
+  onViewItem?: (item: InventoryItem) => void;
 }
 
 type SortField = 'sku' | 'product_name' | 'brand_name' | 'on_hand' | 'available' | 'status' | 'unit_cost' | 'total_value' | 'supplier';
@@ -18,7 +19,8 @@ export function InventoryTableSection({
   totalCount, 
   hasMore, 
   isLoading, 
-  onViewAll
+  onViewAll,
+  onViewItem
 }: InventoryTableSectionProps) {
   const [sortField, setSortField] = useState<SortField>('sku');
   const [sortDirection, setSortDirection] = useState<SortDirection>('default');
@@ -251,12 +253,17 @@ export function InventoryTableSection({
                   {getSortIcon('status')}
                 </div>
               </th>
+              {onViewItem && (
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedInventory.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center">
+                <td colSpan={onViewItem ? 9 : 8} className="px-6 py-12 text-center">
                   <p className="text-gray-500">Information not in dataset.</p>
                 </td>
               </tr>
@@ -291,6 +298,18 @@ export function InventoryTableSection({
                       {item.status}
                     </span>
                   </td>
+                  {onViewItem && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <button
+                        onClick={() => onViewItem(item)}
+                        className="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors border border-green-200"
+                        title="Analyze SKU with AI"
+                      >
+                        <Brain className="w-3 h-3 mr-1" />
+                        Analyze SKU
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

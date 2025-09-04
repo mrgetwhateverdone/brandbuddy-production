@@ -135,55 +135,45 @@ async function generateInventorySuggestion(itemData: any): Promise<InventoryItem
         messages: [
           {
             role: "system",
-            content: `You are a Senior Inventory Operations Manager with 15+ years experience at Fortune 500 companies. You've managed $50M+ inventory portfolios and specialize in demand forecasting, reorder optimization, and supplier relationship management. You've prevented stockouts that would have cost millions and identified obsolete inventory saving companies 20%+ in carrying costs.
+            content: `You are a Senior Inventory Operations Manager with 15+ years experience at Fortune 500 companies. You specialize in inventory optimization, demand forecasting, and supply chain risk management.
 
 ANALYSIS REQUIREMENTS:
-- Provide detailed business impact assessment (not generic observations)
-- Include specific financial implications and operational risks
-- Reference industry best practices and proven methodologies
-- Give 2-3 ACTIONABLE next steps with WHO to contact and WHAT to do TODAY
-- Use actual data points: SKU numbers, suppliers, quantities, dollar amounts
-- Focus on immediate value-creating actions that solve real problems
+- Analyze the specific inventory item data to identify immediate risks and opportunities
+- Provide concrete business impact assessment based on the actual numbers
+- Generate actionable recommendations using the real supplier names, quantities, and financial data provided
+- Focus on preventing stockouts, optimizing cash flow, and reducing carrying costs
+- Consider the item's status, turnover rate, and financial impact in your analysis
 
-ACTIONABLE EXAMPLES:
-✅ "Contact ${supplier} directly to expedite emergency reorder for SKU-${sku}"  
-✅ "Escalate to procurement team for backup supplier sourcing"
-✅ "Schedule immediate reorder of 50+ units through existing supplier contract"
-❌ "Monitor inventory levels regularly" (too vague, no specific action)
-❌ "Consider adjusting reorder points" (no specific target or person)
+OUTPUT REQUIREMENTS:
+- Analysis: 3-4 sentences explaining specific business risks and financial implications
+- Actions: 2-3 concrete next steps with WHO to contact and WHAT to do
+- Use only the real data provided (suppliers, SKUs, quantities, costs)
+- No generic advice - everything must be specific to this item's situation
 
 RESPONSE FORMAT (JSON):
 {
-  "analysis": "3-4 sentences with specific business impact, operational risks, and financial implications based on the data",
-  "actions": ["Specific action 1 with WHO (name/role) to contact", "Specific action 2 with WHAT (exact numbers/deadlines) to do"]
+  "analysis": "Specific analysis based on the actual inventory data provided",
+  "actions": ["Action 1 with specific WHO and WHAT based on real data", "Action 2 with specific metrics and deadlines"]
 }`
           },
           {
             role: "user",
-            content: `Analyze this inventory item and provide expert recommendations:
+            content: `Analyze this specific inventory item within the context of our overall inventory operations:
 
-INVENTORY ITEM ANALYSIS:
+TARGET INVENTORY ITEM:
 - SKU: ${sku}
-- Product: ${productName}
+- Product: ${productName} 
 - Brand: ${brandName}
-- Current Status: ${status}
+- Status: ${status}
 - Supplier: ${supplier}
-- On Hand Quantity: ${onHand} units
-- Committed Quantity: ${committed} units
-- Available for Sale: ${available} units
-- Unit Cost: $${unitCost.toFixed(2)}
-- Total Inventory Value: $${inventoryValue.toLocaleString()}
-- Days in System: ${daysSinceCreated} days
-- Estimated Annual Turnover: ${turnoverRate}x
-- Active Status: ${itemData.active ? 'Active' : 'Inactive'}
+- Stock Levels: ${onHand} on hand, ${committed} committed, ${available} available
+- Financial: $${unitCost.toFixed(2)} unit cost, $${inventoryValue.toLocaleString()} total value
+- Performance: ${daysSinceCreated} days in system, ${turnoverRate}x annual turnover
+- Active: ${itemData.active ? 'Yes' : 'No'}
 
-BUSINESS CONTEXT:
-This is a ${brandName} product managed in our inventory system. Current ${status} status indicates immediate attention required. With ${available} units available and ${committed} committed, we need strategic action to optimize inventory position and prevent business disruption.
+Based on this item's specific situation, what are the immediate business risks and what concrete actions should we take today? Consider the financial impact, operational risks, and supply chain implications specific to this SKU's data.
 
-Provide detailed analysis focusing on:
-1. Immediate business risks and financial impact
-2. Operational implications for fulfillment and customer satisfaction  
-3. 2-3 specific actions with WHO to contact and WHAT to do TODAY`
+Generate your analysis and recommendations based purely on the numbers and situation presented.`
           }
         ],
         max_tokens: 300, // Increased for detailed analysis
@@ -219,8 +209,8 @@ Provide detailed analysis focusing on:
       parsedResponse = {
         analysis: aiContent.substring(0, 300),
         actions: [
-          `Contact ${supplier} directly to optimize ${sku} stock levels immediately`,
-          `Escalate to procurement team for emergency reorder of ${Math.max(20, onHand)} units by end of week`
+          `Contact ${supplier} to address ${sku} inventory situation based on current ${status} status`,
+          `Review ${available} available units against demand requirements for immediate action planning`
         ]
       };
     }
@@ -237,7 +227,7 @@ Provide detailed analysis focusing on:
 **Recommended Actions:**
 ${parsedResponse.actions && parsedResponse.actions.length > 0 ? 
   parsedResponse.actions.map((action: string, index: number) => `${index + 1}. ${action}`).join('\n') : 
-  `1. Contact ${supplier} directly to address ${sku} inventory optimization\n2. Escalate to procurement team for immediate reorder planning`}
+  `1. Contact ${supplier} to review ${sku} inventory levels (${available} available, ${status} status)\n2. Assess reorder requirements based on current ${onHand} units on hand and ${turnoverRate}x annual turnover`}
 
 **Financial Impact:** ${estimatedImpact}`;
 

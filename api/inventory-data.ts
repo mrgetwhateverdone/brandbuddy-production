@@ -17,24 +17,31 @@ interface ProductData {
 }
 
 async function fetchProducts(): Promise<ProductData[]> {
-  const baseUrl = process.env.WAREHOUSE_BASE_URL;
-  const token = process.env.WAREHOUSE_TOKEN;
+  const baseUrl = process.env.TINYBIRD_BASE_URL;
+  const token = process.env.TINYBIRD_TOKEN;
 
   if (!baseUrl || !token) {
-    throw new Error(
-      "WAREHOUSE_BASE_URL and WAREHOUSE_TOKEN environment variables are required",
-    );
+    console.log("⚠️ Data service config missing, using fallback");
+    return [];
   }
 
-  // This part of the code matches the working orders API URL pattern exactly
+  // This part of the code matches the working dashboard API URL pattern
   const url = `${baseUrl}?token=${token}&limit=1000&brand_name=Callahan-Smith`;
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  
+  try {
+    console.log("🔒 Fetching from data service:", url.replace(token, "[TOKEN]"));
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.log("⚠️ Data service API failed:", response.status, response.statusText);
+      return [];
+    }
+    const result = await response.json();
+    console.log("✅ Data service response:", result.data?.length || 0, "products");
+    return result.data || [];
+  } catch (error) {
+    console.log("⚠️ Data service fetch failed:", error);
+    return [];
   }
-
-  const result = await response.json();
-  return result.data || [];
 }
 
 function calculateEnhancedKPIs(products: ProductData[]) {

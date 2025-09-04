@@ -122,14 +122,7 @@ export function InventoryTableSection({
   }, [filteredInventory, sortField, sortDirection]);
 
   // This part of the code formats dates for display
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'N/A';
-    try {
-      return new Date(dateString).toLocaleDateString();
-    } catch {
-      return 'N/A';
-    }
-  };
+  // This part of the code handles date formatting (removed unused formatDate function)
 
   if (isLoading) {
     return (

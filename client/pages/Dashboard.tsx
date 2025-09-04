@@ -1,4 +1,4 @@
-import React from "react";
+// This part of the code imports React components and hooks for the dashboard page
 import { Layout } from "@/components/layout/Layout";
 import { useDashboardDataFast, useDashboardInsights } from "@/hooks/useDashboardData";
 import { LoadingState } from "@/components/ui/loading-spinner";
@@ -44,16 +44,8 @@ export default function Dashboard() {
   // This part of the code provides tour functionality for the overview page
   const { startOverviewTour } = useTour();
 
-  // This part of the code formats the current date for the overview header
-  const getCurrentDate = () => {
-    const now = new Date();
-    return now.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
+    // This part of the code formats the current date for the overview header
+  // Note: getCurrentDate function removed - was unused according to TypeScript
 
   return (
     <Layout>
@@ -153,7 +145,7 @@ export default function Dashboard() {
                   <div className="border-l-4 border-red-600 pl-4">
                     <h3 className="font-medium text-gray-900">Callahan-Smith Operations Summary</h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      {insightsData?.insights?.length > 0 
+                      {insightsData?.insights && insightsData.insights.length > 0 
                         ? `${insightsData.insights.length} insights identified for immediate attention. `
                         : insightsLoading 
                           ? "Analyzing operations for insights... "

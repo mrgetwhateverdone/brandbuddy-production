@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import type { ShipmentData } from "@/types/api";
+import type { ShipmentData } from "../shared/types/api";
 // This part of the code imports only necessary types for inbound operations
 
 /**
@@ -93,7 +93,7 @@ function calculateInboundKPIs(shipments: ShipmentData[]): InboundKPIs {
   
   shipmentsWithDates.forEach(s => {
     const createdDate = new Date(s.created_date);
-    const arrivalDate = new Date(s.arrival_date);
+    const arrivalDate = new Date(s.arrival_date || new Date());
     const leadTimeDays = (arrivalDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
     
     if (leadTimeDays >= 0 && leadTimeDays <= 365) { // Sanity check
@@ -132,7 +132,7 @@ function calculateInboundKPIs(shipments: ShipmentData[]): InboundKPIs {
   
   const onTimeShipments = shipmentsWithExpectedDates.filter(s => {
     const expectedDate = new Date(s.expected_arrival_date!);
-    const arrivalDate = new Date(s.arrival_date);
+    const arrivalDate = new Date(s.arrival_date || new Date());
     return arrivalDate <= expectedDate;
   }).length;
   

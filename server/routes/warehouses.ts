@@ -12,6 +12,7 @@ import { dataFetchingService, type ProductData, type ShipmentData } from "../ser
 
 // This part of the code defines warehouse-specific types to eliminate any usage
 interface WarehouseData {
+  // Original snake_case properties (preserve compatibility)
   warehouse_id: string;
   name: string;
   performance_score: number;
@@ -21,15 +22,33 @@ interface WarehouseData {
   total_volume: number;
   utilization_rate: number;
   supplier_name?: string;
+  
+  // Additional camelCase properties (client compatibility)
+  warehouseId: string;
+  warehouseName: string;
+  slaPerformance: number;
+  activeOrders: number;
+  avgFulfillmentTime: number;
+  throughput: number;
+  totalSKUs: number;
+  status: "Excellent" | "Good" | "Needs Attention";
+  performanceScore: number;
 }
 
 interface WarehouseKPIs {
+  // Original snake_case properties (preserve compatibility)
   total_warehouses: number;
   avg_performance: number;
   total_shipments: number;
   efficiency_rating: number;
   cost_savings: number;
   utilization_rate: number;
+  
+  // Additional camelCase properties (client compatibility)
+  avgSLAPercentage: number | null;
+  totalActiveOrders: number | null;
+  avgFulfillmentTime: number | null;
+  totalInboundThroughput: number | null;
 }
 
 interface WarehouseInsight {
@@ -40,6 +59,11 @@ interface WarehouseInsight {
   impact: string;
   category: 'performance' | 'cost' | 'efficiency' | 'utilization';
   recommendation?: string;
+  // Additional properties for client compatibility
+  dollarImpact?: number;
+  suggestedActions?: string[];
+  createdAt?: string;
+  source?: string;
 }
 
 // This part of the code defines the raw AI response structure (unknown JSON shape)
@@ -52,6 +76,11 @@ interface RawAIInsight {
   impact?: string;
   category?: string;
   recommendation?: string;
+  // Additional properties for AI response compatibility
+  dollarImpact?: number;
+  suggestedActions?: string[];
+  createdAt?: string;
+  source?: string;
 }
 
 /**
@@ -122,7 +151,7 @@ function calculateWarehouseData(products: ProductData[], shipments: ShipmentData
   });
 
   // This part of the code calculates performance metrics for each warehouse
-  const warehousesData = [];
+  const warehousesData: WarehouseData[] = [];
 
   warehouseGroups.forEach((data, warehouseId) => {
     const { supplierName, shipments: warehouseShipments, products: warehouseProducts, location } = data;
@@ -148,7 +177,7 @@ function calculateWarehouseData(products: ProductData[], shipments: ShipmentData
       .filter(s => s.created_date && s.arrival_date)
       .map(s => {
         const created = new Date(s.created_date);
-        const arrived = new Date(s.arrival_date);
+        const arrived = new Date(s.arrival_date || new Date());
         return (arrived.getTime() - created.getTime()) / (1000 * 60 * 60); // hours
       });
     const avgFulfillmentTime = fulfillmentTimes.length > 0 
@@ -177,7 +206,7 @@ function calculateWarehouseData(products: ProductData[], shipments: ShipmentData
     warehousesData.push({
       warehouseId,
       warehouseName: getWarehouseName(supplierName),
-      supplierName,
+      supplier_name: supplierName,
       slaPerformance: Math.round(slaPerformance * 10) / 10,
       activeOrders,
       avgFulfillmentTime: Math.round(avgFulfillmentTime * 10) / 10,
@@ -198,10 +227,18 @@ function calculateWarehouseData(products: ProductData[], shipments: ShipmentData
 function calculateWarehouseKPIs(warehouses: WarehouseData[]): WarehouseKPIs {
   if (warehouses.length === 0) {
     return {
-      avgSLAPercentage: null,
-      totalActiveOrders: null,
-      avgFulfillmentTime: null,
-      totalInboundThroughput: null,
+          // Original snake_case properties (with defaults)
+    total_warehouses: 0,
+    avg_performance: 0,
+    total_shipments: 0,
+    efficiency_rating: 0,
+    cost_savings: 0,
+    utilization_rate: 0,
+    // Additional camelCase properties
+    avgSLAPercentage: null,
+    totalActiveOrders: null,
+    avgFulfillmentTime: null,
+    totalInboundThroughput: null,
     };
   }
 
@@ -211,10 +248,18 @@ function calculateWarehouseKPIs(warehouses: WarehouseData[]): WarehouseKPIs {
   const totalInboundThroughput = warehouses.reduce((sum, w) => sum + w.throughput, 0);
 
   return {
+    // Original snake_case properties (calculated values)
+    total_warehouses: warehouses.length,
+    avg_performance: Math.round(warehouses.reduce((sum, w) => sum + (w.performanceScore || w.performance_score), 0) / warehouses.length),
+    total_shipments: warehouses.reduce((sum, w) => sum + (w.total_shipments || 0), 0),
+    efficiency_rating: Math.round(warehouses.reduce((sum, w) => sum + (w.efficiency_rating || 0), 0) / warehouses.length),
+    cost_savings: Math.round(totalInboundThroughput * 12), // Example calculation
+    utilization_rate: Math.round(warehouses.reduce((sum, w) => sum + (w.utilization_rate || 0), 0) / warehouses.length),
+    // Additional camelCase properties
     avgSLAPercentage: Math.round(avgSLAPercentage * 10) / 10,
     totalActiveOrders,
     avgFulfillmentTime: Math.round(avgFulfillmentTime * 10) / 10,
-    totalInboundThroughput,
+    totalInboundThroughput: Math.round(totalInboundThroughput),
   };
 }
 
@@ -314,6 +359,8 @@ Focus on immediate operational improvements, automation opportunities, and proce
         title: insight.title || `Warehouse Alert ${index + 1}`,
         description: insight.description || insight.content || 'Analysis pending',
         severity: insight.severity || 'warning',
+        impact: insight.impact || "Performance optimization required",
+        category: "performance" as const,
         dollarImpact: insight.dollarImpact || Math.round(totalThroughput * 25),
         suggestedActions: insight.suggestedActions || ["Optimize picking routes", "Implement cross-docking", "Create workforce scheduling"],
         createdAt: insight.createdAt || new Date().toISOString(),
@@ -563,7 +610,7 @@ function generateOptimizationRecommendations(warehouses: WarehouseData[]): Wareh
  * Main warehouse data endpoint
  * This part of the code orchestrates all warehouse analytics and returns comprehensive data
  */
-export const getWarehousesData: RequestHandler = async (req, res) => {
+export const getWarehousesData: RequestHandler = async (_, res) => {
   const routeLogger = logger.createLogger({ endpoint: "warehouses", component: "getWarehousesData" });
   
   try {

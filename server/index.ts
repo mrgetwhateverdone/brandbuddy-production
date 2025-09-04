@@ -9,7 +9,6 @@ import {
   generateInsights,
   getAnalyticsData,
 } from "./routes/dashboard";
-import { getWarehousesData } from "./routes/warehouses";
 
 export function createServer() {
   const app = express();
@@ -59,9 +58,6 @@ export function createServer() {
 
   // Complete analytics data (analytics dashboard)
   app.get("/api/analytics-data", getAnalyticsData);
-
-  // Complete warehouse data (warehouse dashboard)
-  app.get("/api/warehouses-data", getWarehousesData);
 
   // Individual data endpoints (for specific page needs)
   app.get("/api/products", getProductsData);

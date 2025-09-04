@@ -25,7 +25,6 @@ export function SmartRouter() {
         'orders': '/orders',
         'inventory': '/inventory',
         'analytics': '/analytics',
-        'warehouses': '/warehouses',
         'cost_management': '/cost-management'
       };
 

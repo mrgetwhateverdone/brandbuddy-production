@@ -197,106 +197,8 @@ function transformToEnhancedInventoryItems(products: ProductData[]) {
     .sort((a, b) => b.total_value - a.total_value); // Sort by value descending
 }
 
-// This part of the code generates data-driven inventory insights when OpenAI is not available
-function generateInventoryDataDrivenInsights(
-  products: ProductData[],
-  kpis: any,
-  supplierAnalysis: any[]
-): any[] {
-  const insights: any[] = [];
-  
-  // Calculate critical metrics
-  const lowStockItems = products.filter(p => p.active && p.unit_quantity > 0 && p.unit_quantity < 10);
-  const outOfStockItems = products.filter(p => p.active && p.unit_quantity === 0);
-  const overstockedItems = products.filter(p => p.active && p.unit_quantity > 100);
-  const inactiveItems = products.filter(p => !p.active);
-  const highRiskSuppliers = supplierAnalysis.filter(s => s.concentration_risk > 30);
-  
-  // Critical Stock Level Issues
-  if (lowStockItems.length > 0) {
-    const totalValue = lowStockItems.reduce((sum, p) => sum + (p.unit_quantity * (p.unit_cost || 0)), 0);
-    insights.push({
-      id: "inventory-insight-1",
-      title: "Low Stock Alerts Detected",
-      description: `${lowStockItems.length} active SKUs have critically low inventory levels (<10 units) with $${Math.round(totalValue).toLocaleString()} at risk of stockout.`,
-      severity: lowStockItems.length > 20 ? "critical" : "warning",
-      dollarImpact: Math.round(totalValue * 2), // Lost sales potential
-      suggestedActions: [
-        `Set up reorder triggers for ${lowStockItems.slice(0, 3).map(p => p.sku).join(', ')} and ${lowStockItems.length > 3 ? `${lowStockItems.length - 3} other SKUs` : ''}`,
-        `Contact suppliers for expedited delivery on critical low-stock items totaling $${Math.round(totalValue).toLocaleString()}`,
-        `Implement safety stock buffers for top ${Math.min(5, lowStockItems.length)} revenue-impacting SKUs`,
-        `Create automated alerts when inventory drops below 15-day supply levels`
-      ],
-      createdAt: new Date().toISOString(),
-      source: "inventory_agent"
-    });
-  }
-  
-  if (outOfStockItems.length > 0) {
-    const avgValue = products.filter(p => p.unit_cost).reduce((sum, p) => sum + (p.unit_cost || 0), 0) / products.filter(p => p.unit_cost).length;
-    const lostSalesPotential = outOfStockItems.length * avgValue * 50; // Conservative estimate
-    insights.push({
-      id: "inventory-insight-2", 
-      title: "Stockout Risk Analysis",
-      description: `${outOfStockItems.length} active SKUs are completely out of stock, creating potential lost sales of $${Math.round(lostSalesPotential).toLocaleString()}.`,
-      severity: "critical",
-      dollarImpact: Math.round(lostSalesPotential),
-      suggestedActions: [
-        `Emergency reorder for ${outOfStockItems.slice(0, 5).map(p => p.sku).join(', ')}${outOfStockItems.length > 5 ? ` and ${outOfStockItems.length - 5} other SKUs` : ''}`,
-        `Contact ${Array.from(new Set(outOfStockItems.map(p => p.supplier).filter(s => s))).slice(0, 3).join(', ')} for expedited restocking`,
-        `Implement demand forecasting for ${outOfStockItems.length} out-of-stock SKUs to prevent future stockouts`,
-        `Set up backorder management system for high-value SKUs worth $${Math.round(lostSalesPotential).toLocaleString()}`
-      ],
-      createdAt: new Date().toISOString(),
-      source: "inventory_agent"
-    });
-  }
-  
-  // Overstock Capital Optimization
-  if (overstockedItems.length > 0) {
-    const overstockValue = overstockedItems.reduce((sum, p) => {
-      const excessUnits = Math.max(0, p.unit_quantity - 50); // Assume 50 is optimal max
-      return sum + (excessUnits * (p.unit_cost || 0));
-    }, 0);
-    insights.push({
-      id: "inventory-insight-3",
-      title: "Overstock Capital Optimization",
-      description: `${overstockedItems.length} SKUs have excess inventory (>100 units) tying up $${Math.round(overstockValue).toLocaleString()} in working capital.`,
-      severity: "warning",
-      dollarImpact: Math.round(overstockValue * 0.15), // 15% carrying cost
-      suggestedActions: [
-        `Reduce inventory levels for ${overstockedItems.slice(0, 5).map(p => `${p.sku} (${p.unit_quantity} units)`).join(', ')}`,
-        `Review max stock levels for ${overstockedItems.length} overstocked SKUs to free up $${Math.round(overstockValue).toLocaleString()} in capital`,
-        `Consider promotional pricing for excess inventory in ${Array.from(new Set(overstockedItems.map(p => p.brand_name))).join(', ')} brands`,
-        `Negotiate consignment arrangements with ${Array.from(new Set(overstockedItems.map(p => p.supplier).filter(s => s))).slice(0, 3).join(', ')}`
-      ],
-      createdAt: new Date().toISOString(),
-      source: "inventory_agent"
-    });
-  }
-  
-  // Supplier Risk Management
-  if (highRiskSuppliers.length > 0) {
-    const concentrationRisk = highRiskSuppliers.reduce((sum, s) => sum + s.total_value, 0);
-    insights.push({
-      id: "inventory-insight-4",
-      title: "Supplier Concentration Risk",
-      description: `${highRiskSuppliers.length} suppliers represent >30% portfolio concentration with $${Math.round(concentrationRisk).toLocaleString()} exposure requiring diversification.`,
-      severity: "warning", 
-      dollarImpact: Math.round(concentrationRisk * 0.1), // 10% risk premium
-      suggestedActions: [
-        `Diversify supplier base for ${highRiskSuppliers.map(s => s.supplier_name).join(', ')} to reduce ${Math.round(concentrationRisk / kpis.totalInventoryValue * 100)}% concentration risk`,
-        `Negotiate backup supplier agreements for $${Math.round(concentrationRisk).toLocaleString()} in high-risk inventory`,
-        `Implement performance scorecards for top ${highRiskSuppliers.length} suppliers managing ${Math.round(highRiskSuppliers.reduce((sum, s) => sum + s.sku_count, 0))} SKUs`,
-        `Review geographic risk distribution across ${supplierAnalysis.length} suppliers for supply chain resilience`
-      ],
-      createdAt: new Date().toISOString(),
-      source: "inventory_agent"
-    });
-  }
-  
-  return insights.slice(0, 4); // Limit to top 4 insights
-}
+// Note: Removed generateInventoryDataDrivenInsights function - no longer using fallback templates
+// When OpenAI fails, return empty insights array to show "Backend Disconnected" message
 
 // This part of the code generates AI insights for inventory management using OpenAI
 async function generateInventoryInsights(
@@ -308,8 +210,8 @@ async function generateInventoryInsights(
   console.log('🔑 AI service key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No AI service key found - using data-driven insights');
-    return generateInventoryDataDrivenInsights(products, kpis, supplierAnalysis);
+    console.log('❌ No AI service key found - returning empty insights');
+    return [];
   }
 
   try {
@@ -411,23 +313,23 @@ Use these specific SKUs, suppliers, and dollar amounts in your recommendations. 
         description: insight.description || insight.content || 'Analysis pending',
         severity: insight.severity || 'warning',
         dollarImpact: insight.dollarImpact || Math.round(kpis.totalInventoryValue * 0.1),
-        suggestedActions: insight.suggestedActions || ["Implement dynamic reorder points", "Create ABC analysis", "Review supplier concentration"],
+        suggestedActions: insight.suggestedActions || [],
         createdAt: insight.createdAt || new Date().toISOString(),
         source: insight.source || "inventory_agent",
       }));
     } catch (parseError) {
       console.error('❌ JSON parsing failed:', parseError);
-      console.log('🔄 Inventory: JSON parse failed, falling back to data-driven insights');
-      return generateInventoryDataDrivenInsights(products, kpis, supplierAnalysis);
+      console.log('❌ Inventory: JSON parse failed - returning empty insights');
+      return [];
     }
 
   } catch (error) {
     console.error("❌ Inventory AI analysis failed:", error);
+    return [];
   }
   
-  // Return data-driven insights when AI fails
-  console.log('🔄 Inventory: Falling back to data-driven insights due to AI service failure');
-  return generateInventoryDataDrivenInsights(products, kpis, supplierAnalysis);
+  // This should never be reached, but return empty array as fallback
+  return [];
 }
 
 // This part of the code handles fast mode for quick inventory data loading without AI insights

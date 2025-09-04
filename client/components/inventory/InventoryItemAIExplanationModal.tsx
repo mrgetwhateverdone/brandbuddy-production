@@ -13,6 +13,14 @@ export function InventoryItemAIExplanationModal({ isOpen, onClose, item }: Inven
   const [explanation, setExplanation] = useState<string>("");
   const inventoryItemSuggestionMutation = useInventoryItemSuggestionSilent();
 
+  // This part of the code cleans up markdown formatting from AI responses
+  const cleanMarkdown = (text: string): string => {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove ** bold formatting
+      .replace(/\*(.*?)\*/g, '$1')     // Remove * italic formatting  
+      .replace(/\n{3,}/g, '\n\n');    // Normalize multiple line breaks
+  };
+
   // This part of the code generates AI explanation when modal opens with an inventory item
   useEffect(() => {
     if (isOpen && item) {
@@ -89,7 +97,7 @@ export function InventoryItemAIExplanationModal({ isOpen, onClose, item }: Inven
       
       {/* This part of the code creates the modal container */}
       <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl bg-white rounded-lg shadow-xl">
+        <div className="relative w-full max-w-2xl max-h-[90vh] bg-white rounded-lg shadow-xl flex flex-col">
           {/* Modal Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex items-center space-x-3">
@@ -113,7 +121,7 @@ export function InventoryItemAIExplanationModal({ isOpen, onClose, item }: Inven
           </div>
 
           {/* Modal Content */}
-          <div className="p-6">
+          <div className="flex-1 overflow-y-auto p-6">
             {/* Inventory Item Details Section */}
             <div className="mb-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Inventory Item Details</h3>
@@ -219,9 +227,9 @@ export function InventoryItemAIExplanationModal({ isOpen, onClose, item }: Inven
                       <Brain className="h-5 w-5 text-green-600" />
                       <span className="font-medium text-green-800">AI Insight</span>
                     </div>
-                    <p className="text-green-900 leading-relaxed">
-                      {explanation}
-                    </p>
+                    <div className="text-green-900 leading-relaxed whitespace-pre-line">
+                      {cleanMarkdown(explanation)}
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center space-x-3 text-gray-600">

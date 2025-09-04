@@ -16,6 +16,7 @@ import type {
   OrderSuggestion,
   InventoryData,
   InventoryItemSuggestion,
+  ReplenishmentItemSuggestion,
   ReportTemplatesResponse,
   ReportData,
   ReportFilters,
@@ -970,6 +971,48 @@ class InternalApiService {
       });
       throw new Error(
         `Unable to generate inventory suggestion: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
+   * Generate AI suggestion for specific replenishment item
+   * NO external API keys - server handles OpenAI calls
+   * 🎯 FAST: Fast AI model for speed and cost efficiency
+   */
+  async generateReplenishmentItemSuggestion(itemData: any): Promise<ReplenishmentItemSuggestion> {
+    try {
+      this.apiLogger.info("Requesting AI suggestion for replenishment item", { sku: itemData.sku || itemData.product_sku });
+
+      const response = await fetch(`${this.baseUrl}/api/replenishment-suggestion`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ itemData }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<ReplenishmentItemSuggestion> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to generate replenishment suggestion");
+      }
+
+      this.apiLogger.info("Replenishment suggestion received securely", { sku: itemData.sku || itemData.product_sku });
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("Replenishment suggestion API call failed", { 
+        error: error instanceof Error ? error.message : error,
+        sku: itemData.sku || itemData.product_sku 
+      });
+      throw new Error(
+        `Unable to generate replenishment suggestion: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }

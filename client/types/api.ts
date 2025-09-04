@@ -309,6 +309,14 @@ export interface InventoryItemSuggestion {
   estimatedImpact?: string;
 }
 
+export interface ReplenishmentItemSuggestion {
+  sku: string;
+  suggestion: string;
+  priority: "low" | "medium" | "high";
+  actionable: boolean;
+  estimatedImpact?: string;
+}
+
 // Warehouse Performance Data
 export interface WarehouseData {
   warehouseId: string;

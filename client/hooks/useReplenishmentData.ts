@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { internalApi } from "@/services/internalApi";
 import { useSettingsIntegration } from "./useSettingsIntegration";
 import { logger } from "@/lib/logger";
@@ -10,6 +10,7 @@ import type {
   ProductData,
   ShipmentData 
 } from "@/types/data";
+import type { ReplenishmentItemSuggestion } from "@/types/api";
 
 // This part of the code extends the base interface for additional replenishment-specific KPIs
 interface ExtendedReplenishmentKPIs extends ReplenishmentKPIs {
@@ -198,4 +199,33 @@ export const useReplenishmentConnectionStatus = () => {
     lastUpdated: replenishmentQuery.dataUpdatedAt,
     refetch: replenishmentQuery.refetch,
   };
+};
+
+/**
+ * Silent AI suggestion hook for individual replenishment items
+ * 🔒 SECURE: Uses internal API - NO external keys exposed
+ */
+export const useReplenishmentItemSuggestionSilent = () => {
+  return useMutation({
+    mutationFn: async (item: ProductData): Promise<ReplenishmentItemSuggestion> => {
+      console.log(
+        "🔒 Client: Requesting AI suggestion for replenishment item:",
+        item.product_sku || item.product_id,
+      );
+
+      // This part of the code calls the server to generate AI suggestion securely
+      const suggestion = await internalApi.generateReplenishmentItemSuggestion(item);
+
+      console.log("✅ Client: AI suggestion received for replenishment item (silent):", item.product_sku || item.product_id);
+      return suggestion;
+    },
+    retry: 1, // Only retry once for AI suggestions
+    retryDelay: 2000, // 2 second delay before retry
+    onError: (error) => {
+      logger.error("Failed to generate replenishment item suggestion:", error);
+    },
+    onSuccess: (data) => {
+      logger.info("Successfully generated replenishment item suggestion:", data);
+    },
+  });
 };

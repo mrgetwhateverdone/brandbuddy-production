@@ -146,9 +146,9 @@ ANALYSIS REQUIREMENTS:
 - Focus on immediate value-creating actions that solve real problems
 
 ACTIONABLE EXAMPLES:
-✅ "Contact ${supplier} procurement manager Sarah Chen to expedite emergency reorder of 200 units for SKU-${sku} before Friday delivery deadline"
-✅ "Escalate to Category Manager to implement safety stock buffer of 15 days for this $${inventoryValue.toLocaleString()} high-value SKU"
-✅ "Schedule demand forecast review with planning team to adjust reorder point from current ${Math.max(10, onHand)} to optimal ${Math.max(20, onHand * 1.5)} units"
+✅ "Contact ${supplier} directly to expedite emergency reorder for SKU-${sku}"  
+✅ "Escalate to procurement team for backup supplier sourcing"
+✅ "Schedule immediate reorder of 50+ units through existing supplier contract"
 ❌ "Monitor inventory levels regularly" (too vague, no specific action)
 ❌ "Consider adjusting reorder points" (no specific target or person)
 
@@ -219,7 +219,7 @@ Provide detailed analysis focusing on:
       parsedResponse = {
         analysis: aiContent.substring(0, 300),
         actions: [
-          `Contact ${supplier} inventory manager to optimize ${sku} stock levels immediately`,
+          `Contact ${supplier} directly to optimize ${sku} stock levels immediately`,
           `Escalate to procurement team for emergency reorder of ${Math.max(20, onHand)} units by end of week`
         ]
       };
@@ -237,7 +237,7 @@ Provide detailed analysis focusing on:
 **Recommended Actions:**
 ${parsedResponse.actions && parsedResponse.actions.length > 0 ? 
   parsedResponse.actions.map((action: string, index: number) => `${index + 1}. ${action}`).join('\n') : 
-  `1. Contact ${supplier} directly to address ${sku} inventory optimization\n2. Schedule immediate review with inventory planning team`}
+  `1. Contact ${supplier} directly to address ${sku} inventory optimization\n2. Escalate to procurement team for immediate reorder planning`}
 
 **Financial Impact:** ${estimatedImpact}`;
 

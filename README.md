@@ -260,7 +260,7 @@ cargocore-production/
 │   ├── DEPLOYMENT_GUIDE.md          # Detailed deployment instructions
 │   └── API_DOCUMENTATION.md         # API endpoint documentation
 ├── vercel.json                      # Vercel deployment configuration
-├── package.json                     # Dependencies and scripts
+├── package.json                     # Dependencies and scripts.
 ├── tailwind.config.js               # TailwindCSS configuration
 ├── tsconfig.json                    # TypeScript configuration
 ├── vite.config.ts                   # Vite build configuration

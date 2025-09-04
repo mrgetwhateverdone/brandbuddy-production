@@ -932,6 +932,48 @@ class InternalApiService {
   }
 
   /**
+   * Generate AI suggestion for specific inventory item
+   * NO external API keys - server handles OpenAI calls
+   * 🎯 FAST: Fast AI model for speed and cost efficiency
+   */
+  async generateInventoryItemSuggestion(itemData: any): Promise<InventoryItemSuggestion> {
+    try {
+      this.apiLogger.info("Requesting AI suggestion for inventory item", { sku: itemData.sku });
+
+      const response = await fetch(`${this.baseUrl}/api/inventory-suggestion`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ itemData }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Internal API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<InventoryItemSuggestion> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to generate inventory suggestion");
+      }
+
+      this.apiLogger.info("Inventory suggestion received securely", { sku: itemData.sku });
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("Inventory suggestion API call failed", { 
+        error: error instanceof Error ? error.message : error,
+        sku: itemData.sku 
+      });
+      throw new Error(
+        `Unable to generate inventory suggestion: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
    * Health check - verify server is responding
    */
   async healthCheck(): Promise<boolean> {

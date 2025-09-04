@@ -222,10 +222,10 @@ function generateInventoryDataDrivenInsights(
       severity: lowStockItems.length > 20 ? "critical" : "warning",
       dollarImpact: Math.round(totalValue * 2), // Lost sales potential
       suggestedActions: [
-        "Implement automated reorder triggers for low-stock items",
-        "Review safety stock levels for affected SKUs",
-        "Set up supplier expedite processes",
-        "Configure low-stock alerts for inventory team"
+        `Set up reorder triggers for ${lowStockItems.slice(0, 3).map(p => p.sku).join(', ')} and ${lowStockItems.length > 3 ? `${lowStockItems.length - 3} other SKUs` : ''}`,
+        `Contact suppliers for expedited delivery on critical low-stock items totaling $${Math.round(totalValue).toLocaleString()}`,
+        `Implement safety stock buffers for top ${Math.min(5, lowStockItems.length)} revenue-impacting SKUs`,
+        `Create automated alerts when inventory drops below 15-day supply levels`
       ],
       createdAt: new Date().toISOString(),
       source: "inventory_agent"
@@ -242,10 +242,10 @@ function generateInventoryDataDrivenInsights(
       severity: "critical",
       dollarImpact: Math.round(lostSalesPotential),
       suggestedActions: [
-        "Emergency reorder for out-of-stock SKUs",
-        "Implement demand forecasting improvements",
-        "Review lead times with suppliers",
-        "Set up backorder management system"
+        `Emergency reorder for ${outOfStockItems.slice(0, 5).map(p => p.sku).join(', ')}${outOfStockItems.length > 5 ? ` and ${outOfStockItems.length - 5} other SKUs` : ''}`,
+        `Contact ${Array.from(new Set(outOfStockItems.map(p => p.supplier).filter(s => s))).slice(0, 3).join(', ')} for expedited restocking`,
+        `Implement demand forecasting for ${outOfStockItems.length} out-of-stock SKUs to prevent future stockouts`,
+        `Set up backorder management system for high-value SKUs worth $${Math.round(lostSalesPotential).toLocaleString()}`
       ],
       createdAt: new Date().toISOString(),
       source: "inventory_agent"
@@ -265,10 +265,10 @@ function generateInventoryDataDrivenInsights(
       severity: "warning",
       dollarImpact: Math.round(overstockValue * 0.15), // 15% carrying cost
       suggestedActions: [
-        "Implement ABC analysis for inventory categorization",
-        "Review max stock levels for overstocked items",
-        "Consider promotional strategies to move excess stock",
-        "Negotiate consignment arrangements with suppliers"
+        `Reduce inventory levels for ${overstockedItems.slice(0, 5).map(p => `${p.sku} (${p.unit_quantity} units)`).join(', ')}`,
+        `Review max stock levels for ${overstockedItems.length} overstocked SKUs to free up $${Math.round(overstockValue).toLocaleString()} in capital`,
+        `Consider promotional pricing for excess inventory in ${Array.from(new Set(overstockedItems.map(p => p.brand_name))).join(', ')} brands`,
+        `Negotiate consignment arrangements with ${Array.from(new Set(overstockedItems.map(p => p.supplier).filter(s => s))).slice(0, 3).join(', ')}`
       ],
       createdAt: new Date().toISOString(),
       source: "inventory_agent"
@@ -285,10 +285,10 @@ function generateInventoryDataDrivenInsights(
       severity: "warning", 
       dollarImpact: Math.round(concentrationRisk * 0.1), // 10% risk premium
       suggestedActions: [
-        "Diversify supplier base to reduce concentration",
-        "Negotiate backup supplier agreements",
-        "Implement supplier performance scorecards",
-        "Review geographic risk distribution"
+        `Diversify supplier base for ${highRiskSuppliers.map(s => s.supplier_name).join(', ')} to reduce ${Math.round(concentrationRisk / kpis.totalInventoryValue * 100)}% concentration risk`,
+        `Negotiate backup supplier agreements for $${Math.round(concentrationRisk).toLocaleString()} in high-risk inventory`,
+        `Implement performance scorecards for top ${highRiskSuppliers.length} suppliers managing ${Math.round(highRiskSuppliers.reduce((sum, s) => sum + s.sku_count, 0))} SKUs`,
+        `Review geographic risk distribution across ${supplierAnalysis.length} suppliers for supply chain resilience`
       ],
       createdAt: new Date().toISOString(),
       source: "inventory_agent"
@@ -325,7 +325,7 @@ async function generateInventoryInsights(
 
     const prompt = `You are a VP of Inventory Management with 20+ years of experience in demand planning, inventory optimization, and warehouse operations. You have expertise in implementing JIT systems, ABC analysis, and advanced forecasting models that have saved companies millions in carrying costs.
 
-Analyze inventory data showing ${kpis.totalSKUs} SKUs across ${new Set(products.map(p => p.brand_name)).size} brands with ${kpis.lowStockAlerts} low-stock items. Identify inventory optimization opportunities including overstock situations, stockout risks, and demand forecasting improvements. Suggest workflows like 'Implement dynamic reorder points based on seasonal trends', 'Create automated stock transfer between warehouses', or 'Set up ABC analysis for inventory categorization'. Apply your proven methodologies that have consistently reduced inventory costs by 25-35%.
+Analyze this specific inventory data to generate actionable workflow recommendations. Use the real SKUs, suppliers, and dollar amounts provided to create concrete, data-driven insights and suggested actions.
 
 INVENTORY INTELLIGENCE DASHBOARD:
 =================================
@@ -360,13 +360,19 @@ Format as JSON array with 3-5 strategic insights:
     "description": "Expert analysis referencing inventory data with specific numbers and actionable recommendations drawing from your 20+ years of experience in inventory optimization",
     "severity": "critical|warning|info",
     "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Implement dynamic reorder points based on seasonal trends", "Create automated stock transfer between warehouses", "Set up ABC analysis for inventory categorization"],
+    "suggestedActions": ["Use specific SKU numbers, supplier names, and dollar amounts from the data above", "Reference actual quantities and inventory values", "Include specific suppliers and SKU codes in recommendations"],
     "createdAt": "${new Date().toISOString()}",
     "source": "inventory_agent"
   }
 ]
 
-Focus on immediate inventory optimization priorities, supplier risk mitigation, and capital efficiency improvements based on your deep expertise in demand planning and inventory management.`;
+SPECIFIC DATA TO REFERENCE:
+- Low Stock SKUs: ${lowStockItems.slice(0, 10).map(p => `${p.sku} (${p.unit_quantity} units, ${p.supplier || 'N/A'})`).join(', ')}
+- Out of Stock SKUs: ${outOfStockItems.slice(0, 10).map(p => `${p.sku} (${p.supplier || 'N/A'})`).join(', ')}
+- Overstocked SKUs: ${overstockedItems.slice(0, 10).map(p => `${p.sku} (${p.unit_quantity} units, $${(p.unit_cost * p.unit_quantity).toLocaleString()})`).join(', ')}
+- High Risk Suppliers: ${highRiskSuppliers.map(s => `${s.supplier_name} (${s.sku_count} SKUs, $${s.total_value.toLocaleString()})`).join(', ')}
+
+Use these specific SKUs, suppliers, and dollar amounts in your recommendations. Focus on immediate inventory optimization priorities and actionable workflow recommendations.`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     console.log('🤖 Inventory Agent: Calling AI service for comprehensive inventory insights...');

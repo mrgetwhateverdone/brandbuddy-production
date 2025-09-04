@@ -41,26 +41,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // This part of the code extracts and validates replenishment item data
     const { itemData } = req.body;
     
-    if (!itemData || !itemData.sku) {
+    if (!itemData || (!itemData.sku && !itemData.product_sku)) {
       console.error("❌ API: Missing replenishment item data or SKU");
       return res.status(400).json({
         success: false,
         error: 'Invalid request',
-        message: 'Replenishment item data with SKU is required',
+        message: 'Replenishment item data with SKU or product_sku is required',
         timestamp: new Date().toISOString()
       } as APIResponse<null>);
     }
 
     console.log("📊 API: Analyzing replenishment item for AI suggestion:", {
-      sku: itemData.sku,
+      sku: itemData.sku || itemData.product_sku,
       status: itemData.status,
-      supplier: itemData.supplier
+      supplier: itemData.supplier || itemData.supplier_name
     });
 
     // This part of the code generates AI suggestion using our proven GPT-3.5 turbo pattern
     const suggestion = await generateReplenishmentSuggestion(itemData);
 
-    console.log("✅ API: Replenishment suggestion generated successfully:", itemData.sku);
+    console.log("✅ API: Replenishment suggestion generated successfully:", itemData.sku || itemData.product_sku);
 
     return res.status(200).json({
       success: true,

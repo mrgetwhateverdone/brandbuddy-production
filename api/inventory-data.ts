@@ -258,15 +258,27 @@ SPECIFIC DATA TO REFERENCE:
 
 Based on your proven track record of reducing inventory carrying costs by 25-35% and implementing successful JIT systems, analyze this data and provide strategic insights focused on inventory optimization opportunities.
 
+WORKFLOW RECOMMENDATION REQUIREMENTS:
+- Reference specific SKUs from the data above with exact quantities and suppliers
+- Include concrete WHO to contact and WHAT to do TODAY with deadlines
+- Specify exact reorder amounts, target stock levels, and financial impacts
+- Provide detailed step-by-step workflow actions that operations can execute immediately
+- Use real supplier names and SKU numbers from the data provided above
+
+EXAMPLE HIGH-QUALITY SUGGESTED ACTIONS:
+- "Create emergency reorder workflow for SKU-7890 from Johnson Industries: order 45 units by Friday to prevent $3,200 stockout loss"
+- "Implement ABC analysis workflow for overstocked SKUs (SKU-1234: 150 units, $4,500 tied up) - contact procurement team to negotiate supplier buyback"
+- "Establish automated reorder triggers for critical SKUs like SKU-5678 (8 units remaining, 2.3x velocity) - set minimum threshold at 15 units"
+
 Generate exactly 3-5 insights as JSON array:
 [
   {
     "id": "inventory-insight-1",
-    "title": "Strategic inventory insight",
+    "title": "Strategic inventory insight title",
     "description": "Expert analysis with specific numbers and actionable recommendations",
     "severity": "critical|warning|info",
     "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Use specific SKU numbers and supplier names from data above", "Include actual quantities and dollar amounts"],
+    "suggestedActions": ["Detailed workflow with specific SKUs, suppliers, quantities from data above", "Step-by-step action with WHO to contact and WHAT to do with deadlines", "Concrete implementation steps using real data points"],
     "createdAt": "${new Date().toISOString()}",
     "source": "inventory_agent"
   }

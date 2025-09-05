@@ -317,6 +317,76 @@ async function generateReplenishmentInsights(
   }
 
   try {
+    // This part of the code extracts specific data for actionable AI recommendations (mirroring Dashboard/Orders/Inventory pattern)
+    const criticalReplenishmentItems = products
+      .filter(p => p.active && p.unit_quantity > 0 && p.unit_quantity <= 10)
+      .sort((a, b) => (a.unit_quantity || 0) - (b.unit_quantity || 0))
+      .slice(0, 8)
+      .map(p => ({
+        sku: p.product_sku,
+        name: p.product_name,
+        supplier: p.supplier_name,
+        currentStock: p.unit_quantity,
+        unitCost: p.unit_cost || 0,
+        totalValue: Math.round((p.unit_cost || 0) * p.unit_quantity),
+        daysOfStock: p.unit_quantity <= 5 ? 'CRITICAL' : 'LOW'
+      }));
+
+    const stockoutRisks = products
+      .filter(p => p.active && p.unit_quantity === 0)
+      .sort((a, b) => (b.unit_cost || 0) - (a.unit_cost || 0))
+      .slice(0, 6)
+      .map(p => ({
+        sku: p.product_sku,
+        name: p.product_name,
+        supplier: p.supplier_name,
+        unitCost: p.unit_cost || 0,
+        lostSalesRisk: Math.round((p.unit_cost || 0) * 30), // Estimated 30-day lost sales
+        urgency: 'IMMEDIATE'
+      }));
+
+    const reorderOpportunities = products
+      .filter(p => p.active && p.unit_quantity > 0 && p.unit_quantity <= 15)
+      .sort((a, b) => (b.unit_cost || 0) * b.unit_quantity - (a.unit_cost || 0) * a.unit_quantity)
+      .slice(0, 10)
+      .map(p => ({
+        sku: p.product_sku,
+        name: p.product_name,
+        supplier: p.supplier_name,
+        currentStock: p.unit_quantity,
+        suggestedReorder: Math.max(30, p.unit_quantity * 3), // Suggest 3x current or minimum 30
+        unitCost: p.unit_cost || 0,
+        reorderValue: Math.round((p.unit_cost || 0) * Math.max(30, p.unit_quantity * 3)),
+        priority: p.unit_quantity <= 5 ? 'HIGH' : p.unit_quantity <= 10 ? 'MEDIUM' : 'LOW'
+      }));
+
+    const supplierPerformanceIssues = Object.entries(
+      shipments.reduce((acc, s) => {
+        if (s.expected_quantity !== s.received_quantity) {
+          const supplier = s.supplier || 'Unknown';
+          if (!acc[supplier]) acc[supplier] = { discrepancies: 0, totalImpact: 0, shipments: 0 };
+          acc[supplier].discrepancies++;
+          acc[supplier].totalImpact += Math.abs(s.expected_quantity - s.received_quantity) * (s.unit_cost || 0);
+          acc[supplier].shipments++;
+        }
+        return acc;
+      }, {} as Record<string, { discrepancies: number; totalImpact: number; shipments: number }>)
+    )
+    .filter(([, data]) => data.discrepancies > 0)
+    .sort(([, a], [, b]) => b.totalImpact - a.totalImpact)
+    .slice(0, 5)
+    .map(([supplier, data]) => ({
+      supplier,
+      discrepancies: data.discrepancies,
+      totalImpact: Math.round(data.totalImpact),
+      reliabilityScore: Math.round(((data.shipments - data.discrepancies) / data.shipments) * 100)
+    }));
+
+    console.log('🔍 Replenishment AI Enhancement - Critical Items:', criticalReplenishmentItems.length);
+    console.log('🔍 Replenishment AI Enhancement - Stockout Risks:', stockoutRisks.length);
+    console.log('🔍 Replenishment AI Enhancement - Reorder Opportunities:', reorderOpportunities.length);
+    console.log('🔍 Replenishment AI Enhancement - Supplier Performance Issues:', supplierPerformanceIssues.length);
+
     // This part of the code prepares comprehensive data for AI analysis
     const criticalItems = products.filter(p => 
       p.active && p.unit_quantity > 0 && p.unit_quantity < 10
@@ -338,59 +408,94 @@ async function generateReplenishmentInsights(
       return daysAgo <= 30;
     });
 
+    // This part of the code creates example actions for the AI prompt using real supplier names from data
+    const exampleReplenishmentAction = criticalReplenishmentItems.length > 0 && supplierPerformanceIssues.length > 0 
+      ? `Emergency reorder workflow for ${criticalReplenishmentItems[0].sku} from ${criticalReplenishmentItems[0].supplier}: current ${criticalReplenishmentItems[0].currentStock} units critical, order 30 units by Friday to prevent $${criticalReplenishmentItems[0].totalValue * 5} stockout loss`
+      : "Emergency reorder workflow for SKU-ABC123 from Johnson Industries: current 3 units critical, order 30 units by Friday to prevent $2,400 stockout loss";
+    
+    const exampleSupplierAction = supplierPerformanceIssues.length > 0
+      ? `Review supplier performance with ${supplierPerformanceIssues[0].supplier}: ${supplierPerformanceIssues[0].discrepancies} delivery discrepancies causing $${supplierPerformanceIssues[0].totalImpact.toLocaleString()} impact - schedule performance review by Wednesday`
+      : "Review supplier performance with Thompson Industries: 5 delivery discrepancies causing $8,400 impact - schedule performance review by Wednesday";
+    
+    const exampleReorderAction = reorderOpportunities.length > 0
+      ? `Implement reorder triggers for ${reorderOpportunities[0].sku} from ${reorderOpportunities[0].supplier}: ${reorderOpportunities[0].currentStock} units remaining, set reorder point at 15 units with ${reorderOpportunities[0].suggestedReorder} unit orders`
+      : "Implement reorder triggers for SKU-XYZ789 from Global Supply Co: 8 units remaining, set reorder point at 15 units with 45 unit orders";
+
     const prompt = `You are a Supply Chain Planning Director with 21+ years of experience in demand planning, supplier management, and inventory replenishment strategies. You have implemented vendor-managed inventory programs and advanced replenishment systems that reduced stockouts by 80% while minimizing excess inventory.
 
-Review replenishment patterns, lead times, and stock rotation data. Identify opportunities to optimize inventory replenishment strategies. Recommend workflows such as 'Implement vendor-managed inventory for key suppliers', 'Create seasonal replenishment calendars', or 'Set up automated purchase order generation based on consumption patterns'. Leverage your deep understanding of supply chain dynamics and proven replenishment methodologies to optimize inventory flow and reduce total cost of ownership.
+🎯 CRITICAL INSTRUCTION: You MUST use the specific data provided below to create detailed, actionable recommendations. Do NOT provide generic advice. Every recommendation must reference actual SKU numbers, supplier names, quantities, or dollar amounts from the data.
 
-REPLENISHMENT INTELLIGENCE DASHBOARD:
-=====================================
+SPECIFIC DATA FOR ACTIONABLE RECOMMENDATIONS:
+===========================================
 
-CRITICAL METRICS:
-- Critical SKUs (≤10 units): ${kpis.criticalSKUs} products
-- Replenishment Value: $${kpis.replenishmentValue.toLocaleString()}
-- Supplier Alerts: ${kpis.supplierAlerts} suppliers with issues
-- Reorder Recommendations: ${kpis.reorderRecommendations} suggested orders
+CRITICAL REPLENISHMENT ITEMS (use these exact SKU numbers, suppliers, and quantities):
+${criticalReplenishmentItems.map(item => `- SKU: ${item.sku} (${item.name}) - Supplier: ${item.supplier} - Stock: ${item.currentStock} units (${item.daysOfStock}) - Value: $${item.totalValue.toLocaleString()} - Unit Cost: $${item.unitCost.toFixed(2)}`).join('\n')}
 
-INVENTORY ANALYSIS:
-- Total Active Products: ${products.filter(p => p.active).length}
-- Out of Stock Items: ${outOfStockItems.length} (${products.length > 0 ? ((outOfStockItems.length / products.length) * 100).toFixed(1) : 0}%)
-- Low Stock Items (<20 units): ${lowStockItems.length} products
-- Critical Items (<10 units): ${criticalItems.length} products
-- Average Stock Level: ${products.length > 0 ? (products.reduce((sum, p) => sum + (p.unit_quantity || 0), 0) / products.length).toFixed(1) : 0} units
+STOCKOUT RISKS (use these exact SKU numbers and lost sales calculations):
+${stockoutRisks.map(item => `- SKU: ${item.sku} (${item.name}) - Supplier: ${item.supplier} - OUT OF STOCK - Lost Sales Risk: $${item.lostSalesRisk.toLocaleString()}/month - Unit Cost: $${item.unitCost.toFixed(2)}`).join('\n')}
 
-SUPPLIER INTELLIGENCE:
-- Active Suppliers: ${suppliers.length} partners
-- Recent Shipments (30 days): ${recentShipments.length}
-- Supplier Issues: ${supplierIssues.length} quantity discrepancies
-- Supply Chain Health: ${suppliers.length > 0 && recentShipments.length > 0 ? (((recentShipments.length - supplierIssues.length) / recentShipments.length) * 100).toFixed(1) : 100}%
+REORDER OPPORTUNITIES (use these exact SKU numbers and reorder calculations):
+${reorderOpportunities.map(item => `- SKU: ${item.sku} (${item.name}) - Supplier: ${item.supplier} - Current: ${item.currentStock} units - Suggested Reorder: ${item.suggestedReorder} units ($${item.reorderValue.toLocaleString()}) - Priority: ${item.priority}`).join('\n')}
 
-FINANCIAL IMPACT ANALYSIS:
-- Total Portfolio Value: $${products.reduce((sum, p) => sum + ((p.unit_quantity || 0) * (p.unit_cost || 0)), 0).toLocaleString()}
-- Value at Risk (Critical SKUs): $${criticalItems.reduce((sum, p) => sum + ((p.unit_quantity || 0) * (p.unit_cost || 0)), 0).toLocaleString()}
-- Estimated Stockout Risk: $${Math.round(kpis.replenishmentValue * 0.3).toLocaleString()}
+SUPPLIER PERFORMANCE ISSUES (use these exact supplier names and impact amounts):
+${supplierPerformanceIssues.map(supplier => `- ${supplier.supplier}: ${supplier.discrepancies} delivery discrepancies, $${supplier.totalImpact.toLocaleString()} total impact, ${supplier.reliabilityScore}% reliability score`).join('\n')}
 
-REPLENISHMENT DASHBOARD SECTIONS:
-- Supplier Reliability Scorecard: Performance tracking across ${suppliers.length} suppliers
-- Reorder Point Intelligence: Smart calculations for ${kpis.reorderRecommendations} critical SKUs
-- Financial Impact Calculator: Risk analysis for $${kpis.replenishmentValue.toLocaleString()} replenishment value
+REPLENISHMENT CONTEXT:
+- ${products.filter(p => p.active).length} active products across ${suppliers.length} suppliers
+- ${kpis.criticalSKUs} products at critical stock levels (≤10 units)
+- $${kpis.replenishmentValue.toLocaleString()} total replenishment value at risk
+- ${supplierIssues.length} quantity discrepancies in recent shipments
 
-Based on your proven track record of reducing inventory carrying costs by 25-35% and implementing successful VMI programs, provide strategic insights focused on the complete replenishment dashboard covering supplier reliability, reorder intelligence, and financial impact. Reference specific data from all dashboard sections and apply your expertise in advanced forecasting models.
+📋 STEP-BY-STEP INSTRUCTIONS:
+1. Analyze the specific replenishment data provided above
+2. Identify 3-5 critical replenishment issues using the exact data
+3. For EACH insight, create 3-5 specific recommendations that reference actual SKUs, suppliers, quantities, and costs
+4. Include exact SKU numbers, supplier names, stock levels, and dollar amounts
+5. Focus on actionable next steps with specific contacts and timelines
 
-Format as JSON array with 3-5 strategic insights:
+🎯 MANDATORY OUTPUT FORMAT:
 [
   {
     "type": "warning",
-    "title": "Strategic replenishment insight based on proven methodologies",
-    "description": "Expert analysis referencing dashboard data with specific numbers and actionable recommendations drawing from your 21+ years of experience in supply chain optimization",
+    "title": "[Issue Title Based on Specific Replenishment Data]",
+    "description": "Analysis referencing specific SKUs, suppliers, quantities, and dollar amounts from the data above. Include financial impact and root cause.",
     "severity": "critical|warning|info",
-    "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Implement vendor-managed inventory for key suppliers", "Create seasonal replenishment calendars", "Set up automated purchase order generation based on consumption patterns"],
-    "createdAt": "${new Date().toISOString()}",
-    "source": "replenishment_agent"
+    "dollarImpact": [actual_number_from_data],
+    "suggestedActions": [
+      "[Action 1: Reference specific SKU number, supplier, or quantity from data]",
+      "[Action 2: Include actual dollar amounts and stock levels]", 
+      "[Action 3: Name specific suppliers to contact with deadlines]",
+      "[Action 4: Use real data points, not generic terms]",
+      "[Action 5: Provide concrete next steps with timelines]"
+    ]
   }
 ]
 
-Focus on immediate replenishment priorities, supplier risk mitigation, and financial optimization opportunities based on your deep expertise in supply chain dynamics.`;
+WORKFLOW RECOMMENDATION REQUIREMENTS:
+- Reference specific SKUs from the data above with exact quantities and suppliers
+- Include concrete WHO to contact and WHAT to do TODAY with deadlines
+- Specify exact reorder amounts, target stock levels, and financial impacts
+- Provide detailed step-by-step workflow actions that operations can execute immediately
+- Use real supplier names and SKU numbers from the data provided above
+
+EXAMPLE HIGH-QUALITY SUGGESTED ACTIONS:
+- "${exampleReplenishmentAction}"
+- "${exampleSupplierAction}"
+- "${exampleReorderAction}"
+
+❌ AVOID GENERIC RECOMMENDATIONS LIKE:
+- "Implement vendor-managed inventory for key suppliers" (no specific suppliers)
+- "Create seasonal replenishment calendars" (no specific SKUs)
+- "Set up automated purchase order generation" (no specific products)
+
+🚨 CRITICAL SUCCESS CRITERIA:
+- Each suggestedAction MUST include specific data from above sections
+- Use actual SKU numbers, supplier names, stock levels, dollar amounts
+- Provide concrete next steps with specific parties to contact
+- Include implementation timelines and expected ROI
+- Reference exact data points, not general concepts
+
+Generate exactly 3-5 insights with 3-5 specific actions each.`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     console.log('🤖 Replenishment Agent: Calling AI service for comprehensive dashboard insights...');
@@ -518,7 +623,31 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
   console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
 
   const kpis = calculateReplenishmentKPIs(products, shipments);
-  const insights = await generateReplenishmentInsights(products, shipments, kpis);
+  const rawInsights = await generateReplenishmentInsights(products, shipments, kpis);
+
+  // This part of the code maps insights to proper AIInsight format with all required properties (double mapping pattern)
+  console.log('✅ Replenishment Insights Mode - Raw insights from AI:', rawInsights.length, 'insights');
+  if (rawInsights.length > 0) {
+    console.log('🔍 Sample insight:', JSON.stringify(rawInsights[0], null, 2));
+  }
+  
+  const insights = rawInsights.map((insight, index) => ({
+    id: `replenishment-insight-${index + 1}`,
+    title: insight.title,
+    description: insight.description,
+    severity: (insight.severity === 'high' || insight.severity === 'critical') ? 'critical' as const :
+             (insight.severity === 'medium' || insight.severity === 'warning') ? 'warning' as const :
+             'info' as const,
+    dollarImpact: insight.dollarImpact || 0,
+    suggestedActions: insight.suggestedActions || [],
+    createdAt: new Date().toISOString(),
+    source: "replenishment_agent" as const,
+  }));
+
+  console.log('✅ Replenishment Insights Mode - Mapped insights:', insights.length, 'insights');
+  if (insights.length > 0) {
+    console.log('🔍 Sample mapped insight:', JSON.stringify(insights[0], null, 2));
+  }
 
   console.log("✅ Replenishment Insights Mode: AI insights compiled successfully");
   res.status(200).json({

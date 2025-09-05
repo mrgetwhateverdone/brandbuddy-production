@@ -154,100 +154,9 @@ function calculateInboundKPIs(shipments: ShipmentData[]): InboundKPIs {
 }
 
 /**
- * This part of the code generates data-driven inbound insights when OpenAI is not available
- * Uses real operational data to provide meaningful insights without AI
- */
-function generateInboundDataDrivenInsights(
-  shipments: ShipmentData[],
-  kpis: InboundKPIs
-): any[] {
-  const insights: any[] = [];
-  
-  // Today's Arrival Capacity Planning
-  if (kpis.todayArrivals > 0) {
-    const capacityRisk = kpis.todayArrivals > 10 ? "critical" : kpis.todayArrivals > 5 ? "warning" : "info";
-    insights.push({
-      id: "inbound-insight-1",
-      title: "Inbound Receiving Capacity Planning",
-      description: `${kpis.todayArrivals} shipments scheduled for receiving today. Plan receiving dock allocation and staffing to handle arrival volume efficiently.`,
-      severity: capacityRisk,
-      dollarImpact: kpis.todayArrivals * 100, // Processing cost estimate
-      suggestedActions: [
-        "Schedule receiving dock assignments for today's arrivals",
-        "Ensure adequate staffing for processing volume",
-        "Prepare quality control checkpoints",
-        "Coordinate with warehouse team for space allocation"
-      ],
-      createdAt: new Date().toISOString(),
-      source: "inbound_operations_agent"
-    });
-  }
-  
-  // Delivery Performance Issues
-  if (kpis.onTimeDeliveryRate < 85) {
-    const deliveryRisk = kpis.onTimeDeliveryRate < 70 ? "critical" : "warning";
-    insights.push({
-      id: "inbound-insight-2",
-      title: "Supplier Delivery Performance Below Target",
-      description: `On-time delivery rate at ${kpis.onTimeDeliveryRate}% (target: 85%). ${kpis.delayedShipments} shipments currently delayed affecting receiving schedule.`,
-      severity: deliveryRisk,
-      dollarImpact: kpis.delayedShipments * 500, // Delay cost estimate
-      suggestedActions: [
-        "Review supplier performance agreements",
-        "Implement supplier scorecards with delivery metrics",
-        "Negotiate improved delivery commitments",
-        "Establish backup supplier relationships"
-      ],
-      createdAt: new Date().toISOString(),
-      source: "inbound_operations_agent"
-    });
-  }
-  
-  // Receiving Accuracy Issues
-  if (kpis.receivingAccuracy < 95) {
-    const accuracyRisk = kpis.receivingAccuracy < 90 ? "critical" : "warning";
-    const discrepancies = shipments.filter(s => s.expected_quantity !== s.received_quantity).length;
-    insights.push({
-      id: "inbound-insight-3",
-      title: "Receiving Accuracy Below Standard",
-      description: `Receiving accuracy at ${kpis.receivingAccuracy}% (target: 95%). ${discrepancies} shipments with quantity discrepancies requiring review.`,
-      severity: accuracyRisk,
-      dollarImpact: discrepancies * 250, // Error resolution cost
-      suggestedActions: [
-        "Implement automated receiving quality checks",
-        "Review and train receiving staff on procedures",
-        "Set up pre-arrival shipment verification",
-        "Install barcode scanning for accuracy"
-      ],
-      createdAt: new Date().toISOString(),
-      source: "inbound_operations_agent"
-    });
-  }
-  
-  // Weekly Capacity Planning
-  const weeklyCapacityRisk = kpis.thisWeekExpected > 50 ? "warning" : "info";
-  insights.push({
-    id: "inbound-insight-4",
-    title: "Weekly Inbound Capacity Overview",
-    description: `${kpis.thisWeekExpected} shipments expected this week with ${kpis.averageLeadTime}-day average lead time. Optimize receiving schedule for efficient processing.`,
-    severity: weeklyCapacityRisk,
-    dollarImpact: kpis.thisWeekExpected * 75, // Weekly processing value
-    suggestedActions: [
-      "Schedule receiving appointments with suppliers",
-      "Plan warehouse space allocation for arrivals",
-      "Coordinate cross-docking opportunities",
-      "Optimize receiving staff schedules"
-    ],
-    createdAt: new Date().toISOString(),
-    source: "inbound_operations_agent"
-  });
-  
-  return insights.slice(0, 4); // Limit to top 4 insights
-}
-
-/**
  * This part of the code generates AI insights for inbound operations using OpenAI
  * Focuses on receiving efficiency, arrival optimization, and supplier delivery performance
+ * NO FALLBACK - Returns empty array if AI fails to ensure "Backend Disconnected" message
  */
 async function generateInboundInsights(
   shipments: ShipmentData[],
@@ -257,8 +166,8 @@ async function generateInboundInsights(
   console.log('🔑 AI service key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No AI service key found - using data-driven insights');
-    return generateInboundDataDrivenInsights(shipments, kpis);
+    console.log('❌ No AI service key found - returning empty insights (NO FALLBACK)');
+    return [];
   }
 
   try {
@@ -279,53 +188,173 @@ async function generateInboundInsights(
 
     const suppliers = [...new Set(shipments.map(s => s.supplier).filter(Boolean))];
     
+    // This part of the code extracts specific data arrays for actionable AI recommendations (mirrors Replenishment pattern)
+    const criticalArrivals = todayArrivals
+      .filter(s => s.expected_quantity && s.expected_quantity > 0)
+      .sort((a, b) => (b.expected_quantity * (b.unit_cost || 0)) - (a.expected_quantity * (a.unit_cost || 0)))
+      .slice(0, 8)
+      .map(s => ({
+        shipmentId: s.shipment_id,
+        supplier: s.supplier || 'Unknown',
+        expectedQuantity: s.expected_quantity,
+        unitCost: s.unit_cost || 0,
+        totalValue: Math.round((s.expected_quantity || 0) * (s.unit_cost || 0)),
+        priority: (s.expected_quantity || 0) > 50 ? 'CRITICAL' : 'STANDARD'
+      }));
+
+    const enhancedDelayedShipments = delayedShipments
+      .map(s => {
+        const expectedDate = new Date(s.expected_arrival_date!);
+        const arrivalDate = new Date(s.arrival_date!);
+        const daysOverdue = Math.ceil((arrivalDate.getTime() - expectedDate.getTime()) / (1000 * 60 * 60 * 24));
+        return {
+          shipmentId: s.shipment_id,
+          supplier: s.supplier || 'Unknown',
+          daysOverdue,
+          expectedQuantity: s.expected_quantity || 0,
+          unitCost: s.unit_cost || 0,
+          delayImpact: Math.round(daysOverdue * (s.expected_quantity || 0) * (s.unit_cost || 0) * 0.1),
+          severity: daysOverdue > 7 ? 'CRITICAL' : daysOverdue > 3 ? 'HIGH' : 'MEDIUM'
+        };
+      })
+      .sort((a, b) => b.delayImpact - a.delayImpact)
+      .slice(0, 6);
+
+    const receivingDiscrepancies = shipments
+      .filter(s => s.expected_quantity && s.received_quantity && s.expected_quantity !== s.received_quantity)
+      .map(s => ({
+        shipmentId: s.shipment_id,
+        supplier: s.supplier || 'Unknown',
+        expectedQuantity: s.expected_quantity || 0,
+        receivedQuantity: s.received_quantity || 0,
+        variance: (s.expected_quantity || 0) - (s.received_quantity || 0),
+        varianceValue: Math.round(Math.abs((s.expected_quantity || 0) - (s.received_quantity || 0)) * (s.unit_cost || 0)),
+        varianceType: (s.expected_quantity || 0) > (s.received_quantity || 0) ? 'SHORTAGE' : 'OVERAGE'
+      }))
+      .sort((a, b) => b.varianceValue - a.varianceValue)
+      .slice(0, 8);
+
+    const supplierPerformanceIssues = Object.entries(
+      shipments.reduce((acc: any, s) => {
+        const supplier = s.supplier || 'Unknown';
+        if (!acc[supplier]) {
+          acc[supplier] = { 
+            name: supplier,
+            totalShipments: 0, 
+            delayedShipments: 0, 
+            discrepancies: 0, 
+            totalValue: 0,
+            avgDelayDays: 0
+          };
+        }
+        acc[supplier].totalShipments += 1;
+        acc[supplier].totalValue += (s.expected_quantity || 0) * (s.unit_cost || 0);
+        
+        if (s.expected_arrival_date && s.arrival_date) {
+          const expectedDate = new Date(s.expected_arrival_date);
+          const arrivalDate = new Date(s.arrival_date);
+          if (arrivalDate > expectedDate) {
+            acc[supplier].delayedShipments += 1;
+            acc[supplier].avgDelayDays += Math.ceil((arrivalDate.getTime() - expectedDate.getTime()) / (1000 * 60 * 60 * 24));
+          }
+        }
+        
+        if (s.expected_quantity !== s.received_quantity) {
+          acc[supplier].discrepancies += 1;
+        }
+        
+        return acc;
+      }, {})
+    )
+      .map(([name, data]: [string, any]) => ({
+        ...data,
+        onTimeRate: data.totalShipments > 0 ? Math.round(((data.totalShipments - data.delayedShipments) / data.totalShipments) * 100) : 100,
+        accuracyRate: data.totalShipments > 0 ? Math.round(((data.totalShipments - data.discrepancies) / data.totalShipments) * 100) : 100,
+        avgDelayDays: data.delayedShipments > 0 ? Math.round(data.avgDelayDays / data.delayedShipments) : 0,
+        riskScore: Math.round((data.delayedShipments + data.discrepancies) / Math.max(data.totalShipments, 1) * 100)
+      }))
+      .filter(s => s.riskScore > 20 || s.onTimeRate < 80)
+      .sort((a, b) => b.riskScore - a.riskScore)
+      .slice(0, 5);
+    
     const prompt = `You are a Senior Procurement and Inbound Operations Manager with 17+ years of experience in supplier relationship management, receiving operations, and quality control. You have successfully streamlined inbound processes that reduced receiving times by 60% and improved inventory accuracy to 99.5%.
 
-Evaluate inbound operations including supplier performance, receiving accuracy, and processing times. Identify bottlenecks in the inbound supply chain. Recommend workflows such as 'Implement supplier scorecards with performance metrics', 'Create automated receiving quality checks', or 'Set up advance shipping notification processing'. Draw from your proven experience in vendor management and inbound logistics optimization.
+🎯 CRITICAL INSTRUCTION: You MUST use the specific data provided below to create detailed, actionable recommendations. Do NOT provide generic advice. Every recommendation must reference actual shipment IDs, supplier names, quantities, or dollar amounts from the data.
 
-INBOUND OPERATIONS DASHBOARD:
-=============================
+SPECIFIC DATA FOR ACTIONABLE RECOMMENDATIONS:
+===========================================
 
-ARRIVAL PLANNING METRICS:
-- Today's Arrivals: ${kpis.todayArrivals} shipments requiring receiving
-- This Week Expected: ${kpis.thisWeekExpected} shipments for capacity planning
-- Average Lead Time: ${kpis.averageLeadTime} days (shipping to arrival)
-- Delayed Shipments: ${kpis.delayedShipments} shipments behind schedule
+CRITICAL ARRIVALS TODAY (use these exact shipment IDs and suppliers):
+${criticalArrivals.map(a => `- Shipment: ${a.shipmentId} - Supplier: ${a.supplier} - Expected: ${a.expectedQuantity} units - Value: $${a.totalValue.toLocaleString()} (${a.priority})`).join('\n')}
 
-RECEIVING PERFORMANCE:
-- Receiving Accuracy: ${kpis.receivingAccuracy}% (expected vs received quantities)
-- On-Time Delivery Rate: ${kpis.onTimeDeliveryRate}% (supplier performance)
-- Total Inbound Shipments: ${shipments.length}
-- Active Suppliers: ${suppliers.length} delivery partners
+DELAYED SHIPMENTS (use these exact shipment IDs and delay amounts):
+${enhancedDelayedShipments.map(d => `- Shipment: ${d.shipmentId} - Supplier: ${d.supplier} - ${d.daysOverdue} days overdue - Impact: $${d.delayImpact.toLocaleString()} (${d.severity})`).join('\n')}
 
-OPERATIONAL ANALYSIS:
-- Today's Receiving Workload: ${todayArrivals.length} shipments
-- Quality Issues: ${shipments.filter(s => s.expected_quantity !== s.received_quantity).length} quantity discrepancies
-- Geographic Sources: ${[...new Set(shipments.map(s => s.ship_from_country).filter(Boolean))].length} countries
-- Delivery Performance Gaps: ${delayedShipments.length} late arrivals
+RECEIVING DISCREPANCIES (use these exact shipment IDs and variance amounts):
+${receivingDiscrepancies.map(r => `- Shipment: ${r.shipmentId} - Supplier: ${r.supplier} - Expected: ${r.expectedQuantity}, Received: ${r.receivedQuantity} - ${r.varianceType}: $${r.varianceValue.toLocaleString()}`).join('\n')}
 
-INBOUND DASHBOARD SECTIONS:
-- Today's Arrivals: Real-time receiving schedule for ${kpis.todayArrivals} shipments
-- Receiving Performance: Quality and efficiency metrics
-- Supplier Delivery: On-time performance tracking across ${suppliers.length} suppliers
+SUPPLIER PERFORMANCE ISSUES (use these exact supplier names and performance data):
+${supplierPerformanceIssues.map(s => `- ${s.name}: ${s.onTimeRate}% on-time rate, ${s.accuracyRate}% accuracy, Risk Score: ${s.riskScore}, Total Value: $${Math.round(s.totalValue).toLocaleString()}`).join('\n')}
 
-Based on your extensive experience in streamlining inbound processes and improving inventory accuracy to 99.5%, provide strategic insights focused on inbound operations covering receiving optimization, delivery performance, and arrival planning. Reference specific data from all dashboard sections and apply your proven methodologies in vendor management and quality control.
+INBOUND OPERATIONS CONTEXT:
+- ${kpis.todayArrivals} arrivals requiring receiving today
+- ${kpis.thisWeekExpected} shipments expected this week
+- ${kpis.receivingAccuracy}% overall receiving accuracy
+- ${kpis.delayedShipments} delayed shipments impacting schedule
+- ${suppliers.length} active suppliers across ${[...new Set(shipments.map(s => s.ship_from_country).filter(Boolean))].length} countries
 
-Format as JSON array with 3-5 strategic insights:
+📋 STEP-BY-STEP INSTRUCTIONS:
+1. Analyze the specific inbound data provided above
+2. Identify 3-5 critical inbound operations issues
+3. For EACH insight, create 3-5 specific recommendations that reference the actual data
+4. Include exact shipment IDs, supplier names, quantities, and dollar amounts
+5. Focus on actionable next steps with specific contacts and timelines
+
+WORKFLOW RECOMMENDATION REQUIREMENTS:
+- Reference specific shipment IDs from the data above with exact quantities and suppliers
+- Include concrete WHO to contact and WHAT to do TODAY with deadlines
+- Specify exact receiving priorities, supplier escalations, and financial impacts
+- Provide detailed step-by-step workflow actions that operations can execute immediately
+- Use real supplier names and shipment IDs from the data provided above
+
+EXAMPLE HIGH-QUALITY SUGGESTED ACTIONS:
+- "Escalate Shipment-12345 delay with Thompson, Griffin and Guerra: 5 days overdue, contact procurement by Wednesday to prevent $3,400 receiving disruption"
+- "Review receiving workflow for Shipment-67890 from Johnson Industries: expected 100 units, received 85 units, investigate $750 shortage immediately"
+- "Create delivery improvement plan for Henderson, Santana and Roberts: 65% on-time rate requires contract review by Friday for $12,400 annual volume"
+
+❌ AVOID GENERIC RECOMMENDATIONS LIKE:
+- "Implement supplier scorecards" (no specific suppliers)
+- "Create receiving quality checks" (no specific shipments)
+- "Set up delivery notifications" (no specific performance issues)
+
+🎯 MANDATORY OUTPUT FORMAT:
 [
   {
     "type": "warning",
-    "title": "Strategic inbound operations insight based on proven methodologies",
-    "description": "Expert analysis referencing dashboard data with specific numbers and actionable recommendations drawing from your 17+ years of experience in inbound logistics optimization",
+    "title": "[Issue Title Based on Specific Inbound Data]",
+    "description": "Analysis referencing specific shipment IDs, suppliers, quantities, and dollar amounts from the data above. Include financial impact and root cause.",
     "severity": "critical|warning|info",
-    "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Implement supplier scorecards with performance metrics", "Create automated receiving quality checks", "Set up advance shipping notification processing"],
+    "dollarImpact": [actual_number_from_data],
+    "suggestedActions": [
+      "[Action 1: Reference specific shipment ID, supplier from data]",
+      "[Action 2: Include actual quantities and dollar amounts]",
+      "[Action 3: Name specific suppliers or receiving teams to contact]",
+      "[Action 4: Use real data points, not generic terms]",
+      "[Action 5: Provide concrete next steps with timelines]"
+    ],
     "createdAt": "${new Date().toISOString()}",
     "source": "inbound_operations_agent"
   }
 ]
 
-Focus on immediate receiving priorities, delivery optimization, and operational efficiency improvements based on your track record of reducing receiving times by 60%.`;
+🚨 CRITICAL SUCCESS CRITERIA:
+- Each suggestedAction MUST include specific data from above sections
+- Use actual shipment IDs, supplier names, quantities, dollar amounts
+- Provide concrete next steps with specific parties to contact
+- Include implementation timelines and expected ROI
+- Reference exact data points, not general concepts
+
+Generate exactly 3-5 insights with 3-5 specific actions each.`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     console.log('🤖 Inbound Operations Agent: Calling AI service for comprehensive dashboard insights...');
@@ -357,17 +386,8 @@ Focus on immediate receiving priorities, delivery optimization, and operational 
       const insights = JSON.parse(aiContent);
       console.log('✅ Inbound insights parsed successfully:', insights.length);
       
-      // This part of the code ensures proper structure for client consumption
-      return insights.map((insight: any, index: number) => ({
-        id: insight.id || `inbound-insight-${index}`,
-        title: insight.title || `Inbound Operations Alert ${index + 1}`,
-        description: insight.description || insight.content || 'Analysis pending',
-        severity: insight.severity || 'warning',
-        dollarImpact: insight.dollarImpact || Math.round(kpis.thisWeekExpected * 1000), // Estimated impact
-        suggestedActions: insight.suggestedActions || ["Review receiving schedule", "Contact suppliers", "Optimize warehouse capacity"],
-        createdAt: insight.createdAt || new Date().toISOString(),
-        source: insight.source || "inbound_operations_agent",
-      }));
+      // This part of the code returns raw insights from AI (NO FALLBACK) - double mapping happens in handlers
+      return insights;
     } catch (parseError) {
       console.error('❌ JSON parsing failed:', parseError);
       return [];
@@ -449,7 +469,31 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
   console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${allShipments.length} total → ${shipments.length} Callahan-Smith shipments`);
 
   const kpis = calculateInboundKPIs(shipments);
-  const insights = await generateInboundInsights(shipments, kpis);
+  const rawInsights = await generateInboundInsights(shipments, kpis);
+
+  // This part of the code maps insights to proper AIInsight format with all required properties (double mapping pattern)
+  console.log('✅ Inbound Insights Mode - Raw insights from AI:', rawInsights.length, 'insights');
+  if (rawInsights.length > 0) {
+    console.log('✅ Sample raw insight:', JSON.stringify(rawInsights[0], null, 2));
+  }
+
+  const insights = rawInsights.map((insight, index) => ({
+    id: `inbound-insight-${index + 1}`,
+    title: insight.title,
+    description: insight.description,
+    severity: (insight.severity === 'high' || insight.severity === 'critical') ? 'critical' as const :
+             (insight.severity === 'medium' || insight.severity === 'warning') ? 'warning' as const :
+             'info' as const,
+    dollarImpact: insight.dollarImpact || 0,
+    suggestedActions: insight.suggestedActions || [],
+    createdAt: new Date().toISOString(),
+    source: "inbound_operations_agent" as const,
+  }));
+
+  console.log('✅ Inbound Insights Mode - Mapped insights:', insights.length, 'insights');
+  if (insights.length > 0) {
+    console.log('✅ Sample mapped insight:', JSON.stringify(insights[0], null, 2));
+  }
 
   console.log("✅ Inbound Insights Mode: AI insights compiled successfully");
   res.status(200).json({

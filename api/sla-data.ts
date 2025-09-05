@@ -680,105 +680,6 @@ function generateOptimizationRecommendations(
 }
 
 /**
- * This part of the code generates data-driven SLA insights when OpenAI is not available
- * Uses real performance data to provide meaningful insights without AI
- */
-function generateSLADataDrivenInsights(
-  products: ProductData[],
-  shipments: ShipmentData[],
-  slaData: any
-): any[] {
-  const insights: any[] = [];
-  
-  // SLA Compliance Performance
-  const compliance = slaData.kpis.overallSLACompliance || 0;
-  if (compliance < 95) {
-    const complianceRisk = compliance < 80 ? "critical" : compliance < 90 ? "warning" : "info";
-    const improvementOpportunity = (95 - compliance) * slaData.financialImpact.totalSLABreachCost / 100;
-    insights.push({
-      id: "sla-insight-1",
-      title: "SLA Compliance Below Target Performance",
-      description: `Overall SLA compliance at ${compliance}% (target: 95%). ${slaData.kpis.atRiskShipments} shipments currently at risk with $${slaData.kpis.costOfSLABreaches.toLocaleString()} in breach costs.`,
-      severity: complianceRisk,
-      dollarImpact: Math.round(improvementOpportunity),
-      suggestedActions: [
-        "Implement automated SLA monitoring with escalation triggers",
-        "Review supplier performance agreements",
-        "Set up proactive customer communication for delays",
-        "Establish service recovery processes for SLA breaches"
-      ],
-      createdAt: new Date().toISOString(),
-      source: "dashboard_agent"
-    });
-  }
-  
-  // Supplier Performance Issues
-  const poorPerformers = slaData.supplierScorecard.filter((s: any) => s.performanceScore < 80);
-  if (poorPerformers.length > 0) {
-    const totalRiskValue = poorPerformers.reduce((sum: number, s: any) => sum + s.totalValue, 0);
-    insights.push({
-      id: "sla-insight-2",
-      title: "Supplier Performance Risk Exposure",
-      description: `${poorPerformers.length} suppliers performing below 80% represent $${Math.round(totalRiskValue).toLocaleString()} in risk exposure affecting service levels.`,
-      severity: poorPerformers.length > 3 ? "critical" : "warning",
-      dollarImpact: Math.round(totalRiskValue * 0.1), // 10% risk premium
-      suggestedActions: [
-        "Diversify supplier base to reduce concentration risk",
-        "Negotiate improved delivery commitments",
-        "Implement supplier scorecards with penalty clauses",
-        "Establish backup supplier relationships"
-      ],
-      createdAt: new Date().toISOString(),
-      source: "dashboard_agent"
-    });
-  }
-  
-  // Financial Impact Management
-  if (slaData.financialImpact.totalSLABreachCost > 10000) {
-    const annualizedCost = slaData.financialImpact.totalSLABreachCost * 12;
-    insights.push({
-      id: "sla-insight-3",
-      title: "SLA Breach Cost Optimization Opportunity",
-      description: `Current SLA breach costs of $${slaData.financialImpact.totalSLABreachCost.toLocaleString()} per month, with potential savings of $${slaData.financialImpact.potentialSavings.toLocaleString()}.`,
-      severity: "warning",
-      dollarImpact: slaData.financialImpact.potentialSavings,
-      suggestedActions: [
-        "Invest in automated shipment tracking systems",
-        "Implement real-time delay notification processes",
-        "Negotiate performance-based contracts with penalties",
-        "Optimize safety stock levels to buffer delays"
-      ],
-      createdAt: new Date().toISOString(),
-      source: "dashboard_agent"
-    });
-  }
-  
-  // Delivery Performance Optimization
-  const avgDeliveryPerformance = slaData.kpis.averageDeliveryPerformance || 0;
-  if (Math.abs(avgDeliveryPerformance) > 1) {
-    const performanceType = avgDeliveryPerformance > 0 ? "late" : "early";
-    const optimizationValue = Math.abs(avgDeliveryPerformance) * 1000; // Cost per day variance
-    insights.push({
-      id: "sla-insight-4",
-      title: `Delivery Timing Optimization - ${performanceType.charAt(0).toUpperCase() + performanceType.slice(1)} Deliveries`,
-      description: `Average delivery variance of ${Math.abs(avgDeliveryPerformance)} days ${performanceType}. Optimize delivery scheduling for better predictability.`,
-      severity: Math.abs(avgDeliveryPerformance) > 3 ? "warning" : "info",
-      dollarImpact: Math.round(optimizationValue),
-      suggestedActions: [
-        "Review and adjust supplier lead time agreements",
-        "Implement buffer time management strategies",
-        "Coordinate receiving capacity with delivery schedules",
-        "Set up delivery appointment scheduling systems"
-      ],
-      createdAt: new Date().toISOString(),
-      source: "dashboard_agent"
-    });
-  }
-  
-  return insights.slice(0, 4); // Limit to top 4 insights
-}
-
-/**
  * This part of the code generates AI-powered SLA insights using Customer Success Director expertise
  */
 async function generateAISLAInsights(
@@ -790,59 +691,269 @@ async function generateAISLAInsights(
   console.log('🔑 AI service key check: hasApiKey:', !!apiKey, 'length:', apiKey?.length || 0);
   
   if (!apiKey) {
-    console.log('❌ No AI service key found - using data-driven insights');
-    return generateSLADataDrivenInsights(products, shipments, slaData);
+    console.log('❌ No AI service key found - returning empty insights (NO FALLBACK)');
+    return [];
   }
 
   try {
+    // Phase 1: Specific Data Extraction for SLA World-Class Insights
+    console.log('📊 SLA Phase 1: Extracting specific data arrays for actionable recommendations...');
+
+    // Critical SLA Breaches with specific shipment details
+    const criticalSLABreaches = shipments
+      .filter(s => {
+        if (!s.expected_arrival_date || !s.arrival_date) return false;
+        try {
+          const expected = new Date(s.expected_arrival_date);
+          const actual = new Date(s.arrival_date);
+          const daysLate = (actual.getTime() - expected.getTime()) / (1000 * 60 * 60 * 24);
+          return daysLate > 2 || s.expected_quantity !== s.received_quantity;
+        } catch {
+          return false;
+        }
+      })
+      .sort((a, b) => {
+        const aValue = (a.unit_cost || 0) * a.expected_quantity;
+        const bValue = (b.unit_cost || 0) * b.expected_quantity;
+        return bValue - aValue;
+      })
+      .slice(0, 8)
+      .map(s => {
+        const expected = new Date(s.expected_arrival_date!);
+        const actual = new Date(s.arrival_date);
+        const daysLate = Math.round((actual.getTime() - expected.getTime()) / (1000 * 60 * 60 * 24));
+        const shipmentValue = (s.unit_cost || 0) * s.expected_quantity;
+        const breachCost = shipmentValue * 0.15 + 25; // Rush cost + expediting
+
+        return {
+          shipmentId: s.shipment_id,
+          supplier: s.supplier || 'Unknown Supplier',
+          daysLate: daysLate,
+          expectedQuantity: s.expected_quantity,
+          receivedQuantity: s.received_quantity,
+          unitCost: s.unit_cost || 0,
+          shipmentValue: Math.round(shipmentValue),
+          breachCost: Math.round(breachCost),
+          severity: daysLate > 5 ? 'CRITICAL' : daysLate > 2 ? 'HIGH' : 'MEDIUM'
+        };
+      });
+
+    // Underperforming Suppliers with performance scores and dollar impact
+    const underperformingSuppliers = slaData.supplierScorecard
+      .filter((s: any) => s.performanceScore < 85)
+      .sort((a: any, b: any) => b.totalValue - a.totalValue)
+      .slice(0, 6)
+      .map((s: any) => ({
+        supplierName: s.supplier,
+        performanceScore: s.performanceScore,
+        slaCompliance: s.slaCompliance,
+        quantityAccuracy: s.quantityAccuracy,
+        totalShipments: s.totalShipments,
+        totalValue: s.totalValue,
+        avgBreachCost: Math.round((s.totalValue * (100 - s.performanceScore)) / 100 * 0.15),
+        riskLevel: s.performanceScore < 70 ? 'CRITICAL' : s.performanceScore < 80 ? 'HIGH' : 'MEDIUM',
+        trend: s.trend
+      }));
+
+    // High-Value At-Risk Shipments currently in transit
+    const highValueAtRiskShipments = shipments
+      .filter(s => {
+        const inTransit = s.status.toLowerCase().includes('transit') || 
+                         s.status.toLowerCase().includes('processing') ||
+                         s.status.toLowerCase().includes('pending');
+        
+        if (!inTransit || !s.expected_arrival_date) return false;
+        
+        try {
+          const expected = new Date(s.expected_arrival_date);
+          const now = new Date();
+          const daysUntilExpected = (expected.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+          const shipmentValue = (s.unit_cost || 0) * s.expected_quantity;
+          
+          return daysUntilExpected <= 3 && shipmentValue > 1000;
+        } catch {
+          return false;
+        }
+      })
+      .sort((a, b) => {
+        const aValue = (a.unit_cost || 0) * a.expected_quantity;
+        const bValue = (b.unit_cost || 0) * b.expected_quantity;
+        return bValue - aValue;
+      })
+      .slice(0, 6)
+      .map(s => {
+        const expected = new Date(s.expected_arrival_date!);
+        const now = new Date();
+        const daysUntilExpected = Math.round((expected.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        const shipmentValue = Math.round((s.unit_cost || 0) * s.expected_quantity);
+
+        return {
+          shipmentId: s.shipment_id,
+          supplier: s.supplier || 'Unknown Supplier',
+          daysUntilExpected: daysUntilExpected,
+          expectedQuantity: s.expected_quantity,
+          unitCost: s.unit_cost || 0,
+          shipmentValue: shipmentValue,
+          potentialBreachCost: Math.round(shipmentValue * 0.15 + 25),
+          urgency: daysUntilExpected <= 1 ? 'IMMEDIATE' : daysUntilExpected <= 2 ? 'URGENT' : 'WATCH'
+        };
+      });
+
+    // Delivery Variance Analysis with supplier-specific patterns
+    const deliveryVarianceAnalysis = slaData.supplierScorecard
+      .filter((s: any) => s.totalShipments > 2)
+      .map((supplier: any) => {
+        const supplierShipments = shipments.filter(sh => sh.supplier === supplier.supplier);
+        const variances = supplierShipments
+          .filter(s => s.expected_arrival_date && s.arrival_date)
+          .map(s => {
+            try {
+              const expected = new Date(s.expected_arrival_date!);
+              const actual = new Date(s.arrival_date);
+              return (actual.getTime() - expected.getTime()) / (1000 * 60 * 60 * 24);
+            } catch {
+              return 0;
+            }
+          });
+
+        const avgVariance = variances.length > 0 
+          ? variances.reduce((sum, v) => sum + v, 0) / variances.length 
+          : 0;
+        
+        const costImpact = Math.abs(avgVariance) * supplier.totalValue * 0.02; // 2% impact per day
+
+        return {
+          supplierName: supplier.supplier,
+          avgVarianceDays: Math.round(avgVariance * 10) / 10,
+          shipmentCount: supplierShipments.length,
+          totalValue: supplier.totalValue,
+          costImpact: Math.round(costImpact),
+          pattern: avgVariance > 1 ? 'CONSISTENTLY_LATE' : avgVariance < -1 ? 'CONSISTENTLY_EARLY' : 'ON_TARGET'
+        };
+      })
+      .filter(s => Math.abs(s.avgVarianceDays) > 0.5)
+      .sort((a, b) => Math.abs(b.avgVarianceDays) - Math.abs(a.avgVarianceDays))
+      .slice(0, 5);
+
+    console.log('✅ SLA Phase 1: Data extraction completed:', {
+      criticalBreaches: criticalSLABreaches.length,
+      underperformingSuppliers: underperformingSuppliers.length,
+      atRiskShipments: highValueAtRiskShipments.length,
+      varianceAnalysis: deliveryVarianceAnalysis.length
+    });
+
+    console.log('✅ SLA Phase 3: WHO/WHAT/WHEN/HOW requirements enforced with world-class specificity');
+
     const atRiskShipments = slaData.kpis.atRiskShipments || 0;
     const poorPerformers = slaData.supplierScorecard.filter((s: any) => s.performanceScore < 80);
     const highValuePoorPerformers = slaData.supplierScorecard.filter((s: any) => 
       s.performanceScore < 85 && s.totalValue > 100000
     );
 
+    // Phase 2: Transform AI Prompt using proven world-class pattern
+    console.log('🎯 SLA Phase 2: Applying world-class AI prompt pattern from successful pages...');
+
+    // Create example actions using extracted data with WHO/WHAT/WHEN/HOW specificity
+    const exampleSLAAction = criticalSLABreaches.length > 0 
+      ? `Contact ${criticalSLABreaches[0].supplier} supplier relations manager for Shipment #${criticalSLABreaches[0].shipmentId}: ${criticalSLABreaches[0].daysLate}.0 day delivery variance costing $${criticalSLABreaches[0].breachCost.toLocaleString()} in SLA penalties - schedule recovery meeting by Wednesday`
+      : "Contact Wilson-Davis supplier relations manager for Shipment #SHP-789123: 5.2 day delivery variance costing $4,567 in SLA penalties - schedule recovery meeting by Wednesday";
+    
+    const exampleSupplierAction = underperformingSuppliers.length > 0
+      ? `Escalate ${underperformingSuppliers[0].supplierName} performance review: ${underperformingSuppliers[0].totalShipments} shipments late this month totaling $${underperformingSuppliers[0].avgBreachCost.toLocaleString()} in breaches - implement 30-day improvement plan starting Friday`
+      : "Escalate Johnson & Associates performance review: 12 shipments late this month totaling $8,934 in breaches - implement 30-day improvement plan starting Friday";
+
+    const exampleBreachAction = highValueAtRiskShipments.length > 0
+      ? `Contact ${highValueAtRiskShipments[0].supplier} operations manager for Shipment #${highValueAtRiskShipments[0].shipmentId}: ${Math.abs(highValueAtRiskShipments[0].daysUntilExpected)} days until breach, $${highValueAtRiskShipments[0].shipmentValue.toLocaleString()} shipment value - expedite with carrier by Thursday morning`
+      : "Contact Thompson Industries operations manager for Shipment #SHP-456789: 2 days until breach, $12,450 shipment value - expedite with carrier by Thursday morning";
+
     const prompt = `You are a Customer Success Director with 19+ years of experience in service level management, customer retention, and operational excellence. You have maintained 99%+ SLA compliance rates and improved customer satisfaction scores by implementing proactive service management strategies.
 
-Analyze SLA performance data including on-time delivery rates, processing times, and service level agreements. Identify areas where SLAs are consistently missed and root causes. Suggest workflows like 'Create automated SLA monitoring with escalation triggers', 'Implement service recovery processes for SLA breaches', or 'Set up proactive customer communication for potential delays'. Apply your expertise in customer service excellence and performance management to ensure service commitments are consistently met.
+🎯 CRITICAL INSTRUCTION: You MUST use the specific data provided below to create detailed, actionable recommendations. Do NOT provide generic advice. Every recommendation must reference actual shipment IDs, supplier names, breach costs, or delivery timelines from the data.
 
-SLA PERFORMANCE DASHBOARD:
-==========================
+SPECIFIC DATA FOR ACTIONABLE RECOMMENDATIONS:
+===========================================
 
-CRITICAL METRICS:
+CRITICAL SLA BREACHES (use these exact shipment IDs, suppliers, and breach costs):
+${criticalSLABreaches.map(breach => `- Shipment: ${breach.shipmentId} - Supplier: ${breach.supplier} - Days Late: ${breach.daysLate} - Expected: ${breach.expectedQuantity}, Received: ${breach.receivedQuantity} - Value: $${breach.shipmentValue.toLocaleString()} - Breach Cost: $${breach.breachCost.toLocaleString()} - Severity: ${breach.severity}`).join('\n')}
+
+UNDERPERFORMING SUPPLIERS (use these exact supplier names and performance scores):
+${underperformingSuppliers.map(supplier => `- ${supplier.supplierName}: ${supplier.performanceScore}% performance score, ${supplier.slaCompliance}% SLA compliance, ${supplier.quantityAccuracy}% quantity accuracy - ${supplier.totalShipments} shipments, $${supplier.totalValue.toLocaleString()} total value - Avg Breach Cost: $${supplier.avgBreachCost.toLocaleString()} - Risk: ${supplier.riskLevel} - Trend: ${supplier.trend}`).join('\n')}
+
+HIGH-VALUE AT-RISK SHIPMENTS (use these exact shipment IDs and urgency levels):
+${highValueAtRiskShipments.map(shipment => `- Shipment: ${shipment.shipmentId} - Supplier: ${shipment.supplier} - Days Until Expected: ${shipment.daysUntilExpected} - Quantity: ${shipment.expectedQuantity} units - Value: $${shipment.shipmentValue.toLocaleString()} - Potential Breach Cost: $${shipment.potentialBreachCost.toLocaleString()} - Urgency: ${shipment.urgency}`).join('\n')}
+
+DELIVERY VARIANCE ANALYSIS (use these exact supplier names and variance patterns):
+${deliveryVarianceAnalysis.map(analysis => `- ${analysis.supplierName}: ${analysis.avgVarianceDays} days average variance across ${analysis.shipmentCount} shipments, $${analysis.totalValue.toLocaleString()} total value - Cost Impact: $${analysis.costImpact.toLocaleString()} - Pattern: ${analysis.pattern}`).join('\n')}
+
+SLA PERFORMANCE CONTEXT:
 - Overall SLA Compliance: ${slaData.kpis.overallSLACompliance || 0}% (Target: 95%)
-- Average Delivery Performance: ${slaData.kpis.averageDeliveryPerformance || 0} days variance
-- At-Risk Shipments: ${atRiskShipments} currently at risk
-- Total SLA Breach Cost: $${(slaData.kpis.costOfSLABreaches || 0).toLocaleString()}
+- ${shipments.length} shipments tracked across ${slaData.supplierScorecard.length} suppliers
+- $${(slaData.financialImpact.totalSLABreachCost || 0).toLocaleString()} in SLA breach costs
+- ${atRiskShipments} shipments currently at risk of SLA breach
 
-SUPPLIER PERFORMANCE:
-- Total Suppliers: ${slaData.supplierScorecard.length} partners
-- Poor Performers (<80%): ${poorPerformers.length} suppliers
-- High-Value Poor Performers: ${highValuePoorPerformers.length} critical suppliers
-- Total Shipments Tracked: ${shipments.length}
+📋 STEP-BY-STEP INSTRUCTIONS:
+1. Analyze the specific SLA breach and supplier performance data provided above
+2. Identify 3-5 critical SLA issues using the exact data
+3. For EACH insight, create 3-5 specific recommendations that reference actual shipment IDs, suppliers, breach costs, and timelines
+4. Include exact shipment numbers, supplier names, delivery dates, and dollar amounts
+5. Focus on actionable next steps with specific contacts and deadlines
 
-FINANCIAL IMPACT:
-- SLA Breach Costs: $${(slaData.financialImpact.totalSLABreachCost || 0).toLocaleString()}
-- Opportunity Cost: $${(slaData.financialImpact.opportunityCost || 0).toLocaleString()}
-- Potential Savings: $${(slaData.financialImpact.potentialSavings || 0).toLocaleString()}
-- Average Breach Cost: $${Math.round(slaData.financialImpact.averageBreachCost || 0).toLocaleString()}
-
-Based on your proven track record of maintaining 99%+ SLA compliance and improving customer satisfaction scores, provide strategic insights focused on service level management, proactive customer communication, and performance optimization. Apply your expertise in customer service excellence to identify root causes and implement service recovery processes.
-
-Format as JSON array with 3-5 strategic insights:
+🎯 MANDATORY OUTPUT FORMAT:
 [
   {
-    "id": "sla-insight-1",
-    "title": "Strategic SLA insight based on proven service management methodologies",
-    "description": "Expert analysis referencing SLA data with specific numbers and actionable recommendations drawing from your 19+ years of experience in operational excellence",
+    "type": "warning",
+    "title": "[Issue Title Based on Specific SLA Data]",
+    "description": "Analysis referencing specific shipment IDs, suppliers, breach costs, and delivery timelines from the data above. Include financial impact and root cause.",
     "severity": "critical|warning|info",
-    "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Create automated SLA monitoring with escalation triggers", "Implement service recovery processes for SLA breaches", "Set up proactive customer communication for potential delays"],
-    "createdAt": "${new Date().toISOString()}",
-    "source": "dashboard_agent"
+    "dollarImpact": [actual_number_from_data],
+    "suggestedActions": [
+      "[Action 1: Reference specific shipment ID, supplier, or breach cost from data]",
+      "[Action 2: Include actual dollar amounts and delivery timelines]", 
+      "[Action 3: Name specific suppliers to contact with deadlines]",
+      "[Action 4: Use real data points, not generic terms]",
+      "[Action 5: Provide concrete next steps with timelines]"
+    ]
   }
 ]
 
-Focus on immediate SLA improvement priorities, customer retention strategies, and proactive service management based on your expertise in maintaining exceptional service levels.`;
+🎯 WORKFLOW RECOMMENDATION REQUIREMENTS:
+WHO: Specify exact roles - "supplier relations manager", "operations manager", "logistics coordinator", "procurement director"
+WHAT: Precise actions - "Contact", "Escalate", "Schedule", "Implement", "Expedite", "Review", "Monitor"
+WHEN: Specific deadlines - "by Wednesday", "starting Friday", "Thursday morning", "end of day Tuesday", "within 48 hours"
+HOW: Detailed implementation - "schedule recovery meeting", "implement 30-day improvement plan", "expedite with carrier", "establish penalty clauses"
+
+MANDATORY FORMAT FOR EACH ACTION:
+- "[WHO to contact] [WHAT action] for [specific data reference]: [specific metrics] - [HOW to execute] [WHEN deadline]"
+- Use real supplier names and shipment IDs from the data provided above
+- Include actual breach costs, variance days, shipment values from extracted data
+- Reference specific shipment numbers with # prefix (e.g., Shipment #SHP-789123)
+- Provide concrete next steps that operations teams can execute immediately
+
+EXAMPLE HIGH-QUALITY SUGGESTED ACTIONS:
+- "${exampleSLAAction}"
+- "${exampleSupplierAction}"
+- "${exampleBreachAction}"
+
+❌ AVOID GENERIC RECOMMENDATIONS LIKE:
+- "Create automated SLA monitoring with escalation triggers" (no specific shipments)
+- "Implement service recovery processes for SLA breaches" (no specific suppliers)
+- "Set up proactive customer communication for potential delays" (no specific breach data)
+
+🚨 CRITICAL SUCCESS CRITERIA:
+- Each suggestedAction MUST include specific data from above sections
+- Use actual shipment IDs, supplier names, breach costs, delivery timelines
+- Follow the exact WHO/WHAT/WHEN/HOW format specified above
+- Include specific job titles (supplier relations manager, operations manager, etc.)
+- Reference shipment numbers with # prefix (e.g., #SHP-789123)
+- Specify precise days/dates for deadlines (Wednesday, Friday, Thursday morning)
+- Include exact dollar amounts and variance metrics from the data
+- Provide concrete implementation methods (meetings, plans, escalations)
+
+🎯 TARGET OUTPUT EXAMPLES (MUST MATCH THIS FORMAT):
+"Contact Wilson-Davis supplier relations manager for Shipment #SHP-789123: 5.2 day delivery variance costing $4,567 in SLA penalties - schedule recovery meeting by Wednesday"
+"Escalate Johnson & Associates performance review: 12 shipments late this month totaling $8,934 in breaches - implement 30-day improvement plan starting Friday"
+
+Generate exactly 3-5 insights with 3-5 specific actions each using this exact format.`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
     console.log('🤖 SLA Agent: Calling AI service for comprehensive SLA insights...');
@@ -874,17 +985,9 @@ Focus on immediate SLA improvement priorities, customer retention strategies, an
       const insights = JSON.parse(aiContent);
       console.log('✅ SLA insights parsed successfully:', insights.length);
       
-      // This part of the code ensures proper structure for client consumption
-      return insights.map((insight: any, index: number) => ({
-        id: insight.id || `sla-insight-${index}`,
-        title: insight.title || `SLA Alert ${index + 1}`,
-        description: insight.description || insight.content || 'Analysis pending',
-        severity: insight.severity || 'warning',
-        dollarImpact: insight.dollarImpact || Math.round((slaData.kpis.costOfSLABreaches || 0) * 0.2),
-        suggestedActions: insight.suggestedActions || ["Create automated SLA monitoring", "Implement service recovery processes", "Set up proactive customer communication"],
-        createdAt: insight.createdAt || new Date().toISOString(),
-        source: insight.source || "dashboard_agent",
-      }));
+      // This part of the code ensures proper structure for client consumption (returns raw insights, mapping happens in handleInsightsMode)
+      console.log('✅ SLA Phase 3: AI insights generated successfully:', insights.length, 'insights');
+      return insights;
     } catch (parseError) {
       console.error('❌ JSON parsing failed:', parseError);
       return [];
@@ -892,9 +995,10 @@ Focus on immediate SLA improvement priorities, customer retention strategies, an
 
   } catch (error) {
     console.error("❌ SLA AI analysis failed:", error);
+    return [];
   }
   
-  // Return empty insights when AI fails - no fallback data generation
+  // This should never be reached, but return empty array as failsafe
   return [];
 }
 
@@ -959,11 +1063,14 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
 
   const rawInsights = await generateAISLAInsights(products, shipments, slaData);
 
-  console.log("✅ SLA Insights Mode: AI insights compiled successfully");
-  res.status(200).json({
-    success: true,
-    data: {
-      insights: rawInsights.map((insight, index) => ({
+  // Phase 3: Enhanced logging and double mapping verification (mirrors successful pages)
+  console.log('✅ SLA Insights Mode - Raw insights from AI:', rawInsights.length, 'insights');
+  if (rawInsights.length > 0) {
+    console.log('✅ Sample raw insight:', JSON.stringify(rawInsights[0], null, 2));
+  }
+
+  // This part of the code maps insights to proper AIInsight format with all required properties (double mapping pattern)
+  const insights = rawInsights.map((insight, index) => ({
         id: `sla-insight-${index + 1}`,
         title: insight.title,
         description: insight.description,
@@ -974,7 +1081,18 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
         suggestedActions: insight.suggestedActions || [],
         createdAt: new Date().toISOString(),
         source: 'sla_agent' as const
-      })),
+  }));
+
+  console.log('✅ SLA Insights Mode - Mapped insights:', insights.length, 'insights');
+  if (insights.length > 0) {
+    console.log('✅ Sample mapped insight:', JSON.stringify(insights[0], null, 2));
+  }
+
+  console.log("✅ SLA Insights Mode: AI insights compiled successfully");
+  res.status(200).json({
+    success: true,
+    data: {
+      insights,
       lastUpdated: new Date().toISOString(),
     },
     message: "SLA insights retrieved successfully",

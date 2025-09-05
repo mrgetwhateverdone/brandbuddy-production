@@ -227,6 +227,8 @@ async function generateInventoryInsights(
 
     const prompt = `You are a VP of Inventory Management with 20+ years of experience in demand planning, inventory optimization, and warehouse operations. You have expertise in implementing JIT systems, ABC analysis, and advanced forecasting models that have saved companies millions in carrying costs.
 
+🎯 CRITICAL INSTRUCTION: You MUST use the specific data provided below to create detailed, actionable recommendations. Do NOT provide generic advice. Every recommendation must reference actual SKU numbers, supplier names, quantities, or dollar amounts from the data.
+
 INVENTORY INTELLIGENCE DASHBOARD:
 =================================
 
@@ -269,6 +271,18 @@ EXAMPLE HIGH-QUALITY SUGGESTED ACTIONS:
 - "Create emergency reorder workflow for SKU-7890 from Johnson Industries: order 45 units by Friday to prevent $3,200 stockout loss"
 - "Implement ABC analysis workflow for overstocked SKUs (SKU-1234: 150 units, $4,500 tied up) - contact procurement team to negotiate supplier buyback"
 - "Establish automated reorder triggers for critical SKUs like SKU-5678 (8 units remaining, 2.3x velocity) - set minimum threshold at 15 units"
+
+❌ AVOID GENERIC RECOMMENDATIONS LIKE:
+- "Implement reorder triggers" (no specific SKUs)
+- "Create supplier scorecards" (no specific suppliers)
+- "Optimize inventory levels" (no specific products or quantities)
+
+🚨 CRITICAL SUCCESS CRITERIA:
+- Each suggestedAction MUST include specific data from above sections
+- Use actual SKU numbers, supplier names, quantities, dollar amounts
+- Provide concrete next steps with specific parties to contact
+- Include implementation timelines and expected ROI
+- Reference exact data points, not general concepts
 
 Generate exactly 3-5 insights as JSON array:
 [

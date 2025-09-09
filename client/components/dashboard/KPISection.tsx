@@ -12,10 +12,20 @@ interface KPISectionProps {
 export function KPISection({ kpis, shipments, isLoading }: KPISectionProps) {
   const { formatNumber } = useSettingsIntegration();
   
-  // This part of the code calculates percentages for KPIs based on total orders
-  const totalOrders = shipments?.length || 0;
-  const atRiskPercentage = totalOrders > 0 ? ((kpis.atRiskOrders || 0) / totalOrders * 100).toFixed(1) : '0.0';
-  const openPOsPercentage = totalOrders > 0 ? ((kpis.openPOs || 0) / totalOrders * 100).toFixed(1) : '0.0';
+  // This part of the code calculates meaningful percentages for KPIs
+  // Use the shipments data to calculate proper denominators that match backend logic
+  const totalShipments = shipments?.length || 0;
+  const totalUniqueOrders = totalShipments > 0 ? new Set(shipments?.map(s => s.purchase_order_number || s.shipment_id)).size : 0;
+  
+  // Calculate percentages using appropriate denominators with bounds checking
+  const atRiskPercentage = totalShipments > 0 ? 
+    Math.min(100, ((kpis.atRiskOrders || 0) / totalShipments * 100)).toFixed(1) : '0.0';
+  const openPOsPercentage = totalUniqueOrders > 0 ? 
+    Math.min(100, ((kpis.openPOs || 0) / totalUniqueOrders * 100)).toFixed(1) : '0.0';
+  
+  // Only show percentages when they're meaningful (reasonable data size)
+  const showAtRiskPercentage = totalShipments >= (kpis.atRiskOrders || 0) && totalShipments > 10;
+  const showOpenPOsPercentage = totalUniqueOrders >= (kpis.openPOs || 0) && totalUniqueOrders > 5;
   const kpiCards = [
     {
       title: "Total Orders Today",
@@ -27,14 +37,14 @@ export function KPISection({ kpis, shipments, isLoading }: KPISectionProps) {
     {
       title: "At-Risk Orders",
       value: kpis.atRiskOrders,
-      description: totalOrders > 0 ? `Orders with delays or issues (${atRiskPercentage}%)` : "Orders with delays or issues",
+      description: showAtRiskPercentage ? `Orders with delays or issues (${atRiskPercentage}%)` : "Orders with delays or issues",
       className: "bg-white",
       colorClass: (kpis.atRiskOrders || 0) > 0 ? "text-red-600" : "text-gray-600",
     },
     {
       title: "Open POs",
       value: kpis.openPOs,
-      description: totalOrders > 0 ? `Active purchase orders (${openPOsPercentage}%)` : "Active purchase orders",
+      description: showOpenPOsPercentage ? `Active purchase orders (${openPOsPercentage}%)` : "Active purchase orders",
       className: "bg-white",
       colorClass: "text-green-600",
     },

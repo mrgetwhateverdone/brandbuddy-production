@@ -23,9 +23,9 @@ export function KPISection({ kpis, shipments, isLoading }: KPISectionProps) {
   const openPOsPercentage = totalUniqueOrders > 0 ? 
     Math.min(100, ((kpis.openPOs || 0) / totalUniqueOrders * 100)).toFixed(1) : '0.0';
   
-  // Only show percentages when we have meaningful data and avoid nonsensical values
-  const showAtRiskPercentage = totalShipments > 0 && (kpis.atRiskOrders || 0) <= totalShipments;
-  const showOpenPOsPercentage = totalUniqueOrders > 0 && (kpis.openPOs || 0) <= totalUniqueOrders;
+  // Show percentages when we have data (Math.min caps at 100% to prevent nonsensical values)
+  const showAtRiskPercentage = totalShipments > 0 && (kpis.atRiskOrders || 0) > 0;
+  const showOpenPOsPercentage = totalUniqueOrders > 0 && (kpis.openPOs || 0) > 0;
   const kpiCards = [
     {
       title: "Total Orders Today",

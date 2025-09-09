@@ -299,9 +299,18 @@ export interface InboundShipmentIntelligence {
 }
 
 // Orders Data (combined)
+// Orders AI-powered KPI Context
+export interface OrdersKPIContext {
+  ordersToday: KPIContextItem;
+  atRiskOrders: KPIContextItem;
+  openPOs: KPIContextItem;
+  unfulfillableSKUs: KPIContextItem;
+}
+
 export interface OrdersData {
   orders: OrderData[];
   kpis: OrdersKPIs;
+  kpiContext?: OrdersKPIContext; // This part of the code adds AI-powered KPI context for Orders with meaningful percentages
   insights: AIInsight[]; // Reuse existing type but from "orders_agent"
   inboundIntelligence: InboundShipmentIntelligence;
   lastUpdated: string;

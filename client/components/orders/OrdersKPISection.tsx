@@ -1,38 +1,44 @@
-import type { OrdersKPIs } from "@/types/api";
+import type { OrdersKPIs, OrdersKPIContext } from "@/types/api";
 
 interface OrdersKPISectionProps {
   kpis: OrdersKPIs;
+  kpiContext?: OrdersKPIContext; // This part of the code adds AI-powered KPI context for meaningful percentages
   isLoading?: boolean;
 }
 
-export function OrdersKPISection({ kpis, isLoading }: OrdersKPISectionProps) {
-  // This part of the code defines the KPI cards with their titles and status indicators
+export function OrdersKPISection({ kpis, kpiContext, isLoading }: OrdersKPISectionProps) {
+  // This part of the code uses AI-powered context for meaningful KPI descriptions and percentages
+  // Falls back to simple descriptions when AI context is not available
   const kpiCards = [
     {
       title: "Orders Today",
       value: kpis.ordersToday,
-      description: "New orders received today",
+      description: kpiContext?.ordersToday?.description || "New orders received today",
+      context: kpiContext?.ordersToday?.context,
       className: "bg-white",
       colorClass: "text-blue-600",
     },
     {
       title: "At-Risk Orders",
       value: kpis.atRiskOrders,
-      description: "Orders with delays or issues",
+      description: kpiContext?.atRiskOrders?.description || "Orders with delays or issues",
+      context: kpiContext?.atRiskOrders?.context,
       className: "bg-white",
       colorClass: kpis.atRiskOrders > 0 ? "text-red-600" : "text-gray-600",
     },
     {
       title: "Open POs",
       value: kpis.openPOs,
-      description: "Active purchase orders",
+      description: kpiContext?.openPOs?.description || "Active purchase orders",
+      context: kpiContext?.openPOs?.context,
       className: "bg-white",
       colorClass: "text-green-600",
     },
     {
       title: "Unfulfillable SKUs",
       value: kpis.unfulfillableSKUs,
-      description: "SKUs with fulfillment issues",
+      description: kpiContext?.unfulfillableSKUs?.description || "SKUs with fulfillment issues",
+      context: kpiContext?.unfulfillableSKUs?.context,
       className: "bg-white",
       colorClass: kpis.unfulfillableSKUs > 0 ? "text-orange-600" : "text-gray-600",
     },
@@ -85,10 +91,17 @@ export function OrdersKPISection({ kpis, isLoading }: OrdersKPISectionProps) {
             {formatValue(kpi.value)}
           </div>
           
-          {/* This part of the code displays the KPI description */}
+          {/* This part of the code displays the KPI description with AI-powered context */}
           <div className="text-sm text-gray-500">
             {kpi.description}
           </div>
+          
+          {/* This part of the code displays additional AI context when available */}
+          {kpi.context && !isLoading && (
+            <div className="text-xs text-gray-400 mt-1 italic">
+              {kpi.context}
+            </div>
+          )}
         </div>
       ))}
     </div>

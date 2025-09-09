@@ -159,6 +159,173 @@ function calculateSLAStatus(expectedDate: string | null, arrivalDate: string, st
 }
 
 /**
+ * This part of the code generates AI-powered KPI context for Orders with accurate percentages and insights
+ * Uses the same orders data source as KPI calculations to ensure consistency
+ */
+async function generateOrdersKPIContext(
+  kpis: any, 
+  orders: OrderData[]
+): Promise<any> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  console.log('🔑 Orders KPI Context Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
+  
+  if (!apiKey) {
+    console.log('❌ No AI service key - using calculated fallbacks for Orders KPI context');
+    return generateOrdersKPIFallbackContext(kpis, orders);
+  }
+
+  try {
+    // This part of the code analyzes the SAME orders data used for KPI calculations to ensure accuracy
+    const totalOrders = orders.length;
+    const totalUniqueOrderIds = new Set(orders.map(o => o.order_id).filter(Boolean)).size;
+    const today = new Date().toISOString().split("T")[0];
+    const todaysOrders = orders.filter(o => o.created_date.split("T")[0] === today);
+    
+    const atRiskDetails = orders.filter(o => 
+      o.status.includes('delayed') || 
+      o.sla_status.includes('at_risk') || 
+      o.sla_status.includes('breach') ||
+      o.expected_quantity !== o.received_quantity
+    );
+    
+    // This part of the code extracts supplier and issue data for contextual explanations
+    const topAffectedSuppliers = [...new Set(atRiskDetails.map(o => o.supplier).filter(Boolean))].slice(0, 3);
+    const quantityDiscrepancies = atRiskDetails.filter(o => o.expected_quantity !== o.received_quantity).length;
+    const slaIssues = atRiskDetails.filter(o => o.sla_status.includes('at_risk') || o.sla_status.includes('breach')).length;
+    const historicalDaily = Math.round(totalOrders / 30); // Rough historical average
+
+    const prompt = `You are a Chief Fulfillment Officer analyzing order fulfillment KPIs. Provide meaningful percentage context and business explanations:
+
+ORDERS OPERATIONAL DATA:
+========================
+Total Orders in System: ${totalOrders}
+Unique Order IDs: ${totalUniqueOrderIds}
+Today's New Orders: ${todaysOrders.length}
+Historical Daily Average: ${historicalDaily}
+
+CURRENT KPI VALUES:
+- Orders Today: ${kpis.ordersToday}
+- At-Risk Orders: ${kpis.atRiskOrders} 
+- Open POs: ${kpis.openPOs}
+- Unfulfillable SKUs: ${kpis.unfulfillableSKUs}
+
+DETAILED BREAKDOWN:
+- Quantity Discrepancies: ${quantityDiscrepancies} orders
+- SLA Issues: ${slaIssues} orders
+- Top Affected Suppliers: ${topAffectedSuppliers.join(", ")}
+- Daily Volume Performance: ${todaysOrders.length} vs ${historicalDaily} avg
+
+Calculate accurate percentages using proper denominators and provide fulfillment-focused business context for each KPI.
+
+REQUIRED JSON OUTPUT:
+{
+  "ordersToday": {
+    "percentage": "[if_meaningful]%", 
+    "context": "[daily_volume_vs_historical_context]",
+    "description": "New orders received today"
+  },
+  "atRiskOrders": {
+    "percentage": "[accurate_percentage]%",
+    "context": "[supplier_and_issue_breakdown]", 
+    "description": "Orders with delays or issues ([percentage] of total orders)"
+  },
+  "openPOs": {
+    "percentage": "[accurate_percentage]%",
+    "context": "[fulfillment_workload_context]",
+    "description": "Active purchase orders ([percentage] of order volume)"
+  },
+  "unfulfillableSKUs": {
+    "percentage": "[accurate_percentage]%",
+    "context": "[fulfillment_impact_context]",
+    "description": "SKUs with fulfillment issues ([percentage] of problem orders)"
+  }
+}`;
+
+    const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
+    const response = await fetch(openaiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 800,
+        temperature: 0.1,
+      }),
+      signal: AbortSignal.timeout(25000), // 25 second timeout to prevent Vercel function timeouts
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const aiContent = data.choices?.[0]?.message?.content || '';
+      console.log('🤖 Orders KPI Context Agent Raw Response:', aiContent.substring(0, 300) + '...');
+      
+      try {
+        const parsed = JSON.parse(aiContent);
+        console.log('✅ Orders KPI Context Agent: AI context parsed successfully');
+        return parsed;
+      } catch (parseError) {
+        console.error('❌ Orders KPI Context JSON Parse Error:', parseError);
+        console.log('❌ Orders KPI Context: JSON parse failed, using fallback');
+        return generateOrdersKPIFallbackContext(kpis, orders);
+      }
+    } else {
+      console.error('❌ Orders KPI Context OpenAI API Error:', response.status, response.statusText);
+    }
+  } catch (error) {
+    console.error("❌ Orders KPI Context AI analysis failed:", error);
+  }
+
+  // This part of the code provides fallback when AI fails - ensures KPI context always available
+  console.log('❌ Orders KPI Context: AI service failed, using calculated fallback');
+  return generateOrdersKPIFallbackContext(kpis, orders);
+}
+
+/**
+ * This part of the code provides calculated Orders KPI context when AI is unavailable
+ * Uses the same data relationships as the AI to ensure consistent percentages
+ */
+function generateOrdersKPIFallbackContext(kpis: any, orders: OrderData[]) {
+  const totalOrders = orders.length;
+  const totalUniqueOrderIds = new Set(orders.map(o => o.order_id).filter(Boolean)).size;
+  const historicalDaily = Math.round(totalOrders / 30);
+  
+  return {
+    ordersToday: {
+      percentage: historicalDaily > 0 && kpis.ordersToday > 0 ? 
+        `${((kpis.ordersToday / historicalDaily) * 100).toFixed(1)}%` : null,
+      context: `${kpis.ordersToday} today vs ${historicalDaily} daily average`,
+      description: historicalDaily > 0 && kpis.ordersToday !== historicalDaily ? 
+        `New orders received today (${((kpis.ordersToday / historicalDaily) * 100).toFixed(1)}% of daily avg)` :
+        "New orders received today"
+    },
+    atRiskOrders: {
+      percentage: totalOrders > 0 ? `${((kpis.atRiskOrders / totalOrders) * 100).toFixed(1)}%` : null,
+      context: `${kpis.atRiskOrders} problematic orders from ${totalOrders} total`,
+      description: totalOrders > 0 ?
+        `Orders with delays or issues (${((kpis.atRiskOrders / totalOrders) * 100).toFixed(1)}% of total orders)` :
+        "Orders with delays or issues"
+    },
+    openPOs: {
+      percentage: totalUniqueOrderIds > 0 ? `${((kpis.openPOs / totalUniqueOrderIds) * 100).toFixed(1)}%` : null,
+      context: `${kpis.openPOs} active from ${totalUniqueOrderIds} total order IDs`,
+      description: totalUniqueOrderIds > 0 ?
+        `Active purchase orders (${((kpis.openPOs / totalUniqueOrderIds) * 100).toFixed(1)}% of order volume)` :
+        "Active purchase orders"
+    },
+    unfulfillableSKUs: {
+      percentage: kpis.atRiskOrders > 0 ? `${((kpis.unfulfillableSKUs / kpis.atRiskOrders) * 100).toFixed(1)}%` : null,
+      context: `${kpis.unfulfillableSKUs} zero-quantity orders from ${kpis.atRiskOrders} problematic`,
+      description: kpis.atRiskOrders > 0 ?
+        `SKUs with fulfillment issues (${((kpis.unfulfillableSKUs / kpis.atRiskOrders) * 100).toFixed(1)}% of problem orders)` :
+        "SKUs with fulfillment issues"
+    }
+  };
+}
+
+/**
  * This part of the code calculates orders-specific KPIs from transformed data
  */
 function calculateOrdersKPIs(orders: OrderData[]): any {
@@ -483,9 +650,13 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
   const kpis = calculateOrdersKPIs(orders);
   const inboundIntelligence = calculateInboundIntelligence(orders);
 
+  // This part of the code generates AI-powered KPI context for meaningful percentages  
+  const kpiContext = await generateOrdersKPIContext(kpis, orders);
+
   const ordersData = {
     orders: orders.slice(0, 500), // Show up to 500 orders for comprehensive view while maintaining performance
     kpis,
+    kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages and business insights
     insights: [], // Empty for fast mode
     inboundIntelligence,
     lastUpdated: new Date().toISOString(),
@@ -576,12 +747,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const kpis = calculateOrdersKPIs(orders);
     const inboundIntelligence = calculateInboundIntelligence(orders);
 
+    // This part of the code generates AI-powered KPI context for the default handler as well
+    const kpiContext = await generateOrdersKPIContext(kpis, orders);
+
     // This part of the code generates orders-specific AI insights
     const insightsData = await generateOrdersInsights(orders, kpis, inboundIntelligence);
 
     const ordersData = {
       orders: orders.slice(0, 500), // Show up to 500 orders for comprehensive view while maintaining performance
       kpis,
+      kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages and business insights
       insights: insightsData.map((insight, index) => ({
         id: `orders-insight-${index + 1}`,
         title: insight.title,

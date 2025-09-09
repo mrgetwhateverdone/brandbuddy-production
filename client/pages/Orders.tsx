@@ -127,7 +127,11 @@ export default function Orders() {
           <>
             {/* KPI Section - Orders Today, At-Risk Orders, Open POs, Unfulfillable SKUs */}
             <div data-tour="orders-kpi">
-              <OrdersKPISection kpis={data.kpis} isLoading={isLoading} />
+              <OrdersKPISection 
+                kpis={data.kpis} 
+                kpiContext={data.kpiContext} 
+                isLoading={isLoading} 
+              />
             </div>
 
             {/* AI Insights Section - Order Analysis Agent Insights with Progressive Loading */}

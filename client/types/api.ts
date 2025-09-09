@@ -144,10 +144,25 @@ export interface CostVarianceAnomaly {
 }
 
 // Dashboard Data (combined)
+// AI-powered KPI Context
+export interface KPIContextItem {
+  percentage?: string | null;
+  context: string;
+  description: string;
+}
+
+export interface KPIContext {
+  atRiskOrders: KPIContextItem;
+  openPOs: KPIContextItem;
+  totalOrdersToday: KPIContextItem;
+  unfulfillableSKUs: KPIContextItem;
+}
+
 export interface DashboardData {
   products: ProductData[];
   shipments: ShipmentData[];
   kpis: DashboardKPIs;
+  kpiContext?: KPIContext; // This part of the code adds AI-powered KPI context with meaningful percentages
   quickOverview: QuickOverviewMetrics;
   warehouseInventory: WarehouseInventory[];
   insights: AIInsight[];

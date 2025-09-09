@@ -1,57 +1,48 @@
-import type { DashboardKPIs, ShipmentData } from "@/types/api";
+import type { DashboardKPIs, ShipmentData, KPIContext } from "@/types/api";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
-import { FormattedNumber } from "@/components/ui/formatted-value";
 import { formatKPIValue } from "@/lib/formatters";
 
 interface KPISectionProps {
   kpis: DashboardKPIs;
-  shipments?: ShipmentData[]; // This part of the code adds shipments data for percentage calculations
+  kpiContext?: KPIContext; // This part of the code adds AI-powered KPI context for meaningful percentages
+  shipments?: ShipmentData[]; // This part of the code keeps shipments for backward compatibility
   isLoading?: boolean;
 }
 
-export function KPISection({ kpis, shipments, isLoading }: KPISectionProps) {
-  const { formatNumber } = useSettingsIntegration();
+export function KPISection({ kpis, kpiContext, shipments, isLoading }: KPISectionProps) {
   
-  // This part of the code calculates meaningful percentages for KPIs
-  // Use the shipments data to calculate proper denominators that match backend logic
-  const totalShipments = shipments?.length || 0;
-  const totalUniqueOrders = totalShipments > 0 ? new Set(shipments?.map(s => s.purchase_order_number || s.shipment_id)).size : 0;
-  
-  // Calculate percentages using appropriate denominators with bounds checking
-  const atRiskPercentage = totalShipments > 0 ? 
-    Math.min(100, ((kpis.atRiskOrders || 0) / totalShipments * 100)).toFixed(1) : '0.0';
-  const openPOsPercentage = totalUniqueOrders > 0 ? 
-    Math.min(100, ((kpis.openPOs || 0) / totalUniqueOrders * 100)).toFixed(1) : '0.0';
-  
-  // Show percentages when we have data (Math.min caps at 100% to prevent nonsensical values)
-  const showAtRiskPercentage = totalShipments > 0 && (kpis.atRiskOrders || 0) > 0;
-  const showOpenPOsPercentage = totalUniqueOrders > 0 && (kpis.openPOs || 0) > 0;
+  // This part of the code uses AI-powered context for meaningful KPI descriptions and percentages
+  // Falls back to simple descriptions when AI context is not available
   const kpiCards = [
     {
       title: "Total Orders Today",
       value: kpis.totalOrdersToday,
-      description: "New orders received today",
+      description: kpiContext?.totalOrdersToday?.description || "New orders received today",
+      context: kpiContext?.totalOrdersToday?.context,
       className: "bg-white",
       colorClass: "text-blue-600",
     },
     {
       title: "At-Risk Orders",
       value: kpis.atRiskOrders,
-      description: showAtRiskPercentage ? `Orders with delays or issues (${atRiskPercentage}%)` : "Orders with delays or issues",
+      description: kpiContext?.atRiskOrders?.description || "Orders with delays or issues",
+      context: kpiContext?.atRiskOrders?.context,
       className: "bg-white",
       colorClass: (kpis.atRiskOrders || 0) > 0 ? "text-red-600" : "text-gray-600",
     },
     {
       title: "Open POs",
       value: kpis.openPOs,
-      description: showOpenPOsPercentage ? `Active purchase orders (${openPOsPercentage}%)` : "Active purchase orders",
+      description: kpiContext?.openPOs?.description || "Active purchase orders",
+      context: kpiContext?.openPOs?.context,
       className: "bg-white",
       colorClass: "text-green-600",
     },
     {
       title: "Unfulfillable SKUs",
       value: kpis.unfulfillableSKUs,
-      description: "SKUs with fulfillment issues",
+      description: kpiContext?.unfulfillableSKUs?.description || "SKUs with fulfillment issues",
+      context: kpiContext?.unfulfillableSKUs?.context,
       className: "bg-white",
       colorClass: (kpis.unfulfillableSKUs || 0) > 0 ? "text-orange-600" : "text-gray-600",
     },
@@ -79,10 +70,17 @@ export function KPISection({ kpis, shipments, isLoading }: KPISectionProps) {
             )}
           </div>
           
-          {/* This part of the code displays the KPI description */}
+          {/* This part of the code displays the KPI description with AI-powered context */}
           <div className="text-sm text-gray-500">
             {kpi.description}
           </div>
+          
+          {/* This part of the code displays additional AI context when available */}
+          {kpi.context && !isLoading && (
+            <div className="text-xs text-gray-400 mt-1 italic">
+              {kpi.context}
+            </div>
+          )}
         </div>
       ))}
     </div>

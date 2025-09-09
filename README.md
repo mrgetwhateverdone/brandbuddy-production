@@ -301,6 +301,7 @@ npm test             # Run test suite
 - Image optimization with next-gen formats
 - CSS purging for minimal bundle size
 - Service worker for offline functionality
+- Rollback to stable version (pre-database implementation)
 
 ### **Application Monitoring**
 - Vercel Analytics for performance tracking

@@ -81,7 +81,7 @@ export default function Dashboard() {
             {/* BrandBuddy KPI Cards - Now using consistent KPISection component */}
             <div className="tour-section-wrapper kpi-tour-target" data-tour="kpi-section">
               <div className="tour-content-boundary">
-                <KPISection kpis={data.kpis} isLoading={isLoading} />
+                <KPISection kpis={data.kpis} shipments={data.shipments} isLoading={isLoading} />
               </div>
             </div>
 

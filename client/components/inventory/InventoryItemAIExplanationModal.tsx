@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Loader2, Brain, AlertCircle, Package, DollarSign } from "lucide-react";
+import { X, Loader2, Brain, AlertCircle } from "lucide-react";
 import type { InventoryItem } from "@/types/api";
 import { useInventoryItemSuggestionSilent } from "@/hooks/useInventoryData";
 
@@ -19,6 +19,18 @@ export function InventoryItemAIExplanationModal({ isOpen, onClose, item }: Inven
       .replace(/\*\*(.*?)\*\*/g, '$1') // Remove ** bold formatting
       .replace(/\*(.*?)\*/g, '$1')     // Remove * italic formatting  
       .replace(/\n{3,}/g, '\n\n');    // Normalize multiple line breaks
+  };
+
+  // This part of the code calculates turn factor based on inventory velocity
+  const calculateTurnFactor = (item: InventoryItem): number => {
+    const onHand = item.on_hand || 0;
+    const available = item.available || 0;
+    // Estimate monthly usage based on available vs on_hand ratio and days since created
+    const daysSinceCreated = item.days_since_created || 1;
+    const avgDailyMovement = Math.max(0.1, (onHand - available) / Math.max(daysSinceCreated, 1));
+    const estimatedMonthlyUsage = avgDailyMovement * 30;
+    if (onHand === 0) return 0;
+    return parseFloat((estimatedMonthlyUsage / onHand).toFixed(2));
   };
 
   // This part of the code generates AI explanation when modal opens with an inventory item
@@ -54,14 +66,6 @@ export function InventoryItemAIExplanationModal({ isOpen, onClose, item }: Inven
     }
   };
 
-  // This part of the code formats dates for display
-  const formatDate = (dateString: string) => {
-    try {
-      return new Date(dateString).toLocaleDateString();
-    } catch {
-      return dateString;
-    }
-  };
 
   // This part of the code determines the color for inventory status badges
   const getStatusColor = (status: string) => {
@@ -184,6 +188,27 @@ export function InventoryItemAIExplanationModal({ isOpen, onClose, item }: Inven
                     <p className="text-sm text-gray-900 mt-1 font-semibold">
                       ${item.total_value.toLocaleString()}
                     </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Turn Factor:</span>
+                    <div className="mt-1 flex items-center space-x-2">
+                      <p className="text-sm text-gray-900 font-medium">{calculateTurnFactor(item)}</p>
+                      <span className="text-xs text-gray-500">(times/month)</span>
+                    </div>
+                  </div>
+                  <div>
+                    <span className="text-sm font-medium text-gray-500">Velocity Rating:</span>
+                    <div className="mt-1">
+                      {calculateTurnFactor(item) >= 2.0 ? (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">High</span>
+                      ) : calculateTurnFactor(item) >= 1.0 ? (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">Medium</span>
+                      ) : (
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">Low</span>
+                      )}
+                    </div>
                   </div>
                 </div>
                 {item.country_of_origin && (

@@ -9,6 +9,15 @@ interface ReorderPointSectionProps {
 }
 
 export function ReorderPointSection({ products, isLoading, onAnalyzeProduct }: ReorderPointSectionProps) {
+  // This part of the code calculates hurdle rate for each product
+  const calculateHurdleRate = (product: ProductData) => {
+    const unitCost = product.unit_cost || 0;
+    const carryingCostFactor = 0.25; // 25% annual carrying cost
+    const riskPremium = 0.05; // 5% risk premium
+    const adminCostFactor = 0.03; // 3% administrative cost
+    return (unitCost * (1 + carryingCostFactor + riskPremium + adminCostFactor)).toFixed(2);
+  };
+  
   // This part of the code calculates reorder points using industry standard formula
   const calculateReorderData = () => {
     const activeProducts = products.filter(p => p.active && p.unit_quantity >= 0);
@@ -135,6 +144,7 @@ export function ReorderPointSection({ products, isLoading, onAnalyzeProduct }: R
               <th className="text-left py-3 px-2 font-medium text-gray-700">Product</th>
               <th className="text-center py-3 px-2 font-medium text-gray-700">Current Stock</th>
               <th className="text-center py-3 px-2 font-medium text-gray-700">Days Remaining</th>
+              <th className="text-center py-3 px-2 font-medium text-gray-700">Hurdle Rate</th>
               <th className="text-center py-3 px-2 font-medium text-gray-700">Reorder Point</th>
               <th className="text-center py-3 px-2 font-medium text-gray-700">Suggested Qty</th>
               <th className="text-right py-3 px-2 font-medium text-gray-700">Est. Cost</th>
@@ -164,6 +174,9 @@ export function ReorderPointSection({ products, isLoading, onAnalyzeProduct }: R
                   <span className={`font-medium ${item.urgencyColor}`}>
                     {item.daysRemaining} days
                   </span>
+                </td>
+                <td className="text-center py-3 px-2 text-gray-700">
+                  <span className="font-medium">${calculateHurdleRate(item)}</span>
                 </td>
                 <td className="text-center py-3 px-2 text-gray-700">
                   {item.reorderPoint}

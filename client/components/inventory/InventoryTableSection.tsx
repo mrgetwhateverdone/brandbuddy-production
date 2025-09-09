@@ -11,7 +11,7 @@ interface InventoryTableSectionProps {
   onViewItem?: (item: InventoryItem) => void;
 }
 
-type SortField = 'sku' | 'product_name' | 'brand_name' | 'on_hand' | 'available' | 'status' | 'unit_cost' | 'total_value' | 'supplier';
+type SortField = 'sku' | 'product_name' | 'brand_name' | 'on_hand' | 'available' | 'status' | 'unit_cost' | 'total_value' | 'fill_rate' | 'supplier';
 type SortDirection = 'asc' | 'desc' | 'default';
 
 export function InventoryTableSection({ 
@@ -49,6 +49,15 @@ export function InventoryTableSection({
     if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
     if (value >= 1000) return `$${(value / 1000).toFixed(1)}K`;
     return `$${value.toLocaleString()}`;
+  };
+
+  // This part of the code calculates fill rate based on inventory availability
+  const calculateFillRate = (item: InventoryItem) => {
+    const available = item.available || 0;
+    const onHand = item.on_hand || 0;
+    if (onHand === 0) return 0;
+    // Fill rate based on how well inventory can meet demand (available vs on_hand ratio)
+    return Math.min(100, Math.round((available / onHand) * 100));
   };
 
   // This part of the code handles 3-state sorting: desc -> asc -> default
@@ -102,8 +111,17 @@ export function InventoryTableSection({
     }
 
     return [...filteredInventory].sort((a, b) => {
-      let aValue: any = a[sortField];
-      let bValue: any = b[sortField];
+      let aValue: any;
+      let bValue: any;
+
+      // This part of the code handles special calculated fields
+      if (sortField === 'fill_rate') {
+        aValue = calculateFillRate(a);
+        bValue = calculateFillRate(b);
+      } else {
+        aValue = a[sortField];
+        bValue = b[sortField];
+      }
 
       // Handle null/undefined values
       if (aValue == null) aValue = '';
@@ -237,6 +255,15 @@ export function InventoryTableSection({
               </th>
               <th 
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => handleSort('fill_rate')}
+              >
+                <div className="flex items-center space-x-1">
+                  <span>Fill Rate</span>
+                  {getSortIcon('fill_rate')}
+                </div>
+              </th>
+              <th 
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
                 onClick={() => handleSort('supplier')}
               >
                 <div className="flex items-center space-x-1">
@@ -263,7 +290,7 @@ export function InventoryTableSection({
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedInventory.length === 0 ? (
               <tr>
-                <td colSpan={onViewItem ? 9 : 8} className="px-6 py-12 text-center">
+                <td colSpan={onViewItem ? 10 : 9} className="px-6 py-12 text-center">
                   <p className="text-gray-500">Information not in dataset.</p>
                 </td>
               </tr>
@@ -287,6 +314,14 @@ export function InventoryTableSection({
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {formatCurrency(item.total_value || 0)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <div className="flex items-center">
+                      <span className="font-medium">{calculateFillRate(item)}%</span>
+                      {calculateFillRate(item) >= 90 && <span className="ml-1 text-green-600">●</span>}
+                      {calculateFillRate(item) >= 70 && calculateFillRate(item) < 90 && <span className="ml-1 text-yellow-600">●</span>}
+                      {calculateFillRate(item) < 70 && <span className="ml-1 text-red-600">●</span>}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {item.supplier || 'N/A'}

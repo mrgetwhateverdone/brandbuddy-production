@@ -1,15 +1,21 @@
-import type { DashboardKPIs } from "@/types/api";
+import type { DashboardKPIs, ShipmentData } from "@/types/api";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 import { FormattedNumber } from "@/components/ui/formatted-value";
 import { formatKPIValue } from "@/lib/formatters";
 
 interface KPISectionProps {
   kpis: DashboardKPIs;
+  shipments?: ShipmentData[]; // This part of the code adds shipments data for percentage calculations
   isLoading?: boolean;
 }
 
-export function KPISection({ kpis, isLoading }: KPISectionProps) {
+export function KPISection({ kpis, shipments, isLoading }: KPISectionProps) {
   const { formatNumber } = useSettingsIntegration();
+  
+  // This part of the code calculates percentages for KPIs based on total orders
+  const totalOrders = shipments?.length || 0;
+  const atRiskPercentage = totalOrders > 0 ? ((kpis.atRiskOrders || 0) / totalOrders * 100).toFixed(1) : '0.0';
+  const openPOsPercentage = totalOrders > 0 ? ((kpis.openPOs || 0) / totalOrders * 100).toFixed(1) : '0.0';
   const kpiCards = [
     {
       title: "Total Orders Today",
@@ -21,14 +27,14 @@ export function KPISection({ kpis, isLoading }: KPISectionProps) {
     {
       title: "At-Risk Orders",
       value: kpis.atRiskOrders,
-      description: "Orders with delays or issues",
+      description: totalOrders > 0 ? `Orders with delays or issues (${atRiskPercentage}%)` : "Orders with delays or issues",
       className: "bg-white",
       colorClass: (kpis.atRiskOrders || 0) > 0 ? "text-red-600" : "text-gray-600",
     },
     {
       title: "Open POs",
       value: kpis.openPOs,
-      description: "Active purchase orders",
+      description: totalOrders > 0 ? `Active purchase orders (${openPOsPercentage}%)` : "Active purchase orders",
       className: "bg-white",
       colorClass: "text-green-600",
     },

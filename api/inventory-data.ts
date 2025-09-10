@@ -145,8 +145,8 @@ REQUIRED JSON OUTPUT:
       body: JSON.stringify({
         model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo",
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 800,
-        temperature: 0.1,
+        max_tokens: 1500, // Increased for detailed insights and recommendations
+        temperature: 0.2, // Increased for more detailed and varied responses
       }),
       signal: AbortSignal.timeout(25000), // 25 second timeout to prevent Vercel function timeouts
     });
@@ -397,44 +397,189 @@ async function generateInventoryInsights(
   }
 
   try {
-    // This part of the code prepares comprehensive data for AI analysis
-    const lowStockItems = products.filter(p => p.active && p.unit_quantity > 0 && p.unit_quantity < 10);
-    const outOfStockItems = products.filter(p => p.active && p.unit_quantity === 0);
-    const overstockedItems = products.filter(p => p.active && p.unit_quantity > 100);
-    const inactiveItems = products.filter(p => !p.active);
-    const highRiskSuppliers = supplierAnalysis.filter(s => s.concentration_risk > 30);
+    // This part of the code extracts specific data for actionable AI recommendations (mirrors Dashboard/Orders pattern)
+    const criticalLowStockItems = products
+      .filter(p => p.active && p.unit_quantity > 0 && p.unit_quantity < 10)
+      .sort((a, b) => (b.unit_cost || 0) * b.unit_quantity - (a.unit_cost || 0) * a.unit_quantity)
+      .slice(0, 5)
+      .map(p => ({
+        sku: p.product_sku || p.product_id,
+        name: p.product_name || 'Unknown Product',
+        supplier: p.supplier_name || 'Unknown Supplier',
+        currentStock: p.unit_quantity,
+        unitCost: p.unit_cost || 0,
+        reorderPoint: Math.max(10, Math.ceil(p.unit_quantity * 0.5)), // Calculated reorder point
+        potentialLoss: Math.round((p.unit_cost || 0) * Math.min(p.unit_quantity * 4, 50)) // Lost sales potential
+      }));
+
+    const overstockedItems = products
+      .filter(p => p.active && p.unit_quantity > 100)
+      .sort((a, b) => (b.unit_cost || 0) * b.unit_quantity - (a.unit_cost || 0) * a.unit_quantity)
+      .slice(0, 4)
+      .map(p => ({
+        sku: p.product_sku || p.product_id,
+        name: p.product_name || 'Unknown Product',
+        supplier: p.supplier_name || 'Unknown Supplier',
+        currentStock: p.unit_quantity,
+        excessStock: Math.max(0, p.unit_quantity - 20), // Using standard reorder threshold
+        carryingCost: Math.round((p.unit_cost || 0) * Math.max(0, p.unit_quantity - 20) * 0.25) // 25% annual carrying cost
+      }));
+
+    const inactiveHighValueItems = products
+      .filter(p => !p.active && p.unit_cost)
+      .sort((a, b) => (b.unit_cost || 0) * b.unit_quantity - (a.unit_cost || 0) * a.unit_quantity)
+      .slice(0, 3)
+      .map(p => ({
+        sku: p.product_sku || p.product_id,
+        name: p.product_name || 'Unknown Product',
+        supplier: p.supplier_name || 'Unknown Supplier',
+        tiedUpValue: Math.round((p.unit_cost || 0) * p.unit_quantity),
+        lastMovement: 'Q2 2025' // Placeholder for last movement
+      }));
+
+    const outOfStockHighPriorityItems = products
+      .filter(p => p.active && p.unit_quantity === 0 && p.unit_cost)
+      .sort((a, b) => (b.unit_cost || 0) - (a.unit_cost || 0))
+      .slice(0, 3)
+      .map(p => ({
+        sku: p.product_sku || p.product_id,
+        name: p.product_name || 'Unknown Product',
+        supplier: p.supplier_name || 'Unknown Supplier',
+        unitCost: p.unit_cost || 0,
+        opportunityCost: Math.round((p.unit_cost || 0) * 30) // 30 days lost sales
+      }));
+
+    // This part of the code identifies supplier concentration risks from inventory data
+    const supplierConcentrationRisks = Object.entries(
+      products.reduce((acc, p) => {
+        const supplier = p.supplier_name || 'Unknown';
+        if (!acc[supplier]) acc[supplier] = { skus: 0, value: 0 };
+        acc[supplier].skus++;
+        acc[supplier].value += (p.unit_quantity * (p.unit_cost || 0));
+        return acc;
+      }, {} as Record<string, { skus: number; value: number }>)
+    ).sort(([,a], [,b]) => b.skus - a.skus).slice(0, 3);
+
+    console.log('🔍 Inventory AI Enhancement - Data Analysis Complete:', {
+      criticalLowStock: {
+        count: criticalLowStockItems.length,
+        topSKUs: criticalLowStockItems.slice(0, 3).map(i => i.sku),
+        totalPotentialLoss: criticalLowStockItems.reduce((sum, i) => sum + i.potentialLoss, 0)
+      },
+      overstocked: {
+        count: overstockedItems.length, 
+        excessUnits: overstockedItems.reduce((sum, i) => sum + i.excessStock, 0),
+        totalCarryingCost: overstockedItems.reduce((sum, i) => sum + i.carryingCost, 0)
+      },
+      inactiveHighValue: {
+        count: inactiveHighValueItems.length,
+        tiedUpCapital: inactiveHighValueItems.reduce((sum, i) => sum + i.tiedUpValue, 0)
+      },
+      outOfStockPriority: {
+        count: outOfStockHighPriorityItems.length,
+        monthlyOpportunityCost: outOfStockHighPriorityItems.reduce((sum, i) => sum + i.opportunityCost, 0)
+      },
+      supplierConcentration: {
+        count: supplierConcentrationRisks.length,
+        topSuppliers: supplierConcentrationRisks.map(([name]) => name)
+      }
+    });
     
     const totalInventoryValue = kpis.totalInventoryValue;
     const avgInventoryValue = products.length > 0 ? totalInventoryValue / products.length : 0;
 
-    const prompt = `Analyze inventory data and provide actionable insights:
+    // This part of the code creates safe example variables to prevent complex nested template literal parsing errors
+    const exampleLowStockAction = `Contact ${criticalLowStockItems[0]?.supplier || 'West Barber'} immediately to expedite ${criticalLowStockItems[0]?.sku || 'ABC-123'} replenishment - current ${criticalLowStockItems[0]?.currentStock || 3} units vs ${criticalLowStockItems[0]?.reorderPoint || 10} reorder point, risking $${criticalLowStockItems[0]?.potentialLoss?.toLocaleString() || '2,500'} in lost sales`;
+    const exampleOverstockAction = `Liquidate excess ${overstockedItems[0]?.sku || 'DEF-456'} inventory (${overstockedItems[0]?.excessStock || 127} excess units) from ${overstockedItems[0]?.supplier || 'Garcia Ltd'} to free up $${overstockedItems[0]?.carryingCost?.toLocaleString() || '15,200'} in carrying costs annually`;
+    const exampleInactiveAction = `Reactivate or liquidate SKU ${inactiveHighValueItems[0]?.sku || 'GHI-789'} with ${inactiveHighValueItems[0]?.supplier || 'Clark'} - $${inactiveHighValueItems[0]?.tiedUpValue?.toLocaleString() || '12,000'} tied up since ${inactiveHighValueItems[0]?.lastMovement || 'Q2'}`;
 
-INVENTORY DATA:
-- Total SKUs: ${kpis.totalSKUs} (${kpis.totalActiveSKUs} active)
-- Inventory Value: $${kpis.totalInventoryValue?.toLocaleString() || 0}
-- Low Stock: ${kpis.lowStockAlerts} items
-- Out of Stock: ${outOfStockItems.length} items
-- Overstocked: ${overstockedItems.length} items (>100 units)
-- Inactive: ${inactiveItems.length} items
+    const prompt = `You are a Chief Inventory Officer with 20+ years of experience in inventory management, supply chain optimization, and working capital reduction. You have successfully implemented inventory strategies that freed up $50M+ in working capital while maintaining 99.5+ fill rates across Fortune 500 companies.
 
-FOCUS AREAS:
-${lowStockItems.length > 0 ? `- Critical Low Stock: ${lowStockItems.slice(0, 3).map(p => `${p.product_sku || p.product_id} (${p.unit_quantity} units)`).join(', ')}` : ''}
-${outOfStockItems.length > 0 ? `- Out of Stock: ${outOfStockItems.slice(0, 3).map(p => p.product_sku || p.product_id).join(', ')}` : ''}
-${overstockedItems.length > 0 ? `- Overstocked: ${overstockedItems.slice(0, 3).map(p => `${p.product_sku || p.product_id} (${p.unit_quantity} units)`).join(', ')}` : ''}
+🎯 CRITICAL INSTRUCTION: You MUST use the specific data provided below to create detailed, actionable recommendations. Do NOT provide generic advice. Every recommendation must reference actual SKU numbers, supplier names, quantities, or dollar amounts from the data.
 
-Generate 3-5 inventory insights as JSON array:
+SPECIFIC DATA FOR ACTIONABLE RECOMMENDATIONS:
+===========================================
+
+CRITICAL LOW STOCK ITEMS (use these exact SKU numbers and suppliers):
+${criticalLowStockItems.map(i => `- SKU: ${i.sku} - ${i.currentStock} units (below ${i.reorderPoint} reorder point) - Supplier: ${i.supplier} - Potential Loss: $${i.potentialLoss.toLocaleString()}`).join('\n')}
+
+OVERSTOCKED ITEMS (use these exact SKU numbers and carrying costs):
+${overstockedItems.map(i => `- SKU: ${i.sku} - ${i.excessStock} excess units - Supplier: ${i.supplier} - Carrying Cost: $${i.carryingCost.toLocaleString()} annually`).join('\n')}
+
+INACTIVE HIGH-VALUE ITEMS (use these exact SKU numbers and tied-up capital):
+${inactiveHighValueItems.map(i => `- SKU: ${i.sku} (${i.name}) - $${i.tiedUpValue.toLocaleString()} tied up - Supplier: ${i.supplier} - Last Movement: ${i.lastMovement}`).join('\n')}
+
+OUT OF STOCK PRIORITY ITEMS (use these exact SKU numbers and opportunity costs):
+${outOfStockHighPriorityItems.map(i => `- SKU: ${i.sku} - $${i.unitCost.toLocaleString()} unit value - Supplier: ${i.supplier} - Opportunity Cost: $${i.opportunityCost.toLocaleString()}/month`).join('\n')}
+
+SUPPLIER CONCENTRATION RISKS (use these exact supplier names and values):
+${supplierConcentrationRisks.map(([supplier, data]) => `- ${supplier}: ${data.skus} SKUs, $${Math.round(data.value).toLocaleString()} total inventory value`).join('\n')}
+
+INVENTORY PERFORMANCE CONTEXT:
+- ${products.length} total products across ${kpis.totalActiveSKUs} active SKUs
+- $${kpis.totalInventoryValue?.toLocaleString() || 0} total inventory investment
+- ${criticalLowStockItems.length} items below reorder point risking stockouts
+- ${overstockedItems.length} items with excess stock tying up capital
+- ${inactiveHighValueItems.length} inactive items requiring liquidation decisions
+- ${outOfStockHighPriorityItems.length} high-priority stockouts impacting revenue
+
+📋 STEP-BY-STEP INSTRUCTIONS:
+1. Analyze the specific inventory data provided above
+2. Identify 3-5 critical inventory management issues
+3. For EACH insight, create 3-5 specific recommendations that reference the actual data
+4. Include exact SKU numbers, supplier names, quantities, and dollar amounts
+5. Focus on actionable next steps with specific contacts and financial impacts
+
+🎯 MANDATORY OUTPUT FORMAT:
 [
   {
-    "title": "Insight title",
-    "description": "Brief analysis with key metrics and impact",
+    "type": "warning",
+    "title": "[Issue Title Based on Specific Inventory Data]",
+    "description": "Analysis referencing specific SKUs, suppliers, quantities, and dollar amounts from the data above. Include financial impact and root cause.",
     "severity": "critical|warning|info",
-    "dollarImpact": dollar_amount,
-    "suggestedActions": ["Specific action with SKU/supplier details", "Implementation step with timeline"]
+    "dollarImpact": [actual_number_from_data],
+    "suggestedActions": [
+      "[Action 1: Reference specific SKU number, supplier from data]",
+      "[Action 2: Include actual dollar amounts and quantities]", 
+      "[Action 3: Name specific suppliers or warehouses to contact]",
+      "[Action 4: Use real data points, not generic terms]",
+      "[Action 5: Provide concrete next steps with timelines]"
+    ]
   }
-]`;
+]
+
+✅ EXAMPLES OF SPECIFIC RECOMMENDATIONS (reference these patterns):
+"${exampleLowStockAction}"
+"${exampleOverstockAction}"
+"${exampleInactiveAction}"
+
+❌ AVOID GENERIC RECOMMENDATIONS LIKE:
+- "Implement automated reorder triggers" (no specific SKUs)
+- "Create supplier scorecards" (no specific suppliers)  
+- "Set up inventory optimization software" (no specific data points)
+
+🚨 CRITICAL SUCCESS CRITERIA:
+- Each suggestedAction MUST include specific data from above sections
+- Use actual SKU numbers, supplier names, quantities, dollar amounts
+- Provide concrete next steps with specific parties to contact
+- Include implementation timelines and expected ROI
+- Reference exact data points, not general concepts
+
+Generate exactly 3-5 insights with 3-5 specific actions each.`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
-    console.log('🤖 Inventory Agent: Calling AI service for focused inventory insights...');
+    console.log('🤖 Inventory Agent: Calling AI service for executive-level inventory insights...', {
+      model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo",
+      maxTokens: 1500,
+      temperature: 0.2,
+      dataPoints: {
+        criticalLowStock: criticalLowStockItems.length,
+        overstocked: overstockedItems.length,
+        inactiveHighValue: inactiveHighValueItems.length,
+        outOfStockPriority: outOfStockHighPriorityItems.length,
+        supplierRisks: supplierConcentrationRisks.length
+      }
+    });
     
     const response = await fetch(openaiUrl, {
       method: "POST",
@@ -445,39 +590,52 @@ Generate 3-5 inventory insights as JSON array:
       body: JSON.stringify({
         model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo",
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 800,
-        temperature: 0.1,
+        max_tokens: 1500, // Increased for detailed insights and recommendations
+        temperature: 0.2, // Increased for more detailed and varied responses
       }),
       signal: AbortSignal.timeout(25000), // 25 second timeout to prevent Vercel function timeouts
     });
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const aiContent = data.choices?.[0]?.message?.content || '';
-    console.log('🤖 Raw AI response:', aiContent);
-
-    // This part of the code uses JSON parsing like working orders API - return RAW insights
-    try {
-      const insights = JSON.parse(aiContent);
-      console.log('✅ Inventory insights parsed successfully:', insights.length);
-      
-      // This part of the code returns RAW insights (mapping happens in handleInsightsMode like orders)
-      return insights;
-    } catch (parseError) {
-      console.error('❌ JSON parsing failed:', parseError);
-      console.log('❌ Inventory: JSON parse failed - returning empty insights');
-      return [];
+    if (response.ok) {
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (content) {
+        console.log('🤖 Inventory Agent Raw AI Response:', content.substring(0, 500) + '...');
+        try {
+          const parsed = JSON.parse(content);
+          console.log('✅ Inventory Agent Parsed Insights:', parsed.length, 'insights with actions:', parsed.map(p => p.suggestedActions?.length || 0));
+          
+          // This part of the code validates and enhances insights before returning
+          const validatedInsights = parsed.filter(insight => 
+            insight.title && 
+            insight.description && 
+            insight.suggestedActions && 
+            Array.isArray(insight.suggestedActions) &&
+            insight.suggestedActions.length > 0
+          );
+          
+          console.log('✅ Inventory Agent Validated Insights:', validatedInsights.length, 'valid insights ready for display');
+          return validatedInsights;
+        } catch (parseError) {
+          console.error('❌ Inventory Agent JSON Parse Error:', parseError);
+          console.error('❌ Raw content that failed:', content?.substring(0, 500));
+          console.log('❌ Inventory: JSON parse failed, returning empty insights (NO FALLBACK)');
+          return [];
+        }
+      }
+    } else {
+      console.error('❌ Inventory OpenAI API Error:', response.status, response.statusText);
     }
 
   } catch (error) {
-    console.error("❌ Inventory AI analysis failed:", error);
-    return [];
+    console.error('❌ Inventory Agent OpenAI analysis failed:', error);
+    if (error instanceof Error && error.message.includes('timeout')) {
+      console.log('❌ Inventory Agent: Request timed out after 25 seconds - AI service overloaded');
+    }
   }
-  
-  // This should never be reached, but return empty array as fallback
+
+  // Return empty insights when AI fails - NO FALLBACK like dashboard pattern
+  console.log('❌ Inventory Agent: AI service failed, returning empty insights (NO FALLBACK)');
   return [];
 }
 

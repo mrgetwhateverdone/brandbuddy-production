@@ -81,7 +81,11 @@ export default function Inbound() {
     <Layout>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* This part of the code displays the inbound operations KPI cards */}
-        <InboundKPISection kpis={data.kpis} isLoading={isLoading} />
+        <InboundKPISection 
+          kpis={data.kpis} 
+          kpiContext={data.kpiContext}
+          isLoading={isLoading} 
+        />
 
         {/* This part of the code displays AI insights for inbound operations management with Progressive Loading */}
         {isPageAIEnabled('inbound') && (

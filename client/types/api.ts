@@ -97,7 +97,7 @@ export interface AIInsight {
   dollarImpact: number;
   suggestedActions: string[];
   createdAt: string;
-  source: "dashboard_agent" | "warehouse_agent" | "inventory_agent" | "cost_agent" | "analytics_agent" | "orders_agent" | "reports_agent" | "replenishment_agent";
+  source: "dashboard_agent" | "warehouse_agent" | "inventory_agent" | "cost_agent" | "analytics_agent" | "orders_agent" | "reports_agent" | "replenishment_agent" | "inbound_agent";
 }
 
 // Anomaly Detection
@@ -542,6 +542,38 @@ export interface ReplenishmentData {
   criticalItems: any[];
   supplierPerformance: any[];
   reorderSuggestions: any[];
+  lastUpdated: string;
+}
+
+// Inbound KPIs Interface
+export interface InboundKPIs {
+  todayArrivals: number;
+  thisWeekExpected: number;
+  averageLeadTime: number;
+  delayedShipments: number;
+  receivingAccuracy: number;
+  onTimeDeliveryRate: number;
+}
+
+// Inbound AI-powered KPI Context
+export interface InboundKPIContext {
+  todayArrivals: KPIContextItem;
+  thisWeekExpected: KPIContextItem;
+  averageLeadTime: KPIContextItem;
+  delayedShipments: KPIContextItem;
+  receivingAccuracy: KPIContextItem;
+  onTimeDeliveryRate: KPIContextItem;
+}
+
+// Inbound Data Interface
+export interface InboundData {
+  kpis: InboundKPIs;
+  kpiContext?: InboundKPIContext; // This part of the code adds AI-powered KPI context for Inbound with meaningful percentages
+  insights: AIInsight[]; // Reuse existing type but from "inbound_agent"
+  shipments: ShipmentData[];
+  todayArrivals: ShipmentData[];
+  receivingMetrics: any[];
+  supplierPerformance: any[];
   lastUpdated: string;
 }
 

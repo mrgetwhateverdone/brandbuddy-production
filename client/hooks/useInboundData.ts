@@ -10,6 +10,7 @@ import type {
   SupplierPerformance,
   ShipmentData 
 } from "@/types/data";
+import type { InboundKPIContext } from "@/types/api";
 
 // This part of the code extends the base interface for additional inbound-specific KPIs
 interface ExtendedInboundKPIs extends InboundKPIs {
@@ -21,6 +22,7 @@ interface ExtendedInboundKPIs extends InboundKPIs {
 // This part of the code defines type-safe inbound data structure
 interface TypedInboundData extends Omit<InboundData, 'kpis'> {
   kpis: ExtendedInboundKPIs;
+  kpiContext?: InboundKPIContext; // This part of the code includes AI-powered KPI context for meaningful percentages
   shipments: ShipmentData[];
   todayArrivals: ShipmentData[];
 }

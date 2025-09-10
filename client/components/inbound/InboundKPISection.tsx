@@ -1,21 +1,14 @@
 import React from "react";
 import { FormattedCurrency } from "../ui/formatted-value";
-
-interface InboundKPIs {
-  todayArrivals: number;
-  thisWeekExpected: number;
-  averageLeadTime: number;
-  delayedShipments: number;
-  receivingAccuracy: number;
-  onTimeDeliveryRate: number;
-}
+import type { InboundKPIs, InboundKPIContext } from "@/types/api";
 
 interface InboundKPISectionProps {
   kpis: InboundKPIs;
+  kpiContext?: InboundKPIContext; // This part of the code adds AI-powered KPI context for meaningful percentages
   isLoading?: boolean;
 }
 
-export function InboundKPISection({ kpis, isLoading }: InboundKPISectionProps) {
+export function InboundKPISection({ kpis, kpiContext, isLoading }: InboundKPISectionProps) {
   // This part of the code formats values for display, handling null/undefined cases
   const formatValue = (value: number | null) => {
     if (value === null || value === undefined) return "—";
@@ -37,47 +30,53 @@ export function InboundKPISection({ kpis, isLoading }: InboundKPISectionProps) {
     return `${value} days`;
   };
 
-  // This part of the code defines the inbound operations KPI cards with clean styling
+  // This part of the code defines the inbound operations KPI cards with AI-powered context for meaningful percentages and descriptions
   const kpiCards = [
     {
       title: "Today's Arrivals",
       value: kpis.todayArrivals,
-      description: "Shipments arriving today",
+      description: kpiContext?.todayArrivals?.description || "Shipments arriving today",
+      context: kpiContext?.todayArrivals?.context,
       colorClass: kpis.todayArrivals > 0 ? "text-blue-600" : "text-gray-600",
       format: formatValue,
     },
     {
       title: "This Week Expected",
       value: kpis.thisWeekExpected,
-      description: "Shipments expected this week",
+      description: kpiContext?.thisWeekExpected?.description || "Shipments expected this week",
+      context: kpiContext?.thisWeekExpected?.context,
       colorClass: "text-green-600",
       format: formatValue,
     },
     {
       title: "Average Lead Time",
       value: kpis.averageLeadTime,
-      description: "Shipping to arrival time",
+      description: kpiContext?.averageLeadTime?.description || "Shipping to arrival time",
+      context: kpiContext?.averageLeadTime?.context,
       colorClass: kpis.averageLeadTime > 10 ? "text-orange-600" : "text-gray-600",
       format: formatLeadTime,
     },
     {
       title: "Delayed Shipments",
       value: kpis.delayedShipments,
-      description: "Shipments behind schedule",
+      description: kpiContext?.delayedShipments?.description || "Shipments behind schedule",
+      context: kpiContext?.delayedShipments?.context,
       colorClass: kpis.delayedShipments > 0 ? "text-red-600" : "text-gray-600",
       format: formatValue,
     },
     {
       title: "Receiving Accuracy",
       value: kpis.receivingAccuracy,
-      description: "Expected vs received match",
+      description: kpiContext?.receivingAccuracy?.description || "Expected vs received match",
+      context: kpiContext?.receivingAccuracy?.context,
       colorClass: kpis.receivingAccuracy >= 95 ? "text-green-600" : kpis.receivingAccuracy >= 85 ? "text-orange-600" : "text-red-600",
       format: formatPercentage,
     },
     {
       title: "On-Time Delivery",
       value: kpis.onTimeDeliveryRate,
-      description: "Supplier delivery performance",
+      description: kpiContext?.onTimeDeliveryRate?.description || "Supplier delivery performance",
+      context: kpiContext?.onTimeDeliveryRate?.context,
       colorClass: kpis.onTimeDeliveryRate >= 95 ? "text-green-600" : kpis.onTimeDeliveryRate >= 85 ? "text-orange-600" : "text-red-600",
       format: formatPercentage,
     },
@@ -123,10 +122,17 @@ export function InboundKPISection({ kpis, isLoading }: InboundKPISectionProps) {
             {kpi.format ? kpi.format(kpi.value) : formatValue(kpi.value)}
           </div>
           
-          {/* This part of the code displays the KPI description */}
+          {/* This part of the code displays the KPI description with AI-powered context */}
           <div className="text-sm text-gray-500">
             {kpi.description}
           </div>
+          
+          {/* This part of the code displays additional AI context when available */}
+          {kpi.context && !isLoading && (
+            <div className="text-xs text-gray-400 mt-1 italic">
+              {kpi.context}
+            </div>
+          )}
         </div>
       ))}
     </div>

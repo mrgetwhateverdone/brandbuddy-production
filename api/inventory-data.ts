@@ -597,7 +597,7 @@ Generate exactly 3-5 insights with 3-5 specific actions each.`;
     });
 
     if (response.ok) {
-      const data = await response.json();
+    const data = await response.json();
       const content = data.choices?.[0]?.message?.content;
       if (content) {
         console.log('🤖 Inventory Agent Raw AI Response:', content.substring(0, 500) + '...');
@@ -616,7 +616,7 @@ Generate exactly 3-5 insights with 3-5 specific actions each.`;
           
           console.log('✅ Inventory Agent Validated Insights:', validatedInsights.length, 'valid insights ready for display');
           return validatedInsights;
-        } catch (parseError) {
+    } catch (parseError) {
           console.error('❌ Inventory Agent JSON Parse Error:', parseError);
           console.error('❌ Raw content that failed:', content?.substring(0, 500));
           console.log('❌ Inventory: JSON parse failed, returning empty insights (NO FALLBACK)');

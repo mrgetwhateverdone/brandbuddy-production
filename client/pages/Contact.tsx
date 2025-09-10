@@ -79,7 +79,7 @@ export default function Contact() {
           <div className="space-y-3">
             <SignInButton mode="modal">
               <Button 
-                className="w-full bg-blue-600 hover:bg-blue-700 !text-white"
+                className="w-full bg-red-600 hover:bg-red-700 !text-white"
               >
                 Try Demo Now
               </Button>
@@ -110,14 +110,14 @@ export default function Contact() {
             </Link>
             
             <div className="flex items-center">
-              <div className="text-2xl font-bold text-blue-600">CargoCore</div>
-              <div className="ml-2 text-sm text-gray-500">3PL Operations Platform</div>
+              <div className="text-2xl font-bold text-red-600">Brand Buddy</div>
+              <div className="ml-2 text-sm text-gray-500">Brand Operations Platform</div>
             </div>
             
             <SignInButton mode="modal">
               <Button 
                 variant="outline"
-                className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                className="border-red-600 text-red-600 hover:bg-red-50"
               >
                 Get Demo
               </Button>
@@ -130,11 +130,11 @@ export default function Contact() {
       <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Get Started with CargoCore
+            Get Started with Brand Buddy
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Tell us about your 3PL needs and we'll show you how CargoCore can help 
-            optimize your operations and drive growth.
+            Tell us about your brand operations needs and we'll show you how Brand Buddy can help 
+            optimize your brand performance and drive growth.
           </p>
         </div>
 
@@ -162,7 +162,7 @@ export default function Contact() {
                   name="name"
                   id="name"
                   required
-                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder:text-gray-400"
+                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors placeholder:text-gray-400"
                   placeholder="Your full name"
                   disabled={isSubmitting}
                 />
@@ -178,7 +178,7 @@ export default function Contact() {
                   name="email"
                   id="email"
                   required
-                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder:text-gray-400"
+                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors placeholder:text-gray-400"
                   placeholder="your.email@company.com"
                   disabled={isSubmitting}
                 />
@@ -193,7 +193,7 @@ export default function Contact() {
                   type="text"
                   name="company"
                   id="company"
-                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors placeholder:text-gray-400"
+                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors placeholder:text-gray-400"
                   placeholder="Your company name"
                   disabled={isSubmitting}
                 />
@@ -209,8 +209,8 @@ export default function Contact() {
                   id="message"
                   rows={6}
                   required
-                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-vertical placeholder:text-gray-400"
-                  placeholder="Tell us about your 3PL needs, current challenges, or what you'd like to learn about CargoCore..."
+                  className="w-full px-4 py-3 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors resize-vertical placeholder:text-gray-400"
+                  placeholder="Tell us about your brand operations needs, current challenges, or what you'd like to learn about Brand Buddy..."
                   disabled={isSubmitting}
                 />
               </div>
@@ -219,7 +219,7 @@ export default function Contact() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 text-lg"
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-3 text-lg"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center">
@@ -242,26 +242,26 @@ export default function Contact() {
 
           {/* Information Panel */}
           <div className="space-y-8">
-            {/* Why Choose CargoCore */}
-            <Card className="bg-blue-50 border-blue-200 p-6">
+            {/* Why Choose Brand Buddy */}
+            <Card className="bg-red-50 border-red-200 p-6">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                Why Choose CargoCore?
+                Why Choose Brand Buddy?
               </h3>
               <ul className="space-y-3 text-gray-700">
                 <li className="flex items-start space-x-3">
-                  <Check className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>Real-time visibility into all operations</span>
+                  <Check className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <span>Real-time visibility into brand operations</span>
                 </li>
                 <li className="flex items-start space-x-3">
-                  <Check className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>AI-powered insights and predictions</span>
+                  <Check className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <span>AI-powered brand insights and predictions</span>
                 </li>
                 <li className="flex items-start space-x-3">
-                  <Check className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                  <span>Reduce costs by up to 30%</span>
+                  <Check className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                  <span>Optimize brand performance by up to 30%</span>
                 </li>
                 <li className="flex items-start space-x-3">
-                  <Check className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <Check className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
                   <span>Setup in minutes, not months</span>
                 </li>
               </ul>
@@ -273,12 +273,12 @@ export default function Contact() {
                 Want to see it in action?
               </h3>
               <p className="text-gray-700 mb-4">
-                Skip the wait and explore CargoCore immediately with our interactive demo. 
+                Skip the wait and explore Brand Buddy immediately with our interactive demo. 
                 See real data, test features, and experience the platform firsthand.
               </p>
               <SignInButton mode="modal">
                 <Button
-                  className="w-full bg-green-600 hover:bg-green-700 !text-white"
+                  className="w-full bg-red-600 hover:bg-red-700 !text-white"
                 >
                   Try Demo Now
                 </Button>

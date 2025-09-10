@@ -97,7 +97,7 @@ export interface AIInsight {
   dollarImpact: number;
   suggestedActions: string[];
   createdAt: string;
-  source: "dashboard_agent" | "warehouse_agent" | "inventory_agent" | "cost_agent" | "analytics_agent" | "orders_agent" | "reports_agent";
+  source: "dashboard_agent" | "warehouse_agent" | "inventory_agent" | "cost_agent" | "analytics_agent" | "orders_agent" | "reports_agent" | "replenishment_agent";
 }
 
 // Anomaly Detection
@@ -506,6 +506,22 @@ export interface InventoryKPIContext {
   inactiveSKUs: KPIContextItem;
 }
 
+// Replenishment KPIs Interface
+export interface ReplenishmentKPIs {
+  criticalSKUs: number;
+  replenishmentValue: number;
+  supplierAlerts: number;
+  reorderRecommendations: number;
+}
+
+// Replenishment AI-powered KPI Context
+export interface ReplenishmentKPIContext {
+  criticalSKUs: KPIContextItem;
+  replenishmentValue: KPIContextItem;
+  supplierAlerts: KPIContextItem;
+  reorderRecommendations: KPIContextItem;
+}
+
 export interface InventoryData {
   kpis: InventoryKPIs;
   kpiContext?: InventoryKPIContext; // This part of the code adds AI-powered KPI context for Inventory with meaningful percentages
@@ -513,6 +529,19 @@ export interface InventoryData {
   inventory: InventoryItem[];
   brandPerformance: BrandPerformance[];
   supplierAnalysis: SupplierAnalysis[];
+  lastUpdated: string;
+}
+
+// Replenishment Data Interface
+export interface ReplenishmentData {
+  kpis: ReplenishmentKPIs;
+  kpiContext?: ReplenishmentKPIContext; // This part of the code adds AI-powered KPI context for Replenishment with meaningful percentages
+  insights: AIInsight[]; // Reuse existing type but from "replenishment_agent"
+  products: ProductData[];
+  shipments: ShipmentData[];
+  criticalItems: any[];
+  supplierPerformance: any[];
+  reorderSuggestions: any[];
   lastUpdated: string;
 }
 

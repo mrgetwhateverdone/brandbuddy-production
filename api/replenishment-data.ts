@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import { ReplenishmentKPIs, ReplenishmentKPIContext, ReplenishmentData, ShipmentData } from "../client/types/api";
 
 // Vercel-compatible types (inline to avoid shared import issues)
 interface TinyBirdResponse<T> {
@@ -30,49 +31,9 @@ interface ProductData {
   updated_date: string | null;
 }
 
-interface ShipmentData {
-  company_url: string;
-  shipment_id: string;
-  brand_id: string | null;
-  brand_name: string;
-  brand_domain: string | null;
-  created_date: string;
-  purchase_order_number: string | null;
-  status: string;
-  supplier: string | null;
-  expected_arrival_date: string | null;
-  warehouse_id: string | null;
-  ship_from_city: string | null;
-  ship_from_state: string | null;
-  ship_from_postal_code: string | null;
-  ship_from_country: string | null;
-  external_system_url: string | null;
-  inventory_item_id: string;
-  expected_quantity: number;
-  received_quantity: number;
-  product_sku: string | null;
-  tracking_number: string[];
-  notes: string;
-  unit_cost?: number | null;
-}
+// ShipmentData interface is now imported from client/types/api.ts
 
-interface ReplenishmentKPIs {
-  criticalSKUs: number;
-  replenishmentValue: number;
-  supplierAlerts: number;
-  reorderRecommendations: number;
-}
-
-interface ReplenishmentData {
-  kpis: ReplenishmentKPIs;
-  insights: any[];
-  products: ProductData[];
-  shipments: ShipmentData[];
-  criticalItems: any[];
-  supplierPerformance: any[];
-  reorderSuggestions: any[];
-  lastUpdated: string;
-}
+// ReplenishmentKPIs, ReplenishmentKPIContext, and ReplenishmentData interfaces are now imported from client/types/api.ts
 
 // This part of the code fetches product data from TinyBird for replenishment analysis
 async function fetchProducts(): Promise<ProductData[]> {
@@ -300,6 +261,200 @@ function generateReplenishmentDataDrivenInsights(
   });
   
   return insights.slice(0, 4); // Limit to top 4 insights
+}
+
+/**
+ * This part of the code generates AI-powered KPI context for Replenishment with accurate percentages and insights
+ * Uses the same products and shipments data source as KPI calculations to ensure consistency
+ */
+async function generateReplenishmentKPIContext(
+  kpis: ReplenishmentKPIs, 
+  products: ProductData[],
+  shipments: ShipmentData[]
+): Promise<ReplenishmentKPIContext> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  console.log('🔑 Replenishment KPI Context Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
+  
+  if (!apiKey) {
+    console.log('❌ No AI service key - using calculated fallbacks for Replenishment KPI context');
+    return generateReplenishmentKPIFallbackContext(kpis, products, shipments);
+  }
+
+  try {
+    // This part of the code analyzes the SAME products and shipments data used for KPI calculations to ensure accuracy
+    const totalActiveProducts = products.filter(p => p.active).length;
+    const lowStockItems = products.filter(p => p.active && p.unit_quantity < 20);
+    const outOfStockItems = products.filter(p => p.active && p.unit_quantity === 0);
+    const criticalItems = products.filter(p => p.active && p.unit_quantity < 10);
+    
+    // This part of the code analyzes recent shipments for supplier performance context
+    const recentShipments = shipments.filter(s => {
+      if (!s.created_date) return false;
+      const daysAgo = (Date.now() - new Date(s.created_date).getTime()) / (1000 * 60 * 60 * 24);
+      return daysAgo <= 30;
+    });
+    
+    const totalSuppliers = new Set(shipments.map(s => s.supplier).filter(Boolean)).size;
+    const supplierWithIssues = new Set();
+    recentShipments.forEach(shipment => {
+      if (shipment.status && (
+        shipment.status.toLowerCase().includes('delay') || 
+        shipment.status.toLowerCase().includes('exception') ||
+        shipment.status.toLowerCase().includes('pending') ||
+        shipment.status.toLowerCase().includes('problem')
+      )) {
+        if (shipment.supplier) supplierWithIssues.add(shipment.supplier);
+      }
+    });
+    
+    // This part of the code calculates financial context for replenishment value
+    const totalValue = products.reduce((sum, p) => sum + ((p.unit_cost || 0) * (p.unit_quantity || 0)), 0);
+    const reorderValue = lowStockItems.reduce((sum, p) => {
+      const suggestedOrder = Math.max(30 - (p.unit_quantity || 0), 0);
+      return sum + (suggestedOrder * (p.unit_cost || 0));
+    }, 0);
+
+    const prompt = `You are a Chief Procurement Officer analyzing replenishment KPIs. Provide meaningful percentage context and procurement-focused business explanations:
+
+REPLENISHMENT OPERATIONAL DATA:
+===============================
+Total Active Products: ${totalActiveProducts}
+Low Stock Items (<20 units): ${lowStockItems.length}  
+Critical Items (<10 units): ${criticalItems.length}
+Out of Stock Items: ${outOfStockItems.length}
+Recent Shipments (30 days): ${recentShipments.length}
+Total Suppliers: ${totalSuppliers}
+Suppliers with Issues: ${supplierWithIssues.size}
+
+CURRENT KPI VALUES:
+- Critical SKUs: ${kpis.criticalSKUs}
+- Replenishment Value: $${kpis.replenishmentValue.toLocaleString()}
+- Supplier Alerts: ${kpis.supplierAlerts}
+- Reorder Recommendations: ${kpis.reorderRecommendations}
+
+FINANCIAL ANALYSIS:
+- Total Portfolio Value: $${totalValue.toLocaleString()}
+- Required Reorder Investment: $${reorderValue.toLocaleString()}
+- Average Cost per Critical Item: $${criticalItems.length > 0 ? (reorderValue / criticalItems.length).toLocaleString() : 0}
+
+Calculate accurate percentages using proper denominators and provide procurement-focused business context for each KPI.
+
+REQUIRED JSON OUTPUT:
+{
+  "criticalSKUs": {
+    "percentage": "[percentage_of_active_portfolio]%", 
+    "context": "[inventory_urgency_context]",
+    "description": "Products requiring urgent replenishment ([percentage]% of active portfolio)"
+  },
+  "replenishmentValue": {
+    "percentage": "[percentage_of_total_value]%",
+    "context": "[capital_efficiency_context]", 
+    "description": "Capital needed for optimal inventory levels"
+  },
+  "supplierAlerts": {
+    "percentage": "[supplier_risk_percentage]%",
+    "context": "[supply_chain_reliability_context]", 
+    "description": "Suppliers with delivery or quality issues"
+  },
+  "reorderRecommendations": {
+    "percentage": "[execution_coverage_percentage]%",
+    "context": "[procurement_workload_context]",
+    "description": "Purchase orders requiring immediate action"
+  }
+}`;
+
+    const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
+    const response = await fetch(openaiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 800,
+        temperature: 0.1,
+      }),
+      signal: AbortSignal.timeout(25000), // 25 second timeout to prevent Vercel function timeouts
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const aiContent = data.choices?.[0]?.message?.content || '';
+      console.log('🤖 Replenishment KPI Context Agent Raw Response:', aiContent.substring(0, 300) + '...');
+      
+      try {
+        const parsed = JSON.parse(aiContent);
+        console.log('✅ Replenishment KPI Context Agent: AI context parsed successfully');
+        return parsed;
+      } catch (parseError) {
+        console.error('❌ Replenishment KPI Context JSON Parse Error:', parseError);
+        console.log('❌ Replenishment KPI Context: JSON parse failed, using fallback');
+        return generateReplenishmentKPIFallbackContext(kpis, products, shipments);
+      }
+    } else {
+      console.error('❌ Replenishment KPI Context OpenAI API Error:', response.status, response.statusText);
+    }
+  } catch (error) {
+    console.error("❌ Replenishment KPI Context AI analysis failed:", error);
+  }
+
+  // This part of the code provides fallback when AI fails - ensures KPI context always available
+  console.log('❌ Replenishment KPI Context: AI service failed, using calculated fallback');
+  return generateReplenishmentKPIFallbackContext(kpis, products, shipments);
+}
+
+/**
+ * This part of the code provides calculated Replenishment KPI context when AI is unavailable
+ * Uses the same data relationships as the AI to ensure consistent percentages
+ */
+function generateReplenishmentKPIFallbackContext(
+  kpis: ReplenishmentKPIs, 
+  products: ProductData[], 
+  shipments: ShipmentData[]
+): ReplenishmentKPIContext {
+  const totalActiveProducts = products.filter(p => p.active).length;
+  const totalSuppliers = new Set(shipments.map(s => s.supplier).filter(Boolean)).size;
+  const totalValue = products.reduce((sum, p) => sum + ((p.unit_cost || 0) * (p.unit_quantity || 0)), 0);
+  
+  // This part of the code calculates reorder value for context
+  const lowStockItems = products.filter(p => p.active && p.unit_quantity < 20);
+  const reorderValue = lowStockItems.reduce((sum, p) => {
+    const suggestedOrder = Math.max(30 - (p.unit_quantity || 0), 0);
+    return sum + (suggestedOrder * (p.unit_cost || 0));
+  }, 0);
+  
+  return {
+    criticalSKUs: {
+      percentage: totalActiveProducts > 0 ? `${((kpis.criticalSKUs / totalActiveProducts) * 100).toFixed(1)}%` : null,
+      context: `${kpis.criticalSKUs} urgent items from ${totalActiveProducts} active products`,
+      description: totalActiveProducts > 0 ? 
+        `Products requiring urgent replenishment (${((kpis.criticalSKUs / totalActiveProducts) * 100).toFixed(1)}% of active portfolio)` :
+        "Products requiring urgent replenishment"
+    },
+    replenishmentValue: {
+      percentage: totalValue > 0 ? `${((kpis.replenishmentValue / totalValue) * 100).toFixed(1)}%` : null,
+      context: `$${kpis.replenishmentValue.toLocaleString()} investment needed from $${totalValue.toLocaleString()} portfolio`,
+      description: totalValue > 0 ?
+        `Capital needed for optimal inventory levels (${((kpis.replenishmentValue / totalValue) * 100).toFixed(1)}% of portfolio value)` :
+        "Capital needed for optimal inventory levels"
+    },
+    supplierAlerts: {
+      percentage: totalSuppliers > 0 ? `${((kpis.supplierAlerts / totalSuppliers) * 100).toFixed(1)}%` : null,
+      context: `${kpis.supplierAlerts} problematic suppliers from ${totalSuppliers} total`,
+      description: totalSuppliers > 0 ?
+        `Suppliers with delivery or quality issues (${((kpis.supplierAlerts / totalSuppliers) * 100).toFixed(1)}% of supplier base)` :
+        "Suppliers with delivery or quality issues"
+    },
+    reorderRecommendations: {
+      percentage: kpis.criticalSKUs > 0 ? `${((kpis.reorderRecommendations / kpis.criticalSKUs) * 100).toFixed(0)}%` : null,
+      context: `${kpis.reorderRecommendations} purchase orders from ${kpis.criticalSKUs} critical items`,
+      description: kpis.criticalSKUs > 0 ?
+        `Purchase orders requiring immediate action (${((kpis.reorderRecommendations / kpis.criticalSKUs) * 100).toFixed(0)}% coverage of critical items)` :
+        "Purchase orders requiring immediate action"
+    }
+  };
 }
 
 // This part of the code generates AI insights for replenishment management using OpenAI
@@ -589,8 +744,12 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
   const kpis = calculateReplenishmentKPIs(products, shipments);
 
+  // This part of the code generates AI-powered KPI context for meaningful percentages
+  const kpiContext = await generateReplenishmentKPIContext(kpis, products, shipments);
+
   const replenishmentData = {
     kpis,
+    kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages and business insights
     insights: [], // Empty for fast mode
     products,
     shipments,
@@ -719,8 +878,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const kpis = calculateReplenishmentKPIs(products, shipments);
     const insights = await generateReplenishmentInsights(products, shipments, kpis);
 
+    // This part of the code generates AI-powered KPI context for the default handler as well
+    const kpiContext = await generateReplenishmentKPIContext(kpis, products, shipments);
+
     const replenishmentData: ReplenishmentData = {
       kpis,
+      kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages and business insights
       insights: insights.map((insight, index) => ({
         id: `replenishment-insight-${index + 1}`,
         title: insight.title,

@@ -10,7 +10,7 @@ import type {
   ProductData,
   ShipmentData 
 } from "@/types/data";
-import type { ReplenishmentItemSuggestion, AIInsight } from "@/types/api";
+import type { ReplenishmentItemSuggestion, AIInsight, ReplenishmentKPIContext } from "@/types/api";
 
 // This part of the code extends the base interface for additional replenishment-specific KPIs
 interface ExtendedReplenishmentKPIs extends ReplenishmentKPIs {
@@ -45,6 +45,7 @@ interface ReorderSuggestion {
 // This part of the code defines type-safe replenishment data structure
 interface TypedReplenishmentData extends Omit<ReplenishmentData, 'kpis'> {
   kpis: ExtendedReplenishmentKPIs;
+  kpiContext?: ReplenishmentKPIContext; // This part of the code includes AI-powered KPI context for meaningful percentages
   products: ProductData[];
   shipments: ShipmentData[];
   criticalItems: CriticalItem[];

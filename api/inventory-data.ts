@@ -407,81 +407,34 @@ async function generateInventoryInsights(
     const totalInventoryValue = kpis.totalInventoryValue;
     const avgInventoryValue = products.length > 0 ? totalInventoryValue / products.length : 0;
 
-    const prompt = `You are a VP of Inventory Management with 20+ years of experience in demand planning, inventory optimization, and warehouse operations. You have expertise in implementing JIT systems, ABC analysis, and advanced forecasting models that have saved companies millions in carrying costs.
+    const prompt = `Analyze inventory data and provide actionable insights:
 
-🎯 CRITICAL INSTRUCTION: You MUST use the specific data provided below to create detailed, actionable recommendations. Do NOT provide generic advice. Every recommendation must reference actual SKU numbers, supplier names, quantities, or dollar amounts from the data.
+INVENTORY DATA:
+- Total SKUs: ${kpis.totalSKUs} (${kpis.totalActiveSKUs} active)
+- Inventory Value: $${kpis.totalInventoryValue?.toLocaleString() || 0}
+- Low Stock: ${kpis.lowStockAlerts} items
+- Out of Stock: ${outOfStockItems.length} items
+- Overstocked: ${overstockedItems.length} items (>100 units)
+- Inactive: ${inactiveItems.length} items
 
-INVENTORY INTELLIGENCE DASHBOARD:
-=================================
+FOCUS AREAS:
+${lowStockItems.length > 0 ? `- Critical Low Stock: ${lowStockItems.slice(0, 3).map(p => `${p.product_sku || p.product_id} (${p.unit_quantity} units)`).join(', ')}` : ''}
+${outOfStockItems.length > 0 ? `- Out of Stock: ${outOfStockItems.slice(0, 3).map(p => p.product_sku || p.product_id).join(', ')}` : ''}
+${overstockedItems.length > 0 ? `- Overstocked: ${overstockedItems.slice(0, 3).map(p => `${p.product_sku || p.product_id} (${p.unit_quantity} units)`).join(', ')}` : ''}
 
-CRITICAL METRICS:
-- Total SKUs: ${kpis.totalSKUs} (${kpis.totalActiveSKUs} active, ${kpis.inactiveSKUs} inactive)
-- Total Inventory Value: $${kpis.totalInventoryValue.toLocaleString()}
-- Low Stock Alerts: ${kpis.lowStockAlerts} critical items
-- Out of Stock: ${outOfStockItems.length} SKUs unavailable
-- Overstocked Items: ${overstockedItems.length} SKUs (>100 units)
-
-SUPPLIER RISK ANALYSIS:
-- Total Suppliers: ${supplierAnalysis.length} partners
-- High Concentration Risk: ${highRiskSuppliers.length} suppliers (>30% portfolio share)
-- Top Supplier Concentration: ${supplierAnalysis.length > 0 ? supplierAnalysis[0].concentration_risk : 0}%
-- Average Value per SKU: $${Math.round(avgInventoryValue).toLocaleString()}
-
-INVENTORY HEALTH BREAKDOWN:
-- In Stock: ${products.filter(p => p.active && p.unit_quantity >= 10 && p.unit_quantity <= 100).length} SKUs optimal range
-- Low Stock (<10 units): ${lowStockItems.length} SKUs requiring attention
-- Out of Stock: ${outOfStockItems.length} SKUs causing stockouts
-- Overstocked (>100 units): ${overstockedItems.length} SKUs tying up capital
-- Inactive Portfolio: ${inactiveItems.length} SKUs (${Math.round((inactiveItems.length / products.length) * 100)}% of total)
-
-SPECIFIC DATA TO REFERENCE:
-- Low Stock SKUs: ${lowStockItems.slice(0, 10).map(p => `${p.product_sku || p.product_id} (${p.unit_quantity} units, ${p.supplier_name || 'N/A'})`).join(', ')}
-- Out of Stock SKUs: ${outOfStockItems.slice(0, 10).map(p => `${p.product_sku || p.product_id} (${p.supplier_name || 'N/A'})`).join(', ')}
-- Overstocked SKUs: ${overstockedItems.slice(0, 10).map(p => `${p.product_sku || p.product_id} (${p.unit_quantity} units, $${((p.unit_cost || 0) * p.unit_quantity).toLocaleString()})`).join(', ')}
-- High Risk Suppliers: ${highRiskSuppliers.map(s => `${s.supplier_name} (${s.sku_count} SKUs, $${s.total_value.toLocaleString()})`).join(', ')}
-
-Based on your proven track record of reducing inventory carrying costs by 25-35% and implementing successful JIT systems, analyze this data and provide strategic insights focused on inventory optimization opportunities.
-
-WORKFLOW RECOMMENDATION REQUIREMENTS:
-- Reference specific SKUs from the data above with exact quantities and suppliers
-- Include concrete WHO to contact and WHAT to do TODAY with deadlines
-- Specify exact reorder amounts, target stock levels, and financial impacts
-- Provide detailed step-by-step workflow actions that operations can execute immediately
-- Use real supplier names and SKU numbers from the data provided above
-
-EXAMPLE HIGH-QUALITY SUGGESTED ACTIONS:
-- "Create emergency reorder workflow for SKU-7890 from Johnson Industries: order 45 units by Friday to prevent $3,200 stockout loss"
-- "Implement ABC analysis workflow for overstocked SKUs (SKU-1234: 150 units, $4,500 tied up) - contact procurement team to negotiate supplier buyback"
-- "Establish automated reorder triggers for critical SKUs like SKU-5678 (8 units remaining, 2.3x velocity) - set minimum threshold at 15 units"
-
-❌ AVOID GENERIC RECOMMENDATIONS LIKE:
-- "Implement reorder triggers" (no specific SKUs)
-- "Create supplier scorecards" (no specific suppliers)
-- "Optimize inventory levels" (no specific products or quantities)
-
-🚨 CRITICAL SUCCESS CRITERIA:
-- Each suggestedAction MUST include specific data from above sections
-- Use actual SKU numbers, supplier names, quantities, dollar amounts
-- Provide concrete next steps with specific parties to contact
-- Include implementation timelines and expected ROI
-- Reference exact data points, not general concepts
-
-Generate exactly 3-5 insights as JSON array:
+Generate 3-5 inventory insights as JSON array:
 [
   {
-    "id": "inventory-insight-1",
-    "title": "Strategic inventory insight title",
-    "description": "Expert analysis with specific numbers and actionable recommendations",
+    "title": "Insight title",
+    "description": "Brief analysis with key metrics and impact",
     "severity": "critical|warning|info",
-    "dollarImpact": calculated_financial_impact,
-    "suggestedActions": ["Detailed workflow with specific SKUs, suppliers, quantities from data above", "Step-by-step action with WHO to contact and WHAT to do with deadlines", "Concrete implementation steps using real data points"],
-    "createdAt": "${new Date().toISOString()}",
-    "source": "inventory_agent"
+    "dollarImpact": dollar_amount,
+    "suggestedActions": ["Specific action with SKU/supplier details", "Implementation step with timeline"]
   }
 ]`;
 
     const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
-    console.log('🤖 Inventory Agent: Calling AI service for comprehensive inventory insights...');
+    console.log('🤖 Inventory Agent: Calling AI service for focused inventory insights...');
     
     const response = await fetch(openaiUrl, {
       method: "POST",
@@ -490,11 +443,12 @@ Generate exactly 3-5 insights as JSON array:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: process.env.AI_MODEL_ADVANCED || "gpt-4",
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo",
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 1000,
-        temperature: 0.2,
+        max_tokens: 800,
+        temperature: 0.1,
       }),
+      signal: AbortSignal.timeout(25000), // 25 second timeout to prevent Vercel function timeouts
     });
 
     if (!response.ok) {

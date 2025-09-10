@@ -139,8 +139,12 @@ export const useInventoryInsights = () => {
 
       return insightsData;
     },
-    staleTime: 15 * 60 * 1000, // 15 minutes - standardized with Dashboard/Orders
-    retry: 2, // Fewer retries for AI insights - matches Dashboard/Orders
+    staleTime: 5 * 60 * 1000, // 5 minutes - matches Dashboard for consistency
+    gcTime: 30 * 60 * 1000, // 30 minutes background cache for better UX
+    retry: 3, // Increased retries for better reliability
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches on focus
+    refetchOnReconnect: false, // Prevent refetch storms on reconnect
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
     meta: {
       errorMessage: "Unable to load inventory insights - Operating with data only",
     },

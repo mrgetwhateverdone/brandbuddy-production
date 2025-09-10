@@ -176,7 +176,7 @@ async function generateKPIContext(
   try {
     // This part of the code analyzes the SAME data used for KPI calculations to ensure accuracy
     const totalShipments = shipments.length;
-    const totalProducts = products.length;
+  const totalProducts = products.length;
     const totalUniqueOrders = new Set(shipments.map(s => s.purchase_order_number).filter(Boolean)).size;
     
     const atRiskDetails = shipments.filter(s => 
@@ -933,10 +933,10 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
   // This part of the code generates AI-powered KPI context for meaningful percentages
   const kpiValues = {
-    totalOrdersToday: totalOrdersToday > 0 ? totalOrdersToday : null,
-    atRiskOrders: atRiskOrders > 0 ? atRiskOrders : null,
-    openPOs: openPOs > 0 ? openPOs : null,
-    unfulfillableSKUs,
+      totalOrdersToday: totalOrdersToday > 0 ? totalOrdersToday : null,
+      atRiskOrders: atRiskOrders > 0 ? atRiskOrders : null,
+      openPOs: openPOs > 0 ? openPOs : null,
+      unfulfillableSKUs,
   };
   const kpiContext = await generateKPIContext(kpiValues, products, shipments);
 
@@ -1095,10 +1095,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // This part of the code generates AI-powered KPI context for the default handler as well
     const kpiValues = {
-      totalOrdersToday: totalOrdersToday > 0 ? totalOrdersToday : null,
-      atRiskOrders: atRiskOrders > 0 ? atRiskOrders : null,
-      openPOs: openPOs > 0 ? openPOs : null,
-      unfulfillableSKUs,
+        totalOrdersToday: totalOrdersToday > 0 ? totalOrdersToday : null,
+        atRiskOrders: atRiskOrders > 0 ? atRiskOrders : null,
+        openPOs: openPOs > 0 ? openPOs : null,
+        unfulfillableSKUs,
     };
     const kpiContext = await generateKPIContext(kpiValues, products, shipments);
 

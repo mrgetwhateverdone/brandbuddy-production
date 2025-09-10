@@ -97,7 +97,7 @@ export interface AIInsight {
   dollarImpact: number;
   suggestedActions: string[];
   createdAt: string;
-  source: "dashboard_agent" | "warehouse_agent" | "inventory_agent" | "cost_agent" | "analytics_agent" | "orders_agent" | "reports_agent" | "replenishment_agent" | "inbound_agent";
+  source: "dashboard_agent" | "warehouse_agent" | "inventory_agent" | "cost_agent" | "analytics_agent" | "orders_agent" | "reports_agent" | "replenishment_agent" | "inbound_agent" | "sla_agent";
 }
 
 // Anomaly Detection
@@ -151,7 +151,8 @@ export interface KPIContextItem {
   description: string;
 }
 
-export interface KPIContext {
+// Dashboard AI-powered KPI Context
+export interface DashboardKPIContext {
   atRiskOrders: KPIContextItem;
   openPOs: KPIContextItem;
   totalOrdersToday: KPIContextItem;
@@ -162,7 +163,7 @@ export interface DashboardData {
   products: ProductData[];
   shipments: ShipmentData[];
   kpis: DashboardKPIs;
-  kpiContext?: KPIContext; // This part of the code adds AI-powered KPI context with meaningful percentages
+  kpiContext?: DashboardKPIContext; // This part of the code adds AI-powered KPI context with meaningful percentages
   quickOverview: QuickOverviewMetrics;
   warehouseInventory: WarehouseInventory[];
   insights: AIInsight[];

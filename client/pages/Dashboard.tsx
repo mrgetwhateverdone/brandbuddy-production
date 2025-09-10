@@ -84,7 +84,6 @@ export default function Dashboard() {
                 <KPISection 
                   kpis={data.kpis} 
                   kpiContext={data.kpiContext} 
-                  shipments={data.shipments} 
                   isLoading={isLoading} 
                 />
               </div>

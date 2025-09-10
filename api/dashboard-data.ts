@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { DashboardKPIs, DashboardKPIContext } from "../client/types/api";
 
 /**
  * This part of the code standardizes the data interfaces to match the server implementation
@@ -160,17 +161,17 @@ function calculateFinancialImpacts(products: ProductData[], shipments: ShipmentD
  * This part of the code generates AI-powered KPI context with accurate percentages and insights
  * Uses the same data source as KPI calculations to ensure consistency
  */
-async function generateKPIContext(
-  kpis: any, 
-  products: ProductData[], 
+async function generateDashboardKPIContext(
+  kpis: DashboardKPIs, 
+  products: ProductData[],
   shipments: ShipmentData[]
-): Promise<any> {
+): Promise<DashboardKPIContext> {
   const apiKey = process.env.OPENAI_API_KEY;
   console.log('🔑 KPI Context Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
   
   if (!apiKey) {
     console.log('❌ No AI service key - using calculated fallbacks for KPI context');
-    return generateKPIFallbackContext(kpis, products, shipments);
+    return generateDashboardKPIFallbackContext(kpis, products, shipments);
   }
 
   try {
@@ -266,7 +267,7 @@ REQUIRED JSON OUTPUT:
       } catch (parseError) {
         console.error('❌ KPI Context JSON Parse Error:', parseError);
         console.log('❌ KPI Context: JSON parse failed, using fallback');
-        return generateKPIFallbackContext(kpis, products, shipments);
+        return generateDashboardKPIFallbackContext(kpis, products, shipments);
       }
     } else {
       console.error('❌ KPI Context OpenAI API Error:', response.status, response.statusText);
@@ -277,35 +278,35 @@ REQUIRED JSON OUTPUT:
 
   // This part of the code provides fallback when AI fails - ensures KPI context always available
   console.log('❌ KPI Context: AI service failed, using calculated fallback');
-  return generateKPIFallbackContext(kpis, products, shipments);
+  return generateDashboardKPIFallbackContext(kpis, products, shipments);
 }
 
 /**
  * This part of the code provides calculated KPI context when AI is unavailable
  * Uses the same data relationships as the AI to ensure consistent percentages
  */
-function generateKPIFallbackContext(kpis: any, products: ProductData[], shipments: ShipmentData[]) {
+function generateDashboardKPIFallbackContext(kpis: DashboardKPIs, products: ProductData[], shipments: ShipmentData[]): DashboardKPIContext {
   const totalShipments = shipments.length;
   const totalUniqueOrders = new Set(shipments.map(s => s.purchase_order_number).filter(Boolean)).size;
   const totalProducts = products.length;
   
   return {
     atRiskOrders: {
-      percentage: totalShipments > 0 ? ((kpis.atRiskOrders / totalShipments) * 100).toFixed(1) + "%" : null,
-      context: `${kpis.atRiskOrders} affected shipments from ${totalShipments} total`,
+      percentage: totalShipments > 0 ? (((kpis.atRiskOrders || 0) / totalShipments) * 100).toFixed(1) + "%" : null,
+      context: `${kpis.atRiskOrders || 0} affected shipments from ${totalShipments} total`,
       description: totalShipments > 0 ? 
-        `Orders with delays or issues (${((kpis.atRiskOrders / totalShipments) * 100).toFixed(1)}% of shipments)` :
+        `Orders with delays or issues (${(((kpis.atRiskOrders || 0) / totalShipments) * 100).toFixed(1)}% of shipments)` :
         "Orders with delays or issues"
     },
     openPOs: {
-      percentage: totalUniqueOrders > 0 ? ((kpis.openPOs / totalUniqueOrders) * 100).toFixed(1) + "%" : null,
-      context: `${kpis.openPOs} active from ${totalUniqueOrders} total orders`,
+      percentage: totalUniqueOrders > 0 ? (((kpis.openPOs || 0) / totalUniqueOrders) * 100).toFixed(1) + "%" : null,
+      context: `${kpis.openPOs || 0} active from ${totalUniqueOrders} total orders`,
       description: totalUniqueOrders > 0 ?
-        `Active purchase orders (${((kpis.openPOs / totalUniqueOrders) * 100).toFixed(1)}% of orders)` :
+        `Active purchase orders (${(((kpis.openPOs || 0) / totalUniqueOrders) * 100).toFixed(1)}% of orders)` :
         "Active purchase orders"
     },
     totalOrdersToday: {
-      context: kpis.totalOrdersToday > 0 ? "Active order processing today" : "No new orders received today",
+      context: (kpis.totalOrdersToday || 0) > 0 ? "Active order processing today" : "No new orders received today",
       description: "New orders received today"
     },
     unfulfillableSKUs: {
@@ -938,7 +939,7 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
       openPOs: openPOs > 0 ? openPOs : null,
       unfulfillableSKUs,
   };
-  const kpiContext = await generateKPIContext(kpiValues, products, shipments);
+  const kpiContext = await generateDashboardKPIContext(kpiValues, products, shipments);
 
   const dashboardData = {
     products: products.slice(0, 20),
@@ -1100,7 +1101,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         openPOs: openPOs > 0 ? openPOs : null,
         unfulfillableSKUs,
     };
-    const kpiContext = await generateKPIContext(kpiValues, products, shipments);
+    const kpiContext = await generateDashboardKPIContext(kpiValues, products, shipments);
 
     const dashboardData = {
       products,

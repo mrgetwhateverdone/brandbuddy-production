@@ -603,7 +603,7 @@ Generate exactly 3-5 insights with 3-5 specific actions each.`;
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: process.env.AI_MODEL_ADVANCED || "gpt-4",
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo", // This part of the code switches to fast AI model for consistent performance
         messages: [{ role: "user", content: prompt }],
         max_tokens: 1000,
         temperature: 0.2,

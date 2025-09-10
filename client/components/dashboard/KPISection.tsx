@@ -1,15 +1,14 @@
-import type { DashboardKPIs, ShipmentData, KPIContext } from "@/types/api";
+import type { DashboardKPIs, DashboardKPIContext } from "@/types/api";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 import { formatKPIValue } from "@/lib/formatters";
 
 interface KPISectionProps {
   kpis: DashboardKPIs;
-  kpiContext?: KPIContext; // This part of the code adds AI-powered KPI context for meaningful percentages
-  shipments?: ShipmentData[]; // This part of the code keeps shipments for backward compatibility
+  kpiContext?: DashboardKPIContext; // This part of the code adds AI-powered KPI context for meaningful percentages
   isLoading?: boolean;
 }
 
-export function KPISection({ kpis, kpiContext, shipments, isLoading }: KPISectionProps) {
+export function KPISection({ kpis, kpiContext, isLoading }: KPISectionProps) {
   
   // This part of the code uses AI-powered context for meaningful KPI descriptions and percentages
   // Falls back to simple descriptions when AI context is not available

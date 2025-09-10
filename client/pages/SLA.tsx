@@ -86,7 +86,7 @@ export default function SLA() {
     <Layout>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* This part of the code displays the hero SLA KPI cards */}
-        <SLAKPISection kpis={data.kpis} isLoading={isLoading} />
+        <SLAKPISection kpis={data.kpis} kpiContext={data.kpiContext} isLoading={isLoading} />
 
         {/* This part of the code displays AI insights for SLA performance with Progressive Loading */}
         {isPageAIEnabled('sla') && (

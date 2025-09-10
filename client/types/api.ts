@@ -577,6 +577,99 @@ export interface InboundData {
   lastUpdated: string;
 }
 
+// SLA KPIs Interface
+export interface SLAKPIs {
+  overallSLACompliance: number | null;
+  averageDeliveryPerformance: number | null; // days early/late
+  atRiskShipments: number;
+  costOfSLABreaches: number;
+}
+
+// SLA AI-powered KPI Context
+export interface SLAKPIContext {
+  overallSLACompliance: KPIContextItem;
+  averageDeliveryPerformance: KPIContextItem;
+  atRiskShipments: KPIContextItem;
+  costOfSLABreaches: KPIContextItem;
+}
+
+// SLA Performance Trends Interface
+export interface SLAPerformanceTrends {
+  dailyPerformance: Array<{
+    date: string;
+    slaCompliance: number;
+    totalShipments: number;
+    onTimeShipments: number;
+  }>;
+  weeklyPatterns: Array<{
+    dayOfWeek: string;
+    avgPerformance: number;
+    shipmentCount: number;
+  }>;
+}
+
+// SLA Supplier Scorecard Interface
+export interface SLASupplierScorecard {
+  supplier: string;
+  performanceScore: number; // 0-100
+  slaCompliance: number;
+  quantityAccuracy: number;
+  totalShipments: number;
+  totalValue: number;
+  trend: 'improving' | 'declining' | 'stable';
+  riskProfile: 'low' | 'medium' | 'high';
+}
+
+// SLA Insight Interface
+export interface SLAInsight {
+  type: 'critical' | 'warning' | 'info';
+  category: 'performance' | 'financial' | 'operational';
+  message: string;
+  data?: any;
+}
+
+// SLA Financial Impact Interface
+export interface SLAFinancialImpact {
+  totalSLABreachCost: number;
+  averageBreachCost: number;
+  opportunityCost: number;
+  potentialSavings: number;
+  monthlyTrend: Array<{
+    month: string;
+    breachCost: number;
+    missedOpportunity: number;
+  }>;
+  supplierCostBreakdown: Array<{
+    supplier: string;
+    totalCost: number;
+    avgCostPerBreach: number;
+    breachCount: number;
+  }>;
+}
+
+// SLA Optimization Recommendation Interface
+export interface SLAOptimizationRecommendation {
+  type: 'supplier' | 'route' | 'inventory' | 'contract';
+  priority: 'high' | 'medium' | 'low';
+  title: string;
+  description: string;
+  estimatedImpact: string;
+  actionRequired: string;
+  timeline: string;
+  difficulty: 'easy' | 'medium' | 'complex';
+}
+
+// SLA Data Interface
+export interface SLAData {
+  kpis: SLAKPIs;
+  kpiContext?: SLAKPIContext; // This part of the code adds AI-powered KPI context for SLA with meaningful percentages
+  performanceTrends: SLAPerformanceTrends;
+  supplierScorecard: SLASupplierScorecard[];
+  financialImpact: SLAFinancialImpact;
+  optimizationRecommendations: SLAOptimizationRecommendation[];
+  insights: SLAInsight[];
+}
+
 // Cost Management Interfaces (Enhanced for Phase 2A)
 export interface CostKPIs {
   // Enhanced Real Cost Metrics

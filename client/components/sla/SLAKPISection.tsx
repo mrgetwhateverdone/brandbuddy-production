@@ -1,8 +1,9 @@
 import { TrendingUp, TrendingDown, AlertTriangle, DollarSign } from "lucide-react";
-import type { SLAKPIs } from "@/hooks/useSLAData";
+import type { SLAKPIs, SLAKPIContext } from "@/types/api";
 
 interface SLAKPISectionProps {
   kpis: SLAKPIs;
+  kpiContext?: SLAKPIContext;
   isLoading?: boolean;
 }
 
@@ -10,7 +11,7 @@ interface SLAKPISectionProps {
  * This part of the code displays the hero SLA KPI cards
  * Shows overall compliance, delivery performance, at-risk shipments, and breach costs
  */
-export function SLAKPISection({ kpis, isLoading }: SLAKPISectionProps) {
+export function SLAKPISection({ kpis, kpiContext, isLoading }: SLAKPISectionProps) {
   // This part of the code formats currency values consistently
   const formatCurrency = (value: number) => {
     if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -31,7 +32,8 @@ export function SLAKPISection({ kpis, isLoading }: SLAKPISectionProps) {
       value: kpis?.overallSLACompliance,
       unit: "%",
       target: 95,
-      description: "On-time delivery performance",
+      description: kpiContext?.overallSLACompliance.description || "On-time delivery performance",
+      context: kpiContext?.overallSLACompliance.context,
       icon: TrendingUp,
       colorClass: (kpis?.overallSLACompliance || 0) >= 95 ? "text-green-600" : 
                   (kpis?.overallSLACompliance || 0) >= 85 ? "text-yellow-600" : "text-red-600",
@@ -42,7 +44,8 @@ export function SLAKPISection({ kpis, isLoading }: SLAKPISectionProps) {
       title: "Avg Delivery Performance",
       value: Math.abs(kpis?.averageDeliveryPerformance || 0),
       unit: (kpis?.averageDeliveryPerformance || 0) < 0 ? " days early" : " days late",
-      description: "Average days early or late",
+      description: kpiContext?.averageDeliveryPerformance.description || "Average days early or late",
+      context: kpiContext?.averageDeliveryPerformance.context,
       icon: (kpis?.averageDeliveryPerformance || 0) < 0 ? TrendingUp : TrendingDown,
       colorClass: (kpis?.averageDeliveryPerformance || 0) < 0 ? "text-green-600" : "text-red-600",
       bgClass: (kpis?.averageDeliveryPerformance || 0) < 0 ? "bg-green-50" : "bg-red-50"
@@ -50,7 +53,8 @@ export function SLAKPISection({ kpis, isLoading }: SLAKPISectionProps) {
     {
       title: "At-Risk Shipments",
       value: kpis?.atRiskShipments,
-      description: "Currently trending late",
+      description: kpiContext?.atRiskShipments.description || "Currently trending late",
+      context: kpiContext?.atRiskShipments.context,
       icon: AlertTriangle,
       colorClass: (kpis?.atRiskShipments || 0) === 0 ? "text-green-600" : 
                   (kpis?.atRiskShipments || 0) <= 5 ? "text-yellow-600" : "text-red-600",
@@ -61,7 +65,8 @@ export function SLAKPISection({ kpis, isLoading }: SLAKPISectionProps) {
       title: "Cost of SLA Breaches",
       value: kpis?.costOfSLABreaches,
       format: "currency",
-      description: "Impact of late/incomplete shipments",
+      description: kpiContext?.costOfSLABreaches.description || "Impact of late/incomplete shipments",
+      context: kpiContext?.costOfSLABreaches.context,
       icon: DollarSign,
       colorClass: "text-red-600",
       bgClass: "bg-red-50"
@@ -122,6 +127,11 @@ export function SLAKPISection({ kpis, isLoading }: SLAKPISectionProps) {
                       </span>
                     )}
                   </div>
+                  {card.context && !isLoading && (
+                    <div className="text-xs text-gray-400 mt-1 italic">
+                      {card.context}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

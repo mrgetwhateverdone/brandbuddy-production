@@ -1,4 +1,9 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
+import type { 
+  SLAKPIs, 
+  SLAKPIContext, 
+  SLAData
+} from "../client/types/api";
 
 /**
  * This part of the code defines interfaces for SLA data analysis
@@ -62,71 +67,6 @@ interface ShipmentData {
   notes: string;
 }
 
-// SLA Data Response Interface
-interface SLAData {
-  kpis: {
-    overallSLACompliance: number | null;
-    averageDeliveryPerformance: number | null; // days early/late
-    atRiskShipments: number;
-    costOfSLABreaches: number;
-  };
-  performanceTrends: {
-    dailyPerformance: Array<{
-      date: string;
-      slaCompliance: number;
-      totalShipments: number;
-      onTimeShipments: number;
-    }>;
-    weeklyPatterns: Array<{
-      dayOfWeek: string;
-      avgPerformance: number;
-      shipmentCount: number;
-    }>;
-  };
-  supplierScorecard: Array<{
-    supplier: string;
-    performanceScore: number; // 0-100
-    slaCompliance: number;
-    quantityAccuracy: number;
-    totalShipments: number;
-    totalValue: number;
-    trend: 'improving' | 'declining' | 'stable';
-    riskProfile: 'low' | 'medium' | 'high';
-  }>;
-  financialImpact: {
-    totalSLABreachCost: number;
-    averageBreachCost: number;
-    opportunityCost: number; // estimated lost sales
-    potentialSavings: number; // if performance improved to target
-    monthlyTrend: Array<{
-      month: string;
-      breachCost: number;
-      missedOpportunity: number;
-    }>;
-    supplierCostBreakdown: Array<{
-      supplier: string;
-      totalCost: number;
-      avgCostPerBreach: number;
-      breachCount: number;
-    }>;
-  };
-  optimizationRecommendations: Array<{
-    type: 'supplier' | 'route' | 'inventory' | 'contract';
-    priority: 'high' | 'medium' | 'low';
-    title: string;
-    description: string;
-    estimatedImpact: string;
-    actionRequired: string;
-    timeline: string;
-    difficulty: 'easy' | 'medium' | 'complex';
-  }>;
-  insights: Array<{
-    type: 'critical' | 'warning' | 'info';
-    category: 'performance' | 'financial' | 'operational';
-    message: string;
-    data?: any;
-  }>;
-}
 
 /**
  * This part of the code fetches products data from TinyBird API
@@ -1002,6 +942,254 @@ Generate exactly 3-5 insights with 3-5 specific actions each using this exact fo
   return [];
 }
 
+/**
+ * This part of the code generates AI-powered KPI context for SLA with accurate percentages and insights
+ * Uses the same shipments data source as KPI calculations to ensure consistency
+ */
+async function generateSLAKPIContext(
+  kpis: SLAKPIs, 
+  shipments: ShipmentData[]
+): Promise<SLAKPIContext> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  console.log('🔑 SLA KPI Context Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
+  
+  if (!apiKey) {
+    console.log('❌ No AI service key - using calculated fallbacks for SLA KPI context');
+    return generateSLAKPIFallbackContext(kpis, shipments);
+  }
+
+  try {
+    // This part of the code analyzes the SAME shipments data used for KPI calculations to ensure accuracy
+    const onTimeShipments = shipments.filter(s => {
+      if (!s.expected_arrival_date || !s.arrival_date) return false;
+      try {
+        const expected = new Date(s.expected_arrival_date);
+        const actual = new Date(s.arrival_date);
+        return actual <= expected && s.expected_quantity === s.received_quantity;
+      } catch {
+        return false;
+      }
+    });
+    
+    // This part of the code analyzes delivery performance patterns
+    const deliveryPerformances = shipments
+      .filter(s => s.expected_arrival_date && s.arrival_date)
+      .map(s => {
+        try {
+          const expected = new Date(s.expected_arrival_date!);
+          const actual = new Date(s.arrival_date);
+          return (actual.getTime() - expected.getTime()) / (1000 * 60 * 60 * 24);
+        } catch {
+          return 0;
+        }
+      });
+    
+    // This part of the code analyzes at-risk shipments for proactive management
+    const atRiskShipments = shipments.filter(s => {
+      const inTransit = s.status.toLowerCase().includes('transit') || 
+                       s.status.toLowerCase().includes('processing') ||
+                       s.status.toLowerCase().includes('pending');
+      
+      if (!inTransit || !s.expected_arrival_date) return false;
+      
+      try {
+        const expected = new Date(s.expected_arrival_date);
+        const now = new Date();
+        const daysUntilExpected = (expected.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+        
+        return daysUntilExpected <= 2;
+      } catch {
+        return false;
+      }
+    });
+    
+    // This part of the code analyzes SLA breach costs by supplier
+    const lateShipments = shipments.filter(s => {
+      if (!s.expected_arrival_date || !s.arrival_date) return false;
+      try {
+        const expected = new Date(s.expected_arrival_date);
+        const actual = new Date(s.arrival_date);
+        return actual > expected || s.expected_quantity !== s.received_quantity;
+      } catch {
+        return false;
+      }
+    });
+    
+    // This part of the code analyzes supplier performance for context
+    const supplierPerformance = new Map();
+    shipments.forEach(s => {
+      if (s.supplier && s.expected_arrival_date && s.arrival_date) {
+        const expected = new Date(s.expected_arrival_date);
+        const actual = new Date(s.arrival_date);
+        const onTime = actual <= expected && s.expected_quantity === s.received_quantity;
+        
+        if (!supplierPerformance.has(s.supplier)) {
+          supplierPerformance.set(s.supplier, { total: 0, onTime: 0, totalValue: 0 });
+        }
+        const perf = supplierPerformance.get(s.supplier);
+        perf.total++;
+        if (onTime) perf.onTime++;
+        perf.totalValue += (s.unit_cost || 50) * s.expected_quantity;
+      }
+    });
+
+    const prompt = `You are a Chief Supply Chain Officer analyzing SLA performance KPIs. Provide meaningful percentage context and service-level focused business explanations:
+
+SLA PERFORMANCE DATA:
+=====================
+Total Shipments: ${shipments.length}
+On-Time Shipments: ${onTimeShipments.length}
+Late Shipments: ${lateShipments.length}
+At-Risk Shipments: ${atRiskShipments.length}
+Delivery Performance Samples: ${deliveryPerformances.length}
+Active Suppliers: ${supplierPerformance.size}
+Average Delivery Performance: ${kpis.averageDeliveryPerformance || 0} days
+
+CURRENT KPI VALUES:
+-- Overall SLA Compliance: ${kpis.overallSLACompliance || 0}%
+-- Average Delivery Performance: ${kpis.averageDeliveryPerformance || 0} days late
+-- At-Risk Shipments: ${kpis.atRiskShipments}
+-- Cost of SLA Breaches: $${kpis.costOfSLABreaches}
+
+SLA ANALYSIS:
+-- Compliance vs 95% Target: ${((kpis.overallSLACompliance || 0) - 95).toFixed(1)}% difference
+-- Delivery Performance vs Target: ${kpis.averageDeliveryPerformance || 0} days vs 0 day target
+-- At-Risk Percentage: ${shipments.length > 0 ? ((kpis.atRiskShipments / shipments.length) * 100).toFixed(1) : 0}% of active shipments
+-- Average Breach Cost: $${lateShipments.length > 0 ? Math.round(kpis.costOfSLABreaches / lateShipments.length) : 0} per incident
+-- Supplier Performance: ${Array.from(supplierPerformance.values()).filter(s => (s.onTime / s.total) < 0.9).length} suppliers below 90% compliance
+
+Calculate accurate percentages using proper denominators and provide service-level context for each KPI.
+
+REQUIRED JSON OUTPUT:
+{
+  "overallSLACompliance": {
+    "percentage": "[compliance_vs_target]%", 
+    "context": "[service_level_context]",
+    "description": "Service level performance vs 95% SLA target"
+  },
+  "averageDeliveryPerformance": {
+    "percentage": "[performance_vs_target]%",
+    "context": "[delivery_timing_context]", 
+    "description": "Delivery timing vs customer expectations"
+  },
+  "atRiskShipments": {
+    "percentage": "[at_risk_percentage]%",
+    "context": "[proactive_management_context]", 
+    "description": "Shipments requiring immediate attention"
+  },
+  "costOfSLABreaches": {
+    "percentage": "[cost_impact_percentage]%",
+    "context": "[financial_impact_context]", 
+    "description": "Service failure impact on revenue and customer satisfaction"
+  }
+}`;
+
+    const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
+    const response = await fetch(openaiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 800,
+        temperature: 0.1,
+      }),
+      signal: AbortSignal.timeout(25000), // 25 second timeout to prevent Vercel function timeouts
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const aiContent = data.choices?.[0]?.message?.content || '';
+      console.log('🤖 SLA KPI Context Agent Raw Response:', aiContent.substring(0, 300) + '...');
+      
+      try {
+        const parsed = JSON.parse(aiContent);
+        console.log('✅ SLA KPI Context Agent: AI context parsed successfully');
+        return parsed;
+      } catch (parseError) {
+        console.error('❌ SLA KPI Context JSON Parse Error:', parseError);
+        console.log('❌ SLA KPI Context: JSON parse failed, using fallback');
+        return generateSLAKPIFallbackContext(kpis, shipments);
+      }
+    } else {
+      console.error('❌ SLA KPI Context OpenAI API Error:', response.status, response.statusText);
+    }
+  } catch (error) {
+    console.error("❌ SLA KPI Context AI analysis failed:", error);
+  }
+
+  // This part of the code provides fallback when AI fails - ensures KPI context always available
+  console.log('❌ SLA KPI Context: AI service failed, using calculated fallback');
+  return generateSLAKPIFallbackContext(kpis, shipments);
+}
+
+/**
+ * This part of the code provides calculated SLA KPI context when AI is unavailable
+ * Uses the same data relationships as the AI to ensure consistent percentages
+ */
+function generateSLAKPIFallbackContext(
+  kpis: SLAKPIs, 
+  shipments: ShipmentData[]
+): SLAKPIContext {
+  // This part of the code calculates on-time shipments for compliance context
+  const onTimeShipments = shipments.filter(s => {
+    if (!s.expected_arrival_date || !s.arrival_date) return false;
+    try {
+      const expected = new Date(s.expected_arrival_date);
+      const actual = new Date(s.arrival_date);
+      return actual <= expected && s.expected_quantity === s.received_quantity;
+    } catch {
+      return false;
+    }
+  }).length;
+  
+  // This part of the code calculates late shipments for breach cost context
+  const lateShipments = shipments.filter(s => {
+    if (!s.expected_arrival_date || !s.arrival_date) return false;
+    try {
+      const expected = new Date(s.expected_arrival_date);
+      const actual = new Date(s.arrival_date);
+      return actual > expected || s.expected_quantity !== s.received_quantity;
+    } catch {
+      return false;
+    }
+  }).length;
+  
+  return {
+    overallSLACompliance: {
+      percentage: (kpis.overallSLACompliance || 0) >= 95 ? "✓ Target Met" : `${(95 - (kpis.overallSLACompliance || 0)).toFixed(1)}% below target`,
+      context: `${kpis.overallSLACompliance || 0}% compliance from ${shipments.length} shipments`,
+      description: (kpis.overallSLACompliance || 0) >= 95 ?
+        `Service level exceeds 95% target (${kpis.overallSLACompliance}%)` :
+        `Service level below 95% target (${kpis.overallSLACompliance}%)`
+    },
+    averageDeliveryPerformance: {
+      percentage: (kpis.averageDeliveryPerformance || 0) <= 0 ? "✓ On Target" : `${Math.abs(kpis.averageDeliveryPerformance || 0).toFixed(1)} days late`,
+      context: `${Math.abs(kpis.averageDeliveryPerformance || 0)} days ${(kpis.averageDeliveryPerformance || 0) < 0 ? 'early' : 'late'} on average`,
+      description: (kpis.averageDeliveryPerformance || 0) <= 0 ?
+        `Delivery timing meets customer expectations` :
+        `Delivery timing ${Math.abs(kpis.averageDeliveryPerformance || 0)} days behind schedule`
+    },
+    atRiskShipments: {
+      percentage: shipments.length > 0 ? `${((kpis.atRiskShipments / shipments.length) * 100).toFixed(1)}%` : null,
+      context: `${kpis.atRiskShipments} at-risk from ${shipments.length} active shipments`,
+      description: shipments.length > 0 ?
+        `Shipments requiring attention (${((kpis.atRiskShipments / shipments.length) * 100).toFixed(1)}% of active)` :
+        "Shipments requiring immediate attention"
+    },
+    costOfSLABreaches: {
+      percentage: lateShipments > 0 ? `$${Math.round(kpis.costOfSLABreaches / lateShipments)}` : null,
+      context: `$${kpis.costOfSLABreaches} total cost from ${lateShipments} breaches`,
+      description: lateShipments > 0 ?
+        `Service failure impact ($${Math.round(kpis.costOfSLABreaches / lateShipments)} avg per incident)` :
+        "Service failure impact on revenue and customer satisfaction"
+    }
+  };
+}
+
 // This part of the code handles fast mode for quick SLA data loading without AI insights
 async function handleFastMode(req: VercelRequest, res: VercelResponse) {
   console.log("⚡ SLA Fast Mode: Loading data without AI insights...");
@@ -1016,6 +1204,7 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
   console.log(`🔍 Fast Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
 
   const kpis = calculateSLAKPIs(products, shipments);
+  const kpiContext = await generateSLAKPIContext(kpis, shipments);
   const performanceTrends = calculatePerformanceTrends(shipments);
   const supplierScorecard = calculateSupplierScorecard(products, shipments);
   const financialImpact = calculateFinancialImpact(products, shipments);
@@ -1023,6 +1212,7 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
   const response = {
     kpis,
+    kpiContext, // This part of the code adds AI-powered KPI context for SLA with meaningful percentages
     performanceTrends,
     supplierScorecard,
     financialImpact,
@@ -1135,6 +1325,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // This part of the code calculates all SLA metrics for Phase 2
     const kpis = calculateSLAKPIs(products, shipments);
+    const kpiContext = await generateSLAKPIContext(kpis, shipments);
     const performanceTrends = calculatePerformanceTrends(shipments);
     const supplierScorecard = calculateSupplierScorecard(products, shipments);
     const financialImpact = calculateFinancialImpact(products, shipments);
@@ -1153,6 +1344,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const response: SLAData = {
       kpis,
+      kpiContext, // This part of the code adds AI-powered KPI context for SLA with meaningful percentages
       performanceTrends,
       supplierScorecard,
       financialImpact,

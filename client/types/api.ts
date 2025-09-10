@@ -498,8 +498,17 @@ export interface SupplierAnalysis {
   concentration_risk: number; // percentage
 }
 
+// Inventory AI-powered KPI Context
+export interface InventoryKPIContext {
+  totalActiveSKUs: KPIContextItem;
+  totalInventoryValue: KPIContextItem;
+  lowStockAlerts: KPIContextItem;
+  inactiveSKUs: KPIContextItem;
+}
+
 export interface InventoryData {
   kpis: InventoryKPIs;
+  kpiContext?: InventoryKPIContext; // This part of the code adds AI-powered KPI context for Inventory with meaningful percentages
   insights: AIInsight[]; // Reuse existing type but from "inventory_agent"
   inventory: InventoryItem[];
   brandPerformance: BrandPerformance[];

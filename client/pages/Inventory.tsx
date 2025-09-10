@@ -120,7 +120,11 @@ export default function Inventory() {
     <Layout>
       <div className="max-w-7xl mx-auto space-y-6">
         {/* This part of the code displays the inventory KPI cards */}
-        <InventoryKPISection kpis={data.kpis} isLoading={isLoading} />
+        <InventoryKPISection 
+          kpis={data.kpis} 
+          kpiContext={data.kpiContext} 
+          isLoading={isLoading} 
+        />
 
         {/* This part of the code displays AI insights for inventory management with Progressive Loading */}
         {isPageAIEnabled('inventory') && (

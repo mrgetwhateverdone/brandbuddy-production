@@ -44,6 +44,188 @@ async function fetchProducts(): Promise<ProductData[]> {
   }
 }
 
+/**
+ * This part of the code generates AI-powered KPI context for Inventory with accurate percentages and insights
+ * Uses the same products data source as KPI calculations to ensure consistency
+ */
+async function generateInventoryKPIContext(
+  kpis: any, 
+  products: ProductData[]
+): Promise<any> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  console.log('🔑 Inventory KPI Context Agent API Key Check:', !!apiKey, 'Length:', apiKey?.length || 0);
+  
+  if (!apiKey) {
+    console.log('❌ No AI service key - using calculated fallbacks for Inventory KPI context');
+    return generateInventoryKPIFallbackContext(kpis, products);
+  }
+
+  try {
+    // This part of the code analyzes the SAME products data used for KPI calculations to ensure accuracy
+    const totalProducts = products.length;
+    const activeSKUs = products.filter(p => p.active).length;
+    const inactiveSKUs = products.filter(p => !p.active).length;
+    const lowStockItems = products.filter(p => p.active && p.unit_quantity > 0 && p.unit_quantity < 10);
+    const outOfStockItems = products.filter(p => p.active && p.unit_quantity === 0);
+    const overstockedItems = products.filter(p => p.active && p.unit_quantity > 100);
+    
+    // This part of the code calculates inventory value distribution and supplier analysis
+    const totalValue = products.reduce((sum, p) => sum + ((p.unit_cost || 0) * (p.unit_quantity || 0)), 0);
+    const avgValuePerSKU = totalValue / Math.max(activeSKUs, 1);
+    const topValueSKUs = products.filter(p => p.active && ((p.unit_cost || 0) * (p.unit_quantity || 0)) > avgValuePerSKU * 2).length;
+    
+    // This part of the code extracts supplier and reorder data for contextual explanations  
+    const suppliersMap = new Map();
+    lowStockItems.forEach(p => {
+      const supplier = p.supplier_name || 'Unknown';
+      const reorderValue = (p.unit_cost || 0) * Math.max(30 - (p.unit_quantity || 0), 0);
+      suppliersMap.set(supplier, (suppliersMap.get(supplier) || 0) + reorderValue);
+    });
+    const topReorderSuppliers = Array.from(suppliersMap.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3)
+      .map(([supplier, _]) => supplier);
+
+    const prompt = `You are a Chief Inventory Officer analyzing inventory KPIs. Provide meaningful percentage context and business explanations:
+
+INVENTORY OPERATIONAL DATA:
+===========================
+Total Products in Catalog: ${totalProducts}
+Active SKUs: ${activeSKUs} 
+Inactive SKUs: ${inactiveSKUs}
+Low Stock Items (< 10 units): ${lowStockItems.length}
+Out of Stock Items: ${outOfStockItems.length}
+Overstocked Items (> 100 units): ${overstockedItems.length}
+
+CURRENT KPI VALUES:
+- Total Active SKUs: ${kpis.totalActiveSKUs}
+- Total Inventory Value: $${kpis.totalInventoryValue?.toLocaleString() || 0}
+- Low Stock Alerts: ${kpis.lowStockAlerts}
+- Inactive SKUs: ${kpis.inactiveSKUs}
+
+FINANCIAL ANALYSIS:
+- Total Portfolio Value: $${totalValue.toLocaleString()}
+- Average Value per SKU: $${avgValuePerSKU.toLocaleString()}
+- High-Value SKUs (>2x avg): ${topValueSKUs}
+- Top Reorder Suppliers: ${topReorderSuppliers.join(", ")}
+
+Calculate accurate percentages using proper denominators and provide inventory management context for each KPI.
+
+REQUIRED JSON OUTPUT:
+{
+  "totalActiveSKUs": {
+    "percentage": "[activation_rate]%", 
+    "context": "[catalog_health_assessment]",
+    "description": "Products available for sale ([percentage] activation rate)"
+  },
+  "totalInventoryValue": {
+    "percentage": "[concentration_analysis]%",
+    "context": "[value_distribution_insights]", 
+    "description": "Total portfolio investment ($[avg_per_sku] avg per SKU)"
+  },
+  "lowStockAlerts": {
+    "percentage": "[accurate_percentage]%",
+    "context": "[reorder_priority_analysis]",
+    "description": "SKUs requiring replenishment ([percentage] of active SKUs)"
+  },
+  "inactiveSKUs": {
+    "percentage": "[cleanup_percentage]%",
+    "context": "[liquidation_opportunity_analysis]",
+    "description": "Products requiring review ([percentage] catalog cleanup needed)"
+  }
+}`;
+
+    const openaiUrl = process.env.OPENAI_API_URL || "https://api.openai.com/v1/chat/completions";
+    const response = await fetch(openaiUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 800,
+        temperature: 0.1,
+      }),
+      signal: AbortSignal.timeout(25000), // 25 second timeout to prevent Vercel function timeouts
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const aiContent = data.choices?.[0]?.message?.content || '';
+      console.log('🤖 Inventory KPI Context Agent Raw Response:', aiContent.substring(0, 300) + '...');
+      
+      try {
+        const parsed = JSON.parse(aiContent);
+        console.log('✅ Inventory KPI Context Agent: AI context parsed successfully');
+        return parsed;
+      } catch (parseError) {
+        console.error('❌ Inventory KPI Context JSON Parse Error:', parseError);
+        console.log('❌ Inventory KPI Context: JSON parse failed, using fallback');
+        return generateInventoryKPIFallbackContext(kpis, products);
+      }
+    } else {
+      console.error('❌ Inventory KPI Context OpenAI API Error:', response.status, response.statusText);
+    }
+  } catch (error) {
+    console.error("❌ Inventory KPI Context AI analysis failed:", error);
+  }
+
+  // This part of the code provides fallback when AI fails - ensures KPI context always available
+  console.log('❌ Inventory KPI Context: AI service failed, using calculated fallback');
+  return generateInventoryKPIFallbackContext(kpis, products);
+}
+
+/**
+ * This part of the code provides calculated Inventory KPI context when AI is unavailable
+ * Uses the same data relationships as the AI to ensure consistent percentages
+ */
+function generateInventoryKPIFallbackContext(kpis: any, products: ProductData[]) {
+  const totalProducts = products.length;
+  const activeSKUs = products.filter(p => p.active).length;
+  const totalValue = products.reduce((sum, p) => sum + ((p.unit_cost || 0) * (p.unit_quantity || 0)), 0);
+  const avgValuePerSKU = totalValue / Math.max(activeSKUs, 1);
+  
+  // This part of the code calculates reorder value for context
+  const lowStockItems = products.filter(p => p.active && p.unit_quantity > 0 && p.unit_quantity < 10);
+  const reorderValue = lowStockItems.reduce((sum, p) => {
+    const suggestedOrder = Math.max(30 - (p.unit_quantity || 0), 0);
+    return sum + (suggestedOrder * (p.unit_cost || 0));
+  }, 0);
+  
+  return {
+    totalActiveSKUs: {
+      percentage: totalProducts > 0 ? `${((kpis.totalActiveSKUs / totalProducts) * 100).toFixed(1)}%` : null,
+      context: `${kpis.totalActiveSKUs} active from ${totalProducts} total catalog`,
+      description: totalProducts > 0 ?
+        `Products available for sale (${((kpis.totalActiveSKUs / totalProducts) * 100).toFixed(1)}% activation rate)` :
+        "Products available for sale"
+    },
+    totalInventoryValue: {
+      percentage: avgValuePerSKU > 0 ? `$${Math.round(avgValuePerSKU).toLocaleString()}` : null,
+      context: `$${Math.round(totalValue).toLocaleString()} total portfolio across ${activeSKUs} active SKUs`,
+      description: avgValuePerSKU > 0 ?
+        `Total portfolio investment ($${Math.round(avgValuePerSKU).toLocaleString()} avg per SKU)` :
+        "Total portfolio investment"
+    },
+    lowStockAlerts: {
+      percentage: activeSKUs > 0 ? `${((kpis.lowStockAlerts / activeSKUs) * 100).toFixed(1)}%` : null,
+      context: `${kpis.lowStockAlerts} items need reorder - $${Math.round(reorderValue).toLocaleString()} reorder value`,
+      description: activeSKUs > 0 ?
+        `SKUs requiring replenishment (${((kpis.lowStockAlerts / activeSKUs) * 100).toFixed(1)}% of active SKUs)` :
+        "SKUs requiring replenishment"
+    },
+    inactiveSKUs: {
+      percentage: totalProducts > 0 ? `${((kpis.inactiveSKUs / totalProducts) * 100).toFixed(1)}%` : null,
+      context: `${kpis.inactiveSKUs} inactive items from ${totalProducts} total catalog`,
+      description: totalProducts > 0 ?
+        `Products requiring review (${((kpis.inactiveSKUs / totalProducts) * 100).toFixed(1)}% catalog cleanup needed)` :
+        "Products requiring review"
+    }
+  };
+}
+
 function calculateEnhancedKPIs(products: ProductData[]) {
   // Data is already filtered for Callahan-Smith brand
   const callahanSmithProducts = products;
@@ -384,8 +566,12 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
   const supplierAnalysis = calculateSupplierAnalysis(products);
   const inventory = transformToEnhancedInventoryItems(products);
 
+  // This part of the code generates AI-powered KPI context for meaningful percentages
+  const kpiContext = await generateInventoryKPIContext(kpis, products);
+
   const inventoryData = {
     kpis,
+    kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages and business insights
     insights: [], // Empty for fast mode
     inventory: inventory.slice(0, 500),
     brandPerformance,
@@ -495,11 +681,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const supplierAnalysis = calculateSupplierAnalysis(products);
     const inventory = transformToEnhancedInventoryItems(products);
 
+    // This part of the code generates AI-powered KPI context for the default handler as well
+    const kpiContext = await generateInventoryKPIContext(kpis, products);
+
     // Generate AI-powered insights using VP of Inventory Management expertise
     const insights = await generateInventoryInsights(products, kpis, supplierAnalysis);
 
     const inventoryData = {
       kpis,
+      kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages and business insights
       insights: insights.map((insight, index) => ({
         id: `inventory-insight-${index + 1}`,
         title: insight.title,

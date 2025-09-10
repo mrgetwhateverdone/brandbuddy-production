@@ -1,20 +1,22 @@
-import type { InventoryKPIs } from "@/types/api";
+import type { InventoryKPIs, InventoryKPIContext } from "@/types/api";
 import { formatCurrency, formatNumber } from "@/lib/formatters";
 
 interface InventoryKPISectionProps {
   kpis: InventoryKPIs;
+  kpiContext?: InventoryKPIContext; // This part of the code adds AI-powered KPI context for meaningful percentages
   isLoading?: boolean;
 }
 
-export function InventoryKPISection({ kpis, isLoading }: InventoryKPISectionProps) {
-  // This part of the code defines enhanced KPI cards with business-critical metrics
-  // This part of the code uses centralized formatting utilities
-
+export function InventoryKPISection({ kpis, kpiContext, isLoading }: InventoryKPISectionProps) {
+  // This part of the code uses AI-powered context for meaningful KPI descriptions and percentages
+  // Falls back to simple descriptions when AI context is not available
+  
   const kpiCards = [
     {
       title: "Total Active SKUs",
       value: kpis.totalActiveSKUs,
-      description: "Products available for sale",
+      description: kpiContext?.totalActiveSKUs?.description || "Products available for sale",
+      context: kpiContext?.totalActiveSKUs?.context,
       className: "bg-white",
       colorClass: "text-blue-600",
       format: (val: number | null) => formatNumber(val),
@@ -22,7 +24,8 @@ export function InventoryKPISection({ kpis, isLoading }: InventoryKPISectionProp
     {
       title: "Total Inventory Value",
       value: kpis.totalInventoryValue,
-      description: "Total portfolio investment",
+      description: kpiContext?.totalInventoryValue?.description || "Total portfolio investment",
+      context: kpiContext?.totalInventoryValue?.context,
       className: "bg-white",
       colorClass: "text-green-600",
       format: formatCurrency,
@@ -30,7 +33,8 @@ export function InventoryKPISection({ kpis, isLoading }: InventoryKPISectionProp
     {
       title: "Low Stock Alerts",
       value: kpis.lowStockAlerts,
-      description: "SKUs requiring replenishment",
+      description: kpiContext?.lowStockAlerts?.description || "SKUs requiring replenishment",
+      context: kpiContext?.lowStockAlerts?.context,
       className: "bg-white",
       colorClass: kpis.lowStockAlerts > 0 ? "text-orange-600" : "text-gray-600",
       format: (val: number | null) => val?.toString() || "0",
@@ -38,7 +42,8 @@ export function InventoryKPISection({ kpis, isLoading }: InventoryKPISectionProp
     {
       title: "Inactive SKUs",
       value: kpis.inactiveSKUs,
-      description: "Products requiring review",
+      description: kpiContext?.inactiveSKUs?.description || "Products requiring review",
+      context: kpiContext?.inactiveSKUs?.context,
       className: "bg-white",
       colorClass: kpis.inactiveSKUs > 0 ? "text-red-600" : "text-gray-600",
       format: (val: number | null) => val?.toString() || "0",
@@ -92,10 +97,17 @@ export function InventoryKPISection({ kpis, isLoading }: InventoryKPISectionProp
             {kpi.format ? kpi.format(kpi.value) : formatValue(kpi.value)}
           </div>
           
-          {/* This part of the code displays the KPI description */}
+          {/* This part of the code displays the KPI description with AI-powered context */}
           <div className="text-sm text-gray-500">
             {kpi.description}
           </div>
+          
+          {/* This part of the code displays additional AI context when available */}
+          {kpi.context && !isLoading && (
+            <div className="text-xs text-gray-400 mt-1 italic">
+              {kpi.context}
+            </div>
+          )}
         </div>
       ))}
     </div>

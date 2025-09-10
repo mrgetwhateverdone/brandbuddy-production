@@ -116,8 +116,7 @@ export default function Contact() {
             
             <SignInButton mode="modal">
               <Button 
-                variant="outline"
-                className="border-red-600 text-red-600 hover:bg-red-50"
+                className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Get Demo
               </Button>

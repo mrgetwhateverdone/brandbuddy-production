@@ -124,38 +124,27 @@ export const useInboundDataFast = () => {
  * 🔒 SECURE: Uses internal API for AI insights only
  */
 export const useInboundInsights = () => {
-  const { getQueryConfig } = useSettingsIntegration();  
-  const queryConfig = getQueryConfig();
-  const hookLogger = logger.createLogger({ component: "useInboundInsights", hook: "inbound-insights" });
-
   return useQuery({
     queryKey: ["inbound-insights"],
     queryFn: async () => {
-      hookLogger.info("Fetching inbound AI insights in background");
+      console.log(
+        "🤖 Client: Loading inbound AI insights in background...",
+      );
 
       // This part of the code fetches AI insights separately for progressive loading
       const insightsData = await internalApi.getInboundInsights();
 
-      // This part of the code ensures type-safe filtering for Callahan-Smith brand only
-      const filteredInsights: InsightData[] = (insightsData.insights || []).filter((insight: any) => 
-        !insight.description || 
-        insight.description.toLowerCase().includes('callahan-smith') || 
-        insight.source === 'inbound_operations_agent'
-      );
-
-      hookLogger.info("Inbound AI insights loaded", {
-        rawInsightCount: insightsData.insights?.length || 0,
-        filteredInsightCount: filteredInsights.length
+      console.log("✅ Client: Inbound AI insights loaded:", {
+        insights: insightsData.insights?.length || 0,
       });
 
-      return {
-        insights: filteredInsights,
-        lastUpdated: insightsData.lastUpdated
-      };
+      return insightsData;
     },
-    ...queryConfig,
+    staleTime: 15 * 60 * 1000, // 15 minutes - standardized with Dashboard/Orders for consistency
+    retry: 2, // Fewer retries for AI insights (matches Dashboard/Orders proven pattern)
     meta: {
-      errorMessage: "Unable to load inbound insights - Operating with data only",
+      errorMessage:
+        "Unable to load inbound insights - Refresh to retry or check API connection",
     },
   });
 };

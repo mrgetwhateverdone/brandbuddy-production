@@ -58,16 +58,27 @@ export function useSLADataFast() {
  * 🔒 SECURE: Uses internal API for AI insights only
  */
 export function useSLAInsights() {
-  const { getSLASettings } = useSettingsIntegration();
-  
   return useQuery({
     queryKey: ['sla-insights'],
-    queryFn: () => internalApi.getSLAInsights(),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchInterval: 5 * 60 * 1000, // 5 minutes auto-refresh
-    refetchOnWindowFocus: true,
-    retry: 3,
-    retryDelay: 1000,
+    queryFn: async () => {
+      console.log(
+        "🤖 Client: Loading SLA AI insights in background...",
+      );
+
+      const insightsData = await internalApi.getSLAInsights();
+
+      console.log("✅ Client: SLA AI insights loaded:", {
+        insights: insightsData.insights?.length || 0,
+      });
+
+      return insightsData;
+    },
+    staleTime: 15 * 60 * 1000, // 15 minutes - standardized with Dashboard/Orders for consistency
+    retry: 2, // Fewer retries for AI insights (matches Dashboard/Orders proven pattern)
+    meta: {
+      errorMessage:
+        "Unable to load SLA insights - Refresh to retry or check API connection",
+    },
   });
 }
 

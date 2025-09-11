@@ -150,38 +150,27 @@ export const useReplenishmentDataFast = () => {
  * 🔒 SECURE: Uses internal API for AI insights only
  */
 export const useReplenishmentInsights = () => {
-  const { getQueryConfig } = useSettingsIntegration();  
-  const queryConfig = getQueryConfig();
-  const hookLogger = logger.createLogger({ component: "useReplenishmentInsights", hook: "replenishment-insights" });
-
   return useQuery({
     queryKey: ["replenishment-insights"],
     queryFn: async () => {
-      hookLogger.info("Fetching replenishment AI insights in background");
+      console.log(
+        "🤖 Client: Loading replenishment AI insights in background...",
+      );
 
       // This part of the code fetches AI insights separately for progressive loading
       const insightsData = await internalApi.getReplenishmentInsights();
 
-      // This part of the code ensures type-safe filtering for Callahan-Smith brand only
-      const filteredInsights: AIInsight[] = (insightsData.insights || []).filter((insight: any) => 
-        !insight.description || 
-        insight.description.toLowerCase().includes('callahan-smith') || 
-        insight.source === 'replenishment_agent'
-      );
-
-      hookLogger.info("Replenishment AI insights loaded", {
-        rawInsightCount: insightsData.insights?.length || 0,
-        filteredInsightCount: filteredInsights.length
+      console.log("✅ Client: Replenishment AI insights loaded:", {
+        insights: insightsData.insights?.length || 0,
       });
 
-      return {
-        insights: filteredInsights,
-        lastUpdated: new Date().toISOString()
-      };
+      return insightsData;
     },
-    ...queryConfig,
+    staleTime: 15 * 60 * 1000, // 15 minutes - standardized with Dashboard/Orders for consistency
+    retry: 2, // Fewer retries for AI insights (matches Dashboard/Orders proven pattern)
     meta: {
-      errorMessage: "Unable to load replenishment insights - Operating with data only",
+      errorMessage:
+        "Unable to load replenishment insights - Refresh to retry or check API connection",
     },
   });
 };

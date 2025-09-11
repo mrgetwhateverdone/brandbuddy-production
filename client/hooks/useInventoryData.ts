@@ -123,63 +123,27 @@ export const useInventoryDataFast = () => {
  * 🎯 STANDARDIZED: Uses same cache settings as Dashboard/Orders for reliability
  */
 export const useInventoryInsights = () => {
-  const hookLogger = logger.createLogger({ component: "useInventoryInsights", hook: "inventory-insights" });
-
   return useQuery({
     queryKey: ["inventory-insights"],
     queryFn: async () => {
-      const startTime = performance.now();
-      hookLogger.info("🤖 Starting inventory AI insights fetch", {
-        timestamp: new Date().toISOString(),
-        queryKey: "inventory-insights"
+      console.log(
+        "🤖 Client: Loading inventory AI insights in background...",
+      );
+
+      // This part of the code fetches AI insights separately for progressive loading
+      const insightsData = await internalApi.getInventoryInsights();
+
+      console.log("✅ Client: Inventory AI insights loaded:", {
+        insights: insightsData.insights?.length || 0,
       });
 
-      try {
-        // This part of the code fetches AI insights separately for progressive loading
-        const insightsData = await internalApi.getInventoryInsights();
-        
-        const endTime = performance.now();
-        const duration = Math.round(endTime - startTime);
-        
-        hookLogger.info("✅ Inventory AI insights loaded successfully", {
-          insights: insightsData.insights?.length || 0,
-          duration: `${duration}ms`,
-          timestamp: new Date().toISOString(),
-          success: true
-        });
-
-        return insightsData;
-      } catch (error) {
-        const endTime = performance.now();
-        const duration = Math.round(endTime - startTime);
-        
-        hookLogger.error("❌ Inventory AI insights failed to load", {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          duration: `${duration}ms`,
-          timestamp: new Date().toISOString(),
-          success: false,
-          willRetry: true
-        });
-        
-        throw error; // Re-throw to let React Query handle retry logic
-      }
+      return insightsData;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - matches Dashboard for consistency
-    gcTime: 30 * 60 * 1000, // 30 minutes background cache for better UX
-    retry: 3, // Increased retries for better reliability
-    refetchOnWindowFocus: false, // Prevent unnecessary refetches on focus
-    refetchOnReconnect: false, // Prevent refetch storms on reconnect
-    retryDelay: (attemptIndex) => {
-      const delay = Math.min(1000 * 2 ** attemptIndex, 30000);
-      hookLogger.warn("🔄 Retrying inventory insights fetch", {
-        attemptNumber: attemptIndex + 1,
-        retryDelay: `${delay}ms`,
-        timestamp: new Date().toISOString()
-      });
-      return delay;
-    }, // Exponential backoff with retry logging
+    staleTime: 15 * 60 * 1000, // 15 minutes - standardized with Dashboard/Orders for consistency
+    retry: 2, // Fewer retries for AI insights (matches Dashboard/Orders proven pattern)
     meta: {
-      errorMessage: "Unable to load inventory insights - Operating with data only",
+      errorMessage:
+        "Unable to load inventory insights - Refresh to retry or check API connection",
     },
   });
 };

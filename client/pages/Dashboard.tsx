@@ -9,27 +9,6 @@ import { useTour } from "@/contexts/TourContext";
 import { InsightsSection } from "@/components/dashboard/InsightsSection";
 import { KPISection } from "@/components/dashboard/KPISection";
 
-// This part of the code provides world-class insight loading experience
-const InsightLoadingMessage = () => (
-  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-    <div className="flex items-start">
-      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mt-0.5 mr-3"></div>
-      <div>
-        <h4 className="text-sm font-medium text-blue-800">🤖 AI Analyzing Operations</h4>
-        <p className="text-sm text-blue-700 mt-1">
-          Senior Operations Director AI is analyzing {" "}
-          <span className="font-medium">shipment patterns, inventory levels, and supplier performance</span>
-          {" "} to provide strategic insights...
-        </p>
-        <div className="mt-2 text-xs text-blue-600">
-          • Detecting operational bottlenecks<br/>
-          • Calculating financial impact estimates<br/>
-          • Generating actionable recommendations
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 export default function Dashboard() {
   // This part of the code uses progressive loading for better performance
@@ -114,7 +93,7 @@ export default function Dashboard() {
                   <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
                   <span className="text-sm text-gray-500">(Loading...)</span>
                 </div>
-                <InsightLoadingMessage />
+                <LoadingState message="Loading AI insights..." />
               </div>
             ) : insightsError ? (
               <div className="space-y-4">

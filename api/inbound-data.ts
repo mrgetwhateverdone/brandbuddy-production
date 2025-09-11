@@ -605,9 +605,10 @@ Generate exactly 3-5 insights with 3-5 specific actions each.`;
       body: JSON.stringify({
         model: process.env.AI_MODEL_FAST || "gpt-3.5-turbo", // This part of the code switches to fast AI model for consistent performance
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 1000,
+        max_tokens: 1500, // This part of the code increases token budget to match Dashboard/Orders/Inventory standard
         temperature: 0.2,
       }),
+      signal: AbortSignal.timeout(25000), // This part of the code adds 25 second timeout to prevent Vercel function timeouts
     });
 
     if (!response.ok) {

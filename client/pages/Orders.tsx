@@ -20,27 +20,6 @@ import { ViewAllOrdersModal } from "@/components/orders/ViewAllOrdersModal";
 import { ViewAllShipmentsModal } from "@/components/orders/ViewAllShipmentsModal";
 import { OrderAIExplanationModal } from "@/components/orders/OrderAIExplanationModal";
 
-// This part of the code provides world-class insight loading experience for Orders
-const OrdersInsightLoadingMessage = () => (
-  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-    <div className="flex items-start">
-      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600 mt-0.5 mr-3"></div>
-      <div>
-        <h4 className="text-sm font-medium text-blue-800">🤖 AI Analyzing Orders</h4>
-        <p className="text-sm text-blue-700 mt-1">
-          Chief Fulfillment Officer AI is analyzing {" "}
-          <span className="font-medium">order patterns, fulfillment rates, and supplier performance</span>
-          {" "} to provide strategic insights...
-        </p>
-        <div className="mt-2 text-xs text-blue-600">
-          • Analyzing order processing efficiency<br/>
-          • Calculating fulfillment cost impacts<br/>
-          • Generating supplier performance insights
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 export default function Orders() {
   // This part of the code uses progressive loading for better performance
@@ -141,7 +120,7 @@ export default function Orders() {
                   <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
                   <span className="text-sm text-gray-500">(Loading...)</span>
                 </div>
-                <OrdersInsightLoadingMessage />
+                <LoadingState message="Loading AI insights..." />
               </div>
             ) : insightsError ? (
               <div className="space-y-4">

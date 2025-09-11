@@ -12,27 +12,6 @@ import { FinancialImpactSection } from "@/components/sla/FinancialImpactSection"
 import { SLAOptimizationSection } from "@/components/sla/SLAOptimizationSection";
 import { InsightsSection } from "@/components/dashboard/InsightsSection";
 
-// This part of the code provides world-class insight loading experience for SLA
-const SLAInsightLoadingMessage = () => (
-  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-    <div className="flex items-start">
-      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-orange-600 mt-0.5 mr-3"></div>
-      <div>
-        <h4 className="text-sm font-medium text-orange-800">🤖 AI Analyzing SLA Performance</h4>
-        <p className="text-sm text-orange-700 mt-1">
-          Chief Logistics Officer AI is analyzing {" "}
-          <span className="font-medium">delivery performance, supplier compliance, and SLA breach patterns</span>
-          {" "} to provide strategic insights...
-        </p>
-        <div className="mt-2 text-xs text-orange-600">
-          • Analyzing delivery performance trends<br/>
-          • Calculating SLA compliance costs<br/>
-          • Generating supplier optimization insights
-        </div>
-      </div>
-    </div>
-  </div>
-);
 
 /**
  * This part of the code creates the main SLA Performance page
@@ -52,7 +31,7 @@ export default function SLA() {
   if (isLoading) {
     return (
       <Layout>
-        <LoadingState message="Loading SLA performance data..." />
+        <LoadingState message="Loading BrandBuddy SLA performance data..." />
       </Layout>
     );
   }
@@ -97,7 +76,7 @@ export default function SLA() {
                   <h2 className="text-xl font-semibold text-gray-900">SLA Intelligence</h2>
                   <span className="text-sm text-gray-500">(Loading...)</span>
                 </div>
-                <SLAInsightLoadingMessage />
+                <LoadingState message="Loading AI insights..." />
               </div>
             ) : insightsError ? (
               <div className="space-y-4">

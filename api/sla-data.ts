@@ -1204,7 +1204,8 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
   console.log(`🔍 Fast Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
 
   const kpis = calculateSLAKPIs(products, shipments);
-  const kpiContext = await generateSLAKPIContext(kpis, shipments);
+  // ⚡ FAST MODE: Empty KPI context - AI enhancement loads separately
+  const kpiContext = {};
   const performanceTrends = calculatePerformanceTrends(shipments);
   const supplierScorecard = calculateSupplierScorecard(products, shipments);
   const financialImpact = calculateFinancialImpact(products, shipments);
@@ -1212,7 +1213,7 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
   const response = {
     kpis,
-    kpiContext, // This part of the code adds AI-powered KPI context for SLA with meaningful percentages
+    kpiContext, // ⚡ Empty in fast mode - AI context loads separately
     performanceTrends,
     supplierScorecard,
     financialImpact,
@@ -1226,7 +1227,7 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
 // This part of the code handles insights mode for AI-generated SLA insights only - FIXED RESPONSE FORMAT
 async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
-  console.log("🤖 SLA Insights Mode: Loading AI insights only...");
+  console.log("🤖 SLA AI Enhancement Mode: Loading AI insights + KPI context...");
   
   const [allProducts, allShipments] = await Promise.all([
     fetchProducts(),
@@ -1235,7 +1236,7 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
 
   const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
   const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
-  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
+  console.log(`🔍 AI Enhancement Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
 
   const kpis = calculateSLAKPIs(products, shipments);
   const performanceTrends = calculatePerformanceTrends(shipments);
@@ -1251,7 +1252,11 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
     optimizationRecommendations
   };
 
-  const rawInsights = await generateAISLAInsights(products, shipments, slaData);
+  // This part of the code generates AI enhancements (insights + KPI context) in parallel
+  const [rawInsights, kpiContext] = await Promise.all([
+    generateAISLAInsights(products, shipments, slaData),
+    generateSLAKPIContext(kpis, shipments)
+  ]);
 
   // Phase 3: Enhanced logging and double mapping verification (mirrors successful pages)
   console.log('✅ SLA Insights Mode - Raw insights from AI:', rawInsights.length, 'insights');
@@ -1278,14 +1283,15 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
     console.log('✅ Sample mapped insight:', JSON.stringify(insights[0], null, 2));
   }
 
-  console.log("✅ SLA Insights Mode: AI insights compiled successfully");
+  console.log("✅ SLA AI Enhancement Mode: KPI context + insights compiled successfully");
   res.status(200).json({
     success: true,
     data: {
+      kpiContext, // 🤖 AI-powered KPI context for enhanced cards
       insights,
       lastUpdated: new Date().toISOString(),
     },
-    message: "SLA insights retrieved successfully",
+    message: "SLA AI enhancements retrieved successfully",
     timestamp: new Date().toISOString(),
   });
 }

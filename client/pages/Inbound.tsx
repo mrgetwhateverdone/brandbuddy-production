@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { useInboundDataFast, useInboundInsights } from "@/hooks/useInboundData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
+import { InboundAILoadingMessage } from "@/components/inbound/InboundAILoadingMessage";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 
 // Inbound Components
@@ -75,7 +76,7 @@ export default function Inbound() {
                   <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
                   <span className="text-sm text-gray-500">(Loading...)</span>
                 </div>
-                <LoadingState message="Loading AI insights..." />
+                <InboundAILoadingMessage />
               </div>
             ) : insightsError ? (
               <div className="space-y-4">

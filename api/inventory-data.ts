@@ -678,12 +678,12 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
   const supplierAnalysis = calculateSupplierAnalysis(products);
   const inventory = transformToEnhancedInventoryItems(products);
 
-  // This part of the code generates AI-powered KPI context for meaningful percentages
-  const kpiContext = await generateInventoryKPIContext(kpis, products);
+  // ⚡ FAST MODE: Empty KPI context - AI enhancement loads separately  
+  const kpiContext = {};
 
   const inventoryData = {
     kpis,
-    kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages and business insights
+    kpiContext, // ⚡ Empty in fast mode - AI context loads separately
     insights: [], // Empty for fast mode
     inventory: inventory.slice(0, 500),
     brandPerformance,
@@ -702,20 +702,26 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
 // This part of the code handles insights mode for AI-generated inventory insights only
 async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
-  console.log("🤖 Inventory Insights Mode: Loading AI insights only...");
+  console.log("🤖 Inventory AI Enhancement Mode: Loading AI insights + KPI context...");
   
   const allProducts = await fetchProducts();
   const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
-  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${allProducts.length} total → ${products.length} Callahan-Smith products`);
+  console.log(`🔍 AI Enhancement Mode - Data filtered for Callahan-Smith: ${allProducts.length} total → ${products.length} Callahan-Smith products`);
   
   const kpis = calculateEnhancedKPIs(products);
   const supplierAnalysis = calculateSupplierAnalysis(products);
-  const insights = await generateInventoryInsights(products, kpis, supplierAnalysis);
+  
+  // This part of the code generates AI enhancements (insights + KPI context) in parallel
+  const [insights, kpiContext] = await Promise.all([
+    generateInventoryInsights(products, kpis, supplierAnalysis),
+    generateInventoryKPIContext(kpis, products)
+  ]);
 
-  console.log("✅ Inventory Insights Mode: AI insights compiled successfully");
+  console.log("✅ Inventory AI Enhancement Mode: KPI context + insights compiled successfully");
   res.status(200).json({
     success: true,
     data: {
+      kpiContext, // 🤖 AI-powered KPI context for enhanced cards
       insights: insights.map((insight, index) => ({
         id: `inventory-insight-${index + 1}`,
         title: insight.title,
@@ -730,7 +736,7 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
       })),
       lastUpdated: new Date().toISOString(),
     },
-    message: "Inventory insights retrieved successfully",
+    message: "Inventory AI enhancements retrieved successfully",
     timestamp: new Date().toISOString(),
   });
 }

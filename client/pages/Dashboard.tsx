@@ -8,6 +8,7 @@ import { useTour } from "@/contexts/TourContext";
 // BrandBuddy Overview Components
 import { InsightsSection } from "@/components/dashboard/InsightsSection";
 import { KPISection } from "@/components/dashboard/KPISection";
+import { DashboardAILoadingMessage } from "@/components/dashboard/DashboardAILoadingMessage";
 
 
 export default function Dashboard() {
@@ -93,7 +94,7 @@ export default function Dashboard() {
                   <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
                   <span className="text-sm text-gray-500">(Loading...)</span>
                 </div>
-                <LoadingState message="Loading AI insights..." />
+                <DashboardAILoadingMessage />
               </div>
             ) : insightsError ? (
               <div className="space-y-4">

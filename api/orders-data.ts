@@ -650,13 +650,13 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
   const kpis = calculateOrdersKPIs(orders);
   const inboundIntelligence = calculateInboundIntelligence(orders);
 
-  // This part of the code generates AI-powered KPI context for meaningful percentages  
-  const kpiContext = await generateOrdersKPIContext(kpis, orders);
+  // ⚡ FAST MODE: Empty KPI context - AI enhancement loads separately
+  const kpiContext = {};
 
   const ordersData = {
     orders: orders.slice(0, 500), // Show up to 500 orders for comprehensive view while maintaining performance
     kpis,
-    kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages and business insights
+    kpiContext, // ⚡ Empty in fast mode - AI context loads separately
     insights: [], // Empty for fast mode
     inboundIntelligence,
     lastUpdated: new Date().toISOString(),
@@ -673,14 +673,14 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
 // This part of the code handles insights mode for AI-generated orders insights only
 async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
-  console.log("🤖 Orders Insights Mode: Loading AI insights only...");
+  console.log("🤖 Orders AI Enhancement Mode: Loading AI insights + KPI context...");
   
   // This part of the code fetches shipments and transforms them into orders
   const allShipments = await fetchShipments();
   
   // This part of the code filters shipments to ensure only Callahan-Smith data is processed
   const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
-  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${allShipments.length} total → ${shipments.length} Callahan-Smith shipments`);
+  console.log(`🔍 AI Enhancement Mode - Data filtered for Callahan-Smith: ${allShipments.length} total → ${shipments.length} Callahan-Smith shipments`);
   
   const orders = transformShipmentsToOrders(shipments);
 
@@ -688,14 +688,18 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
   const kpis = calculateOrdersKPIs(orders);
   const inboundIntelligence = calculateInboundIntelligence(orders);
 
-  // This part of the code generates orders-specific AI insights
-  const insightsData = await generateOrdersInsights(orders, kpis, inboundIntelligence);
+  // This part of the code generates AI enhancements (insights + KPI context) in parallel
+  const [insightsData, kpiContext] = await Promise.all([
+    generateOrdersInsights(orders, kpis, inboundIntelligence),
+    generateOrdersKPIContext(kpis, orders)
+  ]);
 
-  console.log("✅ Orders Insights Mode: AI insights compiled successfully");
+  console.log("✅ Orders AI Enhancement Mode: KPI context + insights compiled successfully");
   res.status(200).json({
     success: true,
     data: {
-              insights: insightsData.map((insight, index) => ({
+      kpiContext, // 🤖 AI-powered KPI context for enhanced cards
+      insights: insightsData.map((insight, index) => ({
           id: `orders-insight-${index + 1}`,
           title: insight.title,
           description: insight.description,
@@ -709,7 +713,7 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
         })),
       lastUpdated: new Date().toISOString(),
     },
-    message: "Orders insights retrieved successfully",
+    message: "Orders AI enhancements retrieved successfully",
     timestamp: new Date().toISOString(),
   });
 }

@@ -744,12 +744,12 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
   const kpis = calculateReplenishmentKPIs(products, shipments);
 
-  // This part of the code generates AI-powered KPI context for meaningful percentages
-  const kpiContext = await generateReplenishmentKPIContext(kpis, products, shipments);
+  // ⚡ FAST MODE: Empty KPI context - AI enhancement loads separately
+  const kpiContext = {};
 
   const replenishmentData = {
     kpis,
-    kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages and business insights
+    kpiContext, // ⚡ Empty in fast mode - AI context loads separately
     insights: [], // Empty for fast mode
     products,
     shipments,
@@ -770,7 +770,7 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
 // This part of the code handles insights mode for AI-generated replenishment insights only
 async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
-  console.log("🤖 Replenishment Insights Mode: Loading AI insights only...");
+  console.log("🤖 Replenishment AI Enhancement Mode: Loading AI insights + KPI context...");
   
   const [allProducts, allShipments] = await Promise.all([
     fetchProducts(),
@@ -779,10 +779,15 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
 
   const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
   const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
-  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
+  console.log(`🔍 AI Enhancement Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
 
   const kpis = calculateReplenishmentKPIs(products, shipments);
-  const rawInsights = await generateReplenishmentInsights(products, shipments, kpis);
+  
+  // This part of the code generates AI enhancements (insights + KPI context) in parallel
+  const [rawInsights, kpiContext] = await Promise.all([
+    generateReplenishmentInsights(products, shipments, kpis),
+    generateReplenishmentKPIContext(kpis, products, shipments)
+  ]);
 
   // This part of the code maps insights to proper AIInsight format with all required properties (double mapping pattern)
   console.log('✅ Replenishment Insights Mode - Raw insights from AI:', rawInsights.length, 'insights');
@@ -808,14 +813,15 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
     console.log('🔍 Sample mapped insight:', JSON.stringify(insights[0], null, 2));
   }
 
-  console.log("✅ Replenishment Insights Mode: AI insights compiled successfully");
+  console.log("✅ Replenishment AI Enhancement Mode: KPI context + insights compiled successfully");
   res.status(200).json({
     success: true,
     data: {
+      kpiContext, // 🤖 AI-powered KPI context for enhanced cards
       insights,
       lastUpdated: new Date().toISOString(),
     },
-    message: "Replenishment insights retrieved successfully",
+    message: "Replenishment AI enhancements retrieved successfully",
     timestamp: new Date().toISOString(),
   });
 }

@@ -673,8 +673,8 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
   const kpis = calculateInboundKPIs(shipments);
 
-  // This part of the code generates AI-powered KPI context for meaningful percentages
-  const kpiContext = await generateInboundKPIContext(kpis, shipments);
+  // ⚡ FAST MODE: Empty KPI context - AI enhancement loads separately
+  const kpiContext = {};
 
   const today = new Date().toISOString().split('T')[0];
   const todayArrivals = shipments.filter(s => {
@@ -685,7 +685,7 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
   const inboundData = {
     kpis,
-    kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages and business insights
+    kpiContext, // ⚡ Empty in fast mode - AI context loads separately
     insights: [], // Empty for fast mode
     shipments,
     todayArrivals,
@@ -705,14 +705,19 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
 // This part of the code handles insights mode for AI-generated inbound insights only
 async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
-  console.log("🤖 Inbound Insights Mode: Loading AI insights only...");
+  console.log("🤖 Inbound AI Enhancement Mode: Loading AI insights + KPI context...");
   
   const allShipments = await fetchShipments();
   const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
-  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${allShipments.length} total → ${shipments.length} Callahan-Smith shipments`);
+  console.log(`🔍 AI Enhancement Mode - Data filtered for Callahan-Smith: ${allShipments.length} total → ${shipments.length} Callahan-Smith shipments`);
 
   const kpis = calculateInboundKPIs(shipments);
-  const rawInsights = await generateInboundInsights(shipments, kpis);
+  
+  // This part of the code generates AI enhancements (insights + KPI context) in parallel
+  const [rawInsights, kpiContext] = await Promise.all([
+    generateInboundInsights(shipments, kpis),
+    generateInboundKPIContext(kpis, shipments)
+  ]);
 
   // This part of the code maps insights to proper AIInsight format with all required properties (double mapping pattern)
   console.log('✅ Inbound Insights Mode - Raw insights from AI:', rawInsights.length, 'insights');
@@ -738,14 +743,15 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
     console.log('✅ Sample mapped insight:', JSON.stringify(insights[0], null, 2));
   }
 
-  console.log("✅ Inbound Insights Mode: AI insights compiled successfully");
+  console.log("✅ Inbound AI Enhancement Mode: KPI context + insights compiled successfully");
   res.status(200).json({
     success: true,
     data: {
+      kpiContext, // 🤖 AI-powered KPI context for enhanced cards
       insights,
       lastUpdated: new Date().toISOString(),
     },
-    message: "Inbound insights retrieved successfully",
+    message: "Inbound AI enhancements retrieved successfully",
     timestamp: new Date().toISOString(),
   });
 }

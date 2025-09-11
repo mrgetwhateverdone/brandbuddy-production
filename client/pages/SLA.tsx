@@ -2,6 +2,7 @@ import { Layout } from "@/components/layout/Layout";
 import { useSLADataFast, useSLAInsights } from "@/hooks/useSLAData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
+import { SLAAILoadingMessage } from "@/components/sla/SLAAILoadingMessage";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 
 // SLA Components
@@ -76,7 +77,7 @@ export default function SLA() {
                   <h2 className="text-xl font-semibold text-gray-900">SLA Intelligence</h2>
                   <span className="text-sm text-gray-500">(Loading...)</span>
                 </div>
-                <LoadingState message="Loading AI insights..." />
+                <SLAAILoadingMessage />
               </div>
             ) : insightsError ? (
               <div className="space-y-4">

@@ -3,6 +3,7 @@ import { Layout } from "@/components/layout/Layout";
 import { useOrdersDataFast, useOrdersInsights, useOrdersTable } from "@/hooks/useOrdersData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
+import { OrdersAILoadingMessage } from "@/components/orders/OrdersAILoadingMessage";
 import type { OrderData } from "@/types/api";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 import { useTour } from "@/contexts/TourContext";
@@ -120,7 +121,7 @@ export default function Orders() {
                   <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
                   <span className="text-sm text-gray-500">(Loading...)</span>
                 </div>
-                <LoadingState message="Loading AI insights..." />
+                <OrdersAILoadingMessage />
               </div>
             ) : insightsError ? (
               <div className="space-y-4">

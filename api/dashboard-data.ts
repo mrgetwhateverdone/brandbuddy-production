@@ -932,20 +932,21 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
     (product) => !product.active,
   ).length;
 
-  // This part of the code generates AI-powered KPI context for meaningful percentages
+  // This part of the code calculates real KPI values for instant loading
   const kpiValues = {
       totalOrdersToday: totalOrdersToday > 0 ? totalOrdersToday : null,
       atRiskOrders: atRiskOrders > 0 ? atRiskOrders : null,
       openPOs: openPOs > 0 ? openPOs : null,
       unfulfillableSKUs,
   };
-  const kpiContext = await generateDashboardKPIContext(kpiValues, products, shipments);
+  // ⚡ FAST MODE: Empty KPI context - AI enhancement loads separately
+  const kpiContext = {};
 
   const dashboardData = {
     products: products.slice(0, 20),
     shipments: shipments.slice(0, 50),
     kpis: kpiValues,
-    kpiContext, // 🆕 ADD AI-powered KPI context with accurate percentages
+    kpiContext, // ⚡ Empty in fast mode - AI context loads separately
     insights: [], // Empty for fast mode
     anomalies: [], // Empty for fast mode 
     marginRisks,
@@ -965,7 +966,7 @@ async function handleFastMode(req: VercelRequest, res: VercelResponse) {
 
 // This part of the code handles insights mode for AI-generated insights only
 async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
-  console.log("🤖 Dashboard Insights Mode: Loading AI insights only...");
+  console.log("🤖 Dashboard AI Enhancement Mode: Loading AI insights + KPI context...");
   
   const [allProducts, allShipments] = await Promise.all([
     fetchProducts(),
@@ -976,9 +977,33 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
   const products = allProducts.filter(p => p.brand_name === 'Callahan-Smith');
   const shipments = allShipments.filter(s => s.brand_name === 'Callahan-Smith');
   
-  console.log(`🔍 Insights Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
+  console.log(`🔍 AI Enhancement Mode - Data filtered for Callahan-Smith: ${products.length} products, ${shipments.length} shipments`);
 
-  const rawInsights = await generateInsights(products, shipments);
+  // This part of the code calculates KPIs for AI context generation
+  const unfulfillableSKUs = products.filter((product) => !product.active).length;
+  const totalOrdersToday = shipments.filter((shipment) => {
+    const today = new Date().toISOString().split("T")[0];
+    return shipment.expected_arrival_date?.startsWith(today);
+  }).length;
+  const atRiskOrders = shipments.filter((shipment) => {
+    const arrivalDate = new Date(shipment.expected_arrival_date || "");
+    const today = new Date();
+    return arrivalDate < today && shipment.status !== "delivered";
+  }).length;
+  const openPOs = shipments.filter((shipment) => shipment.status === "in_transit").length;
+
+  const kpiValues = {
+    totalOrdersToday: totalOrdersToday > 0 ? totalOrdersToday : null,
+    atRiskOrders: atRiskOrders > 0 ? atRiskOrders : null,
+    openPOs: openPOs > 0 ? openPOs : null,
+    unfulfillableSKUs,
+  };
+
+  // This part of the code generates AI-powered KPI context for meaningful percentages
+  const [rawInsights, kpiContext] = await Promise.all([
+    generateInsights(products, shipments),
+    generateDashboardKPIContext(kpiValues, products, shipments)
+  ]);
   
   // This part of the code maps insights to proper AIInsight format with all required properties
   console.log('🔍 Dashboard Insights Mode - Raw insights from AI:', rawInsights.length, 'insights');
@@ -1010,15 +1035,16 @@ async function handleInsightsMode(req: VercelRequest, res: VercelResponse) {
   const financialImpacts = calculateFinancialImpacts(products, shipments);
   const dailyBrief = await generateDailyBrief(products, shipments, financialImpacts);
 
-  console.log("✅ Dashboard Insights Mode: AI insights compiled successfully");
+  console.log("✅ Dashboard AI Enhancement Mode: KPI context + insights compiled successfully");
   res.status(200).json({
     success: true,
     data: {
+      kpiContext, // 🤖 AI-powered KPI context for enhanced cards
       insights,
       dailyBrief,
       lastUpdated: new Date().toISOString(),
     },
-    message: "Dashboard insights retrieved successfully",
+    message: "Dashboard AI enhancements retrieved successfully",
     timestamp: new Date().toISOString(),
   });
 }

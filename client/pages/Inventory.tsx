@@ -4,6 +4,7 @@ import { useInventoryDataFast, useInventoryInsights, useInventoryTable } from "@
 import { useOrdersData } from "@/hooks/useOrdersData";
 import { LoadingState } from "@/components/ui/loading-spinner";
 import { ErrorDisplay } from "@/components/ui/error-display";
+import { InventoryAILoadingMessage } from "@/components/inventory/InventoryAILoadingMessage";
 import { useSettingsIntegration } from "@/hooks/useSettingsIntegration";
 import type { InventoryItem } from "@/types/api";
 
@@ -116,7 +117,7 @@ export default function Inventory() {
                   <h2 className="text-xl font-semibold text-gray-900">Insights</h2>
                   <span className="text-sm text-gray-500">(Loading...)</span>
                 </div>
-                <LoadingState message="Loading AI insights..." />
+                <InventoryAILoadingMessage />
               </div>
             ) : insightsError ? (
               <div className="space-y-4">

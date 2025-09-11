@@ -40,9 +40,6 @@ export const ReplenishmentAILoadingMessage: React.FC<ReplenishmentAILoadingMessa
               <span>Generating specific procurement strategies and supplier negotiations</span>
             </div>
           </div>
-          <div className="mt-4 text-xs text-orange-500 font-medium">
-            ✨ Optimizing procurement excellence and working capital for BrandBuddy
-          </div>
         </div>
       </div>
     </div>

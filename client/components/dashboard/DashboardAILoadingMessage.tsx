@@ -40,9 +40,6 @@ export const DashboardAILoadingMessage: React.FC<DashboardAILoadingMessageProps>
               <span>Benchmarking performance against industry standards</span>
             </div>
           </div>
-          <div className="mt-4 text-xs text-blue-500 font-medium">
-            ✨ Delivering world-class operational intelligence for BrandBuddy
-          </div>
         </div>
       </div>
     </div>

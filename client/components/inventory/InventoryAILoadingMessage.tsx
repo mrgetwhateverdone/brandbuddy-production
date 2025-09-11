@@ -40,9 +40,6 @@ export const InventoryAILoadingMessage: React.FC<InventoryAILoadingMessageProps>
               <span>Generating specific SKU-level reorder and liquidation strategies</span>
             </div>
           </div>
-          <div className="mt-4 text-xs text-purple-500 font-medium">
-            ✨ Maximizing inventory ROI and cash flow for BrandBuddy
-          </div>
         </div>
       </div>
     </div>

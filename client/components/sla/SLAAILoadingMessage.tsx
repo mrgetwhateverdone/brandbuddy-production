@@ -40,9 +40,6 @@ export const SLAAILoadingMessage: React.FC<SLAAILoadingMessageProps> = ({
               <span>Generating supplier accountability and performance improvement strategies</span>
             </div>
           </div>
-          <div className="mt-4 text-xs text-red-500 font-medium">
-            ✨ Ensuring service excellence and customer satisfaction for BrandBuddy
-          </div>
         </div>
       </div>
     </div>

@@ -40,9 +40,6 @@ export const InboundAILoadingMessage: React.FC<InboundAILoadingMessageProps> = (
               <span>Generating specific workflow optimizations and resource allocation</span>
             </div>
           </div>
-          <div className="mt-4 text-xs text-indigo-500 font-medium">
-            ✨ Maximizing receiving operations efficiency for BrandBuddy
-          </div>
         </div>
       </div>
     </div>

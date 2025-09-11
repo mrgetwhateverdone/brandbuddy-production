@@ -40,9 +40,6 @@ export const OrdersAILoadingMessage: React.FC<OrdersAILoadingMessageProps> = ({
               <span>Generating specific order escalation and resolution workflows</span>
             </div>
           </div>
-          <div className="mt-4 text-xs text-green-500 font-medium">
-            ✨ Optimizing order fulfillment excellence for BrandBuddy
-          </div>
         </div>
       </div>
     </div>

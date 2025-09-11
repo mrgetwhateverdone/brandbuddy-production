@@ -107,10 +107,10 @@ export default function Orders() {
           <>
             {/* KPI Section - Orders Today, At-Risk Orders, Open POs, Unfulfillable SKUs */}
             <div data-tour="orders-kpi">
-              <OrdersKPISection 
-                kpis={data.kpis} 
-                kpiContext={data.kpiContext} 
-                isLoading={isLoading} 
+              <OrdersKPISection
+                kpis={data.kpis}
+                kpiContext={insightsData?.kpiContext || data.kpiContext}
+                isLoading={isLoading}
               />
             </div>
 

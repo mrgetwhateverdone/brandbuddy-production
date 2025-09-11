@@ -9,6 +9,12 @@
 import { logger } from "@/lib/logger";
 import type {
   DashboardData,
+  DashboardKPIContext,
+  OrdersKPIContext,
+  InventoryKPIContext,
+  ReplenishmentKPIContext,
+  InboundKPIContext,
+  SLAKPIContext,
   ProductData,
   ShipmentData,
   AIInsight,
@@ -105,7 +111,7 @@ class InternalApiService {
    * Fetch dashboard AI insights separately for progressive loading
    * NO external API keys - server handles OpenAI calls
    */
-  async getDashboardInsights(): Promise<{ insights: AIInsight[]; dailyBrief: string | null }> {
+  async getDashboardInsights(): Promise<{ kpiContext: DashboardKPIContext; insights: AIInsight[]; dailyBrief: string | null }> {
     try {
       this.apiLogger.info("Fetching dashboard AI insights");
 
@@ -117,7 +123,7 @@ class InternalApiService {
         );
       }
 
-      const result: APIResponse<{ insights: AIInsight[]; dailyBrief: string | null }> = await response.json();
+      const result: APIResponse<{ kpiContext: DashboardKPIContext; insights: AIInsight[]; dailyBrief: string | null }> = await response.json();
 
       if (!result.success || !result.data) {
         throw new Error(result.message || "Failed to fetch dashboard insights");
@@ -328,7 +334,7 @@ class InternalApiService {
    * Fetch orders AI insights separately for progressive loading
    * NO external API keys - server handles OpenAI calls
    */
-  async getOrdersInsights(): Promise<{ insights: AIInsight[] }> {
+  async getOrdersInsights(): Promise<{ kpiContext: OrdersKPIContext; insights: AIInsight[] }> {
     try {
       this.apiLogger.info("Fetching orders AI insights");
 
@@ -340,7 +346,7 @@ class InternalApiService {
         );
       }
 
-      const result: APIResponse<{ insights: AIInsight[] }> = await response.json();
+      const result: APIResponse<{ kpiContext: OrdersKPIContext; insights: AIInsight[] }> = await response.json();
 
       if (!result.success || !result.data) {
         throw new Error(result.message || "Failed to fetch orders insights");
@@ -424,7 +430,7 @@ class InternalApiService {
    * Fetch inventory AI insights separately for progressive loading
    * NO external API keys - server handles OpenAI calls
    */
-  async getInventoryInsights(): Promise<{ insights: AIInsight[] }> {
+  async getInventoryInsights(): Promise<{ kpiContext: InventoryKPIContext; insights: AIInsight[] }> {
     try {
       this.apiLogger.info("Fetching inventory AI insights");
 
@@ -436,7 +442,7 @@ class InternalApiService {
         );
       }
 
-      const result: APIResponse<{ insights: AIInsight[] }> = await response.json();
+      const result: APIResponse<{ kpiContext: InventoryKPIContext; insights: AIInsight[] }> = await response.json();
 
       if (!result.success || !result.data) {
         throw new Error(result.message || "Failed to fetch inventory insights");
@@ -683,7 +689,7 @@ class InternalApiService {
   /**
    * Fetch replenishment AI insights separately for progressive loading
    */
-  async getReplenishmentInsights(): Promise<{ insights: AIInsight[] }> {
+  async getReplenishmentInsights(): Promise<{ kpiContext: ReplenishmentKPIContext; insights: AIInsight[] }> {
     try {
       this.apiLogger.info("Fetching replenishment AI insights");
 
@@ -695,7 +701,7 @@ class InternalApiService {
         );
       }
 
-      const result: APIResponse<{ insights: AIInsight[] }> = await response.json();
+      const result: APIResponse<{ kpiContext: ReplenishmentKPIContext; insights: AIInsight[] }> = await response.json();
 
       if (!result.success || !result.data) {
         throw new Error(result.message || "Failed to fetch replenishment insights");
@@ -777,7 +783,7 @@ class InternalApiService {
   /**
    * Fetch inbound operations AI insights separately for progressive loading
    */
-  async getInboundInsights(): Promise<{ insights: AIInsight[] }> {
+  async getInboundInsights(): Promise<{ kpiContext: InboundKPIContext; insights: AIInsight[] }> {
     try {
       this.apiLogger.info("Fetching inbound operations AI insights");
 
@@ -789,7 +795,7 @@ class InternalApiService {
         );
       }
 
-      const result: APIResponse<{ insights: AIInsight[] }> = await response.json();
+      const result: APIResponse<{ kpiContext: InboundKPIContext; insights: AIInsight[] }> = await response.json();
 
       if (!result.success || !result.data) {
         throw new Error(result.message || "Failed to fetch inbound operations insights");
@@ -864,7 +870,7 @@ class InternalApiService {
   /**
    * Fetch SLA performance AI insights separately for progressive loading
    */
-  async getSLAInsights(): Promise<{ insights: AIInsight[] }> {
+  async getSLAInsights(): Promise<{ kpiContext: SLAKPIContext; insights: AIInsight[] }> {
     try {
       this.apiLogger.info("Fetching SLA performance AI insights");
 
@@ -876,7 +882,7 @@ class InternalApiService {
         );
       }
 
-      const result: APIResponse<{ insights: AIInsight[] }> = await response.json();
+      const result: APIResponse<{ kpiContext: SLAKPIContext; insights: AIInsight[] }> = await response.json();
 
       if (!result.success || !result.data) {
         throw new Error(result.message || "Failed to fetch SLA performance insights");

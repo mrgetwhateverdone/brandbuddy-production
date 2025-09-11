@@ -63,7 +63,7 @@ export default function Dashboard() {
               <div className="tour-content-boundary">
                 <KPISection 
                   kpis={data.kpis} 
-                  kpiContext={data.kpiContext} 
+                  kpiContext={insightsData?.kpiContext || data.kpiContext} 
                   isLoading={isLoading} 
                 />
               </div>

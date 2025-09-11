@@ -32,8 +32,8 @@ export function SLAKPISection({ kpis, kpiContext, isLoading }: SLAKPISectionProp
       value: kpis?.overallSLACompliance,
       unit: "%",
       target: 95,
-      description: kpiContext?.overallSLACompliance.description || "On-time delivery performance",
-      context: kpiContext?.overallSLACompliance.context,
+      description: kpiContext?.overallSLACompliance?.description || "On-time delivery performance",
+      context: kpiContext?.overallSLACompliance?.context,
       icon: TrendingUp,
       colorClass: (kpis?.overallSLACompliance || 0) >= 95 ? "text-green-600" : 
                   (kpis?.overallSLACompliance || 0) >= 85 ? "text-yellow-600" : "text-red-600",
@@ -44,8 +44,8 @@ export function SLAKPISection({ kpis, kpiContext, isLoading }: SLAKPISectionProp
       title: "Avg Delivery Performance",
       value: Math.abs(kpis?.averageDeliveryPerformance || 0),
       unit: (kpis?.averageDeliveryPerformance || 0) < 0 ? " days early" : " days late",
-      description: kpiContext?.averageDeliveryPerformance.description || "Average days early or late",
-      context: kpiContext?.averageDeliveryPerformance.context,
+      description: kpiContext?.averageDeliveryPerformance?.description || "Average days early or late",
+      context: kpiContext?.averageDeliveryPerformance?.context,
       icon: (kpis?.averageDeliveryPerformance || 0) < 0 ? TrendingUp : TrendingDown,
       colorClass: (kpis?.averageDeliveryPerformance || 0) < 0 ? "text-green-600" : "text-red-600",
       bgClass: (kpis?.averageDeliveryPerformance || 0) < 0 ? "bg-green-50" : "bg-red-50"
@@ -53,8 +53,8 @@ export function SLAKPISection({ kpis, kpiContext, isLoading }: SLAKPISectionProp
     {
       title: "At-Risk Shipments",
       value: kpis?.atRiskShipments,
-      description: kpiContext?.atRiskShipments.description || "Currently trending late",
-      context: kpiContext?.atRiskShipments.context,
+      description: kpiContext?.atRiskShipments?.description || "Currently trending late",
+      context: kpiContext?.atRiskShipments?.context,
       icon: AlertTriangle,
       colorClass: (kpis?.atRiskShipments || 0) === 0 ? "text-green-600" : 
                   (kpis?.atRiskShipments || 0) <= 5 ? "text-yellow-600" : "text-red-600",
@@ -65,8 +65,8 @@ export function SLAKPISection({ kpis, kpiContext, isLoading }: SLAKPISectionProp
       title: "Cost of SLA Breaches",
       value: kpis?.costOfSLABreaches,
       format: "currency",
-      description: kpiContext?.costOfSLABreaches.description || "Impact of late/incomplete shipments",
-      context: kpiContext?.costOfSLABreaches.context,
+      description: kpiContext?.costOfSLABreaches?.description || "Impact of late/incomplete shipments",
+      context: kpiContext?.costOfSLABreaches?.context,
       icon: DollarSign,
       colorClass: "text-red-600",
       bgClass: "bg-red-50"

@@ -983,6 +983,48 @@ class InternalApiService {
   }
 
   /**
+   * Generate comprehensive historical analysis for specific inventory item
+   * NO external API keys - server handles OpenAI calls with sales history
+   * 📈 COMPREHENSIVE: Detailed trend analysis and demand forecasting
+   */
+  async generateHistoricalAnalysis(itemData: any): Promise<any> {
+    try {
+      this.apiLogger.info("Requesting historical analysis for inventory item", { sku: itemData.sku });
+
+      const response = await fetch(`${this.baseUrl}/api/historical-sku-analysis`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ itemData }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Historical Analysis API Error: ${response.status} ${response.statusText}`,
+        );
+      }
+
+      const result: APIResponse<any> = await response.json();
+
+      if (!result.success || !result.data) {
+        throw new Error(result.message || "Failed to generate historical analysis");
+      }
+
+      this.apiLogger.info("Historical analysis received securely", { sku: itemData.sku });
+      return result.data;
+    } catch (error) {
+      this.apiLogger.error("Historical analysis API call failed", { 
+        error: error instanceof Error ? error.message : error,
+        sku: itemData.sku 
+      });
+      throw new Error(
+        `Unable to generate historical analysis: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+    }
+  }
+
+  /**
    * Generate AI suggestion for specific replenishment item
    * NO external API keys - server handles OpenAI calls
    * 🎯 FAST: Fast AI model for speed and cost efficiency

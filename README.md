@@ -75,6 +75,7 @@ BrandBuddy is a comprehensive enterprise-grade platform designed to revolutioniz
 ### 🤖 **AI-Powered Intelligence**
 - **Economic Intelligence**: Market trend analysis, supply chain impact assessment
 - **AI Assistant**: Interactive chat support for operational queries
+- **Historical SKU Analysis**: Optional dropdown with sales trends, demand forecasting, and historical insights
 - **Predictive Analytics**: Demand forecasting, inventory optimization
 - **Automated Insights**: Smart alerts, anomaly detection, optimization recommendations
 - **Custom Reports**: AI-generated insights tailored to specific business needs

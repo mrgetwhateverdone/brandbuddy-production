@@ -157,10 +157,6 @@ async function generateInventorySuggestion(itemData: any): Promise<InventoryItem
     throw new Error("OpenAI API key not configured");
   }
 
-  // This part of the code fetches sales history for enhanced business intelligence
-  const salesContext = await fetchSalesHistory(itemData.sku);
-  console.log("📈 Sales context loaded for", itemData.sku);
-
   // This part of the code determines priority based on inventory status and impact
   const getPriority = (item: any): "low" | "medium" | "high" => {
     const totalValue = item.total_value || 0;
@@ -211,17 +207,17 @@ ANALYSIS REQUIREMENTS:
 - Provide concrete business impact assessment based on the actual numbers
 - Generate actionable recommendations using the real supplier names, quantities, and financial data provided
 - Focus on preventing stockouts, optimizing cash flow, and reducing carrying costs
-- Consider the item's status, turnover rate, financial impact, and sales demand patterns in your analysis
+- Consider the item's status, turnover rate, and financial impact in your analysis
 
 OUTPUT REQUIREMENTS:
-- Analysis: 3-4 sentences explaining specific business risks, financial implications, and demand trends
-- Actions: 2-3 concrete next steps with WHO to contact and WHAT to do  
-- Use only the real data provided (suppliers, SKUs, quantities, costs, sales history)
-- No generic advice - everything must be specific to this item's situation and demand patterns
+- Analysis: 3-4 sentences explaining specific business risks and financial implications
+- Actions: 2-3 concrete next steps with WHO to contact and WHAT to do
+- Use only the real data provided (suppliers, SKUs, quantities, costs)
+- No generic advice - everything must be specific to this item's situation
 
 RESPONSE FORMAT (JSON):
 {
-  "analysis": "Specific analysis based on the actual inventory data and sales history provided",
+  "analysis": "Specific analysis based on the actual inventory data provided",
   "actions": ["Action 1 with specific WHO and WHAT based on real data", "Action 2 with specific metrics and deadlines"]
 }`
           },
@@ -240,15 +236,12 @@ TARGET INVENTORY ITEM:
 - Performance: ${daysSinceCreated} days in system, ${turnoverRate}x annual turnover
 - Active: ${itemData.active ? 'Yes' : 'No'}
 
-SALES HISTORY CONTEXT:
-${salesContext}
+Based on this item's specific situation, what are the immediate business risks and what concrete actions should we take today? Consider the financial impact, operational risks, and supply chain implications specific to this SKU's data.
 
-Based on this item's current situation and sales performance history, what are the immediate business risks and what concrete actions should we take today? Consider the financial impact, operational risks, supply chain implications, and demand patterns specific to this SKU's data.
-
-Generate your analysis and recommendations based purely on the numbers, trends, and situation presented.`
+Generate your analysis and recommendations based purely on the numbers and situation presented.`
           }
         ],
-        max_tokens: 350, // Increased for detailed analysis with sales history
+        max_tokens: 300, // Increased for detailed analysis
         temperature: 0.1, // Low temperature for consistent, factual responses
       }),
     });

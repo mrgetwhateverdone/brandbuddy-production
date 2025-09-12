@@ -80,6 +80,71 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 }
 
 /**
+ * This part of the code fetches sales history for enhanced AI analysis
+ * Uses same proven pattern as other Tinybird calls in the codebase
+ */
+async function fetchSalesHistory(sku: string): Promise<string> {
+  const baseUrl = process.env.ORDERS_BASE_URL;
+  const token = process.env.ORDERS_TOKEN;
+
+  if (!baseUrl || !token) {
+    console.warn("⚠️ Sales history: Orders endpoint not configured");
+    return "Sales history unavailable - endpoint not configured";
+  }
+
+  try {
+    // This part of the code fetches sales data for this specific SKU using proven URL pattern
+    const url = `${baseUrl}?token=${token}&sku=${sku}&brand_name=Callahan-Smith`;
+    console.log("📈 Fetching sales history for SKU:", sku);
+    
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.log("⚠️ Sales history fetch failed:", response.status);
+      return "Sales history temporarily unavailable";
+    }
+
+    const result = await response.json();
+    const salesData = result.data || [];
+    
+    if (salesData.length === 0) {
+      return "No sales history found for this SKU";
+    }
+
+    return buildSalesContext(salesData);
+
+  } catch (error) {
+    console.log("⚠️ Sales history error:", error);
+    return "Sales history temporarily unavailable";
+  }
+}
+
+/**
+ * This part of the code processes sales data into useful business intelligence context
+ */
+function buildSalesContext(salesData: any[]): string {
+  // This part of the code sorts sales records chronologically for trend analysis
+  const sorted = salesData.sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
+  
+  if (sorted.length === 0) return "No sales data available";
+  
+  // This part of the code analyzes recent 6-month sales performance
+  const recent6Months = sorted.slice(-6);
+  const totalUnits = recent6Months.reduce((sum, record) => sum + (record.units_sold || 0), 0);
+  const avgMonthlyUnits = recent6Months.length > 0 ? (totalUnits / recent6Months.length).toFixed(1) : "0";
+  
+  const totalRevenue = recent6Months.reduce((sum, record) => sum + (record.revenue || 0), 0);
+  const avgRevenuePer = totalUnits > 0 ? (totalRevenue / totalUnits).toFixed(2) : "0";
+  
+  // This part of the code determines sales trend direction for inventory planning
+  const firstMonth = recent6Months[0];
+  const lastMonth = recent6Months[recent6Months.length - 1];
+  const trend = lastMonth.units_sold > firstMonth.units_sold ? "increasing" : 
+               lastMonth.units_sold < firstMonth.units_sold ? "decreasing" : "stable";
+
+  return `Sales Performance (6-month): ${trend} demand trend, averaging ${avgMonthlyUnits} units/month, $${avgRevenuePer} revenue per unit, total period: ${totalUnits} units sold`;
+}
+
+/**
  * Generate AI suggestion for specific inventory item using GPT-3.5 turbo
  * 🎯 PROVEN PATTERN: Fast, reliable, cost-effective (matches order-suggestion.ts)
  */
@@ -91,6 +156,10 @@ async function generateInventorySuggestion(itemData: any): Promise<InventoryItem
   if (!openaiApiKey) {
     throw new Error("OpenAI API key not configured");
   }
+
+  // This part of the code fetches sales history for enhanced business intelligence
+  const salesContext = await fetchSalesHistory(itemData.sku);
+  console.log("📈 Sales context loaded for", itemData.sku);
 
   // This part of the code determines priority based on inventory status and impact
   const getPriority = (item: any): "low" | "medium" | "high" => {
@@ -142,17 +211,17 @@ ANALYSIS REQUIREMENTS:
 - Provide concrete business impact assessment based on the actual numbers
 - Generate actionable recommendations using the real supplier names, quantities, and financial data provided
 - Focus on preventing stockouts, optimizing cash flow, and reducing carrying costs
-- Consider the item's status, turnover rate, and financial impact in your analysis
+- Consider the item's status, turnover rate, financial impact, and sales demand patterns in your analysis
 
 OUTPUT REQUIREMENTS:
-- Analysis: 3-4 sentences explaining specific business risks and financial implications
-- Actions: 2-3 concrete next steps with WHO to contact and WHAT to do
-- Use only the real data provided (suppliers, SKUs, quantities, costs)
-- No generic advice - everything must be specific to this item's situation
+- Analysis: 3-4 sentences explaining specific business risks, financial implications, and demand trends
+- Actions: 2-3 concrete next steps with WHO to contact and WHAT to do  
+- Use only the real data provided (suppliers, SKUs, quantities, costs, sales history)
+- No generic advice - everything must be specific to this item's situation and demand patterns
 
 RESPONSE FORMAT (JSON):
 {
-  "analysis": "Specific analysis based on the actual inventory data provided",
+  "analysis": "Specific analysis based on the actual inventory data and sales history provided",
   "actions": ["Action 1 with specific WHO and WHAT based on real data", "Action 2 with specific metrics and deadlines"]
 }`
           },
@@ -171,12 +240,15 @@ TARGET INVENTORY ITEM:
 - Performance: ${daysSinceCreated} days in system, ${turnoverRate}x annual turnover
 - Active: ${itemData.active ? 'Yes' : 'No'}
 
-Based on this item's specific situation, what are the immediate business risks and what concrete actions should we take today? Consider the financial impact, operational risks, and supply chain implications specific to this SKU's data.
+SALES HISTORY CONTEXT:
+${salesContext}
 
-Generate your analysis and recommendations based purely on the numbers and situation presented.`
+Based on this item's current situation and sales performance history, what are the immediate business risks and what concrete actions should we take today? Consider the financial impact, operational risks, supply chain implications, and demand patterns specific to this SKU's data.
+
+Generate your analysis and recommendations based purely on the numbers, trends, and situation presented.`
           }
         ],
-        max_tokens: 300, // Increased for detailed analysis
+        max_tokens: 350, // Increased for detailed analysis with sales history
         temperature: 0.1, // Low temperature for consistent, factual responses
       }),
     });

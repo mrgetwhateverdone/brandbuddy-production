@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { X, Loader2, Brain, AlertCircle } from "lucide-react";
+import { X, Loader2, Brain, AlertCircle, ChevronDown, TrendingUp } from "lucide-react";
 import type { InventoryItem } from "@/types/api";
 import { useInventoryItemSuggestionSilent } from "@/hooks/useInventoryData";
+import { internalApi } from "@/services/internalApi";
 
 interface InventoryItemAIExplanationModalProps {
   isOpen: boolean;
@@ -11,6 +12,10 @@ interface InventoryItemAIExplanationModalProps {
 
 export function InventoryItemAIExplanationModal({ isOpen, onClose, item }: InventoryItemAIExplanationModalProps) {
   const [explanation, setExplanation] = useState<string>("");
+  const [showHistoricalAnalysis, setShowHistoricalAnalysis] = useState(false);
+  const [historicalAnalysis, setHistoricalAnalysis] = useState<any>(null);
+  const [historicalLoading, setHistoricalLoading] = useState(false);
+  const [historicalError, setHistoricalError] = useState<string | null>(null);
   const inventoryItemSuggestionMutation = useInventoryItemSuggestionSilent();
 
   // This part of the code cleans up markdown formatting from AI responses
@@ -51,6 +56,42 @@ export function InventoryItemAIExplanationModal({ isOpen, onClose, item }: Inven
       setExplanation("Unable to generate AI explanation at this time. Please try again later.");
     }
   }, [inventoryItemSuggestionMutation.isSuccess, inventoryItemSuggestionMutation.isError, inventoryItemSuggestionMutation.data]);
+
+  // This part of the code resets historical analysis state when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setShowHistoricalAnalysis(false);
+      setHistoricalAnalysis(null);
+      setHistoricalLoading(false);
+      setHistoricalError(null);
+    }
+  }, [isOpen, item?.sku]);
+
+  // This part of the code handles historical analysis dropdown toggle and API call
+  const handleHistoricalAnalysisToggle = async () => {
+    if (!item) return;
+    
+    const newShowState = !showHistoricalAnalysis;
+    setShowHistoricalAnalysis(newShowState);
+    
+    // Only fetch data when opening the dropdown and data not already loaded
+    if (newShowState && !historicalAnalysis && !historicalLoading) {
+      setHistoricalLoading(true);
+      setHistoricalError(null);
+      
+      try {
+        console.log("📈 Fetching historical analysis for SKU:", item.sku);
+        const analysis = await internalApi.generateHistoricalAnalysis(item);
+        setHistoricalAnalysis(analysis);
+        console.log("✅ Historical analysis received:", analysis);
+      } catch (error) {
+        console.error("❌ Historical analysis failed:", error);
+        setHistoricalError(error instanceof Error ? error.message : "Failed to load historical analysis");
+      } finally {
+        setHistoricalLoading(false);
+      }
+    }
+  };
 
   // This part of the code handles backdrop click to close modal
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -222,6 +263,78 @@ export function InventoryItemAIExplanationModal({ isOpen, onClose, item }: Inven
                   <p className="text-sm text-gray-900 mt-1">{item.days_since_created} days</p>
                 </div>
               </div>
+            </div>
+
+            {/* Historical Analysis Dropdown Section */}
+            <div className="border-t border-gray-200 pt-6">
+              <button 
+                onClick={handleHistoricalAnalysisToggle}
+                className="flex items-center justify-between w-full p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              >
+                <div className="flex items-center space-x-3">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                  <span className="font-medium text-blue-900">Historical Analysis</span>
+                </div>
+                <ChevronDown className={`h-4 w-4 text-blue-700 transition-transform duration-200 ${
+                  showHistoricalAnalysis ? 'rotate-180' : ''
+                }`} />
+              </button>
+              
+              {showHistoricalAnalysis && (
+                <div className="mt-4 p-4 bg-blue-25 border-l-4 border-blue-400 rounded-r-lg">
+                  {historicalLoading ? (
+                    <div className="flex items-center space-x-3 py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                      <span className="text-sm text-blue-700 font-medium">Analyzing sales history and trends...</span>
+                    </div>
+                  ) : historicalError ? (
+                    <div className="flex items-center space-x-3 text-amber-800 py-2">
+                      <AlertCircle className="h-5 w-5 text-amber-600" />
+                      <div>
+                        <p className="font-medium">Historical Analysis Unavailable</p>
+                        <p className="text-sm text-amber-700 mt-1">{historicalError}</p>
+                      </div>
+                    </div>
+                  ) : historicalAnalysis ? (
+                    <div className="space-y-4">
+                      {/* Analysis Section */}
+                      <div>
+                        <h4 className="font-semibold text-blue-900 mb-2">Trend Analysis</h4>
+                        <p className="text-sm text-blue-800 leading-relaxed">
+                          {historicalAnalysis.analysis}
+                        </p>
+                      </div>
+                      
+                      {/* Sales Trend */}
+                      <div>
+                        <h4 className="font-semibold text-blue-900 mb-2">Sales Trend</h4>
+                        <p className="text-sm text-blue-800">{historicalAnalysis.salesTrend}</p>
+                      </div>
+                      
+                      {/* Demand Forecast */}
+                      <div>
+                        <h4 className="font-semibold text-blue-900 mb-2">Demand Forecast</h4>
+                        <p className="text-sm text-blue-800">{historicalAnalysis.demandForecast}</p>
+                      </div>
+                      
+                      {/* Recommendations */}
+                      {historicalAnalysis.recommendations && historicalAnalysis.recommendations.length > 0 && (
+                        <div>
+                          <h4 className="font-semibold text-blue-900 mb-2">Historical Recommendations</h4>
+                          <ul className="space-y-1">
+                            {historicalAnalysis.recommendations.map((rec: string, index: number) => (
+                              <li key={index} className="text-sm text-blue-800 flex items-start">
+                                <span className="text-blue-600 mr-2">•</span>
+                                <span>{rec}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </div>
 
             {/* AI Analysis Section */}
